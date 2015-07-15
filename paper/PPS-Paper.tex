@@ -32,35 +32,103 @@ Abstract here.
 
 \section{Introduction}
 
-Overview of what we're doing.
+Quick overview of MCTS success (Go, etc.)
 
-In general, I'd say: don't try to write this paper in order. Start in the middle, writing up some experimental results, or describing the problem we're working with here - whatever seems clearest to you. As you go, it'll become more clear what the intro, abstract, and conclusion should say.
+Quick overview of PPS, contest
 
-Also, don't get stuck on LaTeX! I'm no expert, but I've generally eventually figured out what I need, so please ask me if you're having trouble with something.
+Outline of the rest of the paper...
 
-\section{Related Work}\label{sec:related}
-
-Perspective here - what papers informed the things we've done? How does our work fit into this context?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work In Monte-Carlo Tree Search}
 
 MCTS overview in~\cite{browne2012survey}. I already added this citation in PPS-Paper.bib, as an illustration.
+A quick summary of MCTS - not nearly enough to actually teach someone who doesn't know about it, but just a little to establish the vocabulary we'll be using, make sure the experienced reader is on the same page as us.
 
+UCT aspect of MCTS. Refer to cp values, how many papers don't talk about it, but some do and say there is not significant difference.
+
+MCTS has been applied to a variety of game types that inform our work here. PPS is a single-player game with uncertainty, so lessons to be learned from MCTS applications to games with either of those properties. For single-player games.... For games with uncertainty (choice and chance nodes)... Selection uses UCT for choice nodes, but a random move for chance nodes
+
+pruning was the biggest idea. Summarize some papers about pruning.
+
+simulation strategy greatly improved scores
+
+incorporating domain knowledge was helpful
+
+multithreading - some tried and saw no improvement, but some had success (games with perfect information). Is this true: multithreading is helpful if local maxima are an issue, but not so helpful just to get ``more trials''? Chance nodes keep you from getting stuck also? So don't need the multiple threads. Some also tried restarting to overcome this... Make references here to papers showing that more trials isn't necessarily good.
+
+hardcoding, equivalence classes of moves
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Parameterized Poker Squares}
 
 A summary of PPS
 
-\section{Monte-Carlo Tree Search}
+scoring system examples.
 
-A quick summary of MCTS - not nearly enough to actually teach someone who doesn't know about it, but just a little to establish the vocabulary we'll be using, make sure the experienced reader is on the same page as us.
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MCTS Application to Parameterized Poker Squares}
+
+Mention somewhere: started with that code we found online as a baseline. (Make explicit somehow that it's open source - explicit permission for use.)
 
 Here we outline what special things we wrestled with. What general MCTS modifications we tried independent of PPS, what MCTS modifications we tried specifically for PPS.
 
-\section{Experimental Results}
+standard MCTS with chance and choice nodes. We used "equation 1"   backslash ref brace  closebrace   . Refer back to whatever equation is in the related work section, being explicit that that's what we did.
 
-Describe the experiments precisely, show graphs, tables, etc. as appropriate. Text accompanies these figures, describing notable results. But not trying to explain them here!
+Start with the 5-card score, how it's computed 10 times for the board. This is sufficient for the core MCTS algorithm - all you need is the final score. Q value.
 
-\section{Analysis}
+pruning - remove children that are "clearly bad", but recognizing we just have an estimate, a heuristic, so not just always taking the "best", because our board evaluation is not going to be 100\% accurate, and we have uncertainty! So we need an heuristic. Lots of domain knowledge.
+5 cards: we know exactly.
+4 cards: describe the awesome stuff you guys did. 0-1-2 array, the probabilities
+1,2,3 cards: multipliers
+how 0 cards is rated
+
+So, with that heuristic, how is it used for pruning? Have to get at least some constant times the parent score, but then to avoid pruning everything in some cases, if below 30% of children, then take all above average... Pruning happens for both selection and simulation stages. Pruning only happens on choice nodes.
+
+Another way to modify the system: what does simulation look like? Using the heuristic to make a decision for choice nodes, still random on chance nodes.
+
+didn't really do multithreading - see experimental results for why.
+
+hardcoding of first couple and last couple moves, equivalence classes of moves
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments and Analysis}
+
+%-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{cp experiments}
+
+results
+
+analyze them - how do you explain this? Maybe references back to papers from the related work section.
+
+So we fixed cp at this value, and here's why.
+
+%-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Domain Knowledge and Simulation}
+
+This is where we first put in the domain knowledge.
+We have two kinds of domain knowledge: hardcoding, and board evaluation.
+
+fixed: Simulation improvement using domain knowledge, but no pruning in selection
+variable: totally random simulation versus just choose the best move 
+result: choose best move is better
+
+%-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Pruning Experiments}
+
+fixed: Pruning in selection, with just some "sensible" weights
+variable: pruning just in selection with random sim vs. pruning in selection and simulation vs. pruning in selection and choose best sim.
+result: choose best move is better, and also we see the pruning in selection is helpful
+
+%-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Further Tuning of Domain Knowledge}
+
+fixed: pruning in selection, choose best move for simulation
+variable: the weights for the board score
+result: the best weights we came up with
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{whatevs}
 
 Now we step back and look at bigger picture conclusions from the results, and theorize about why certain things were more effective than others.
 
