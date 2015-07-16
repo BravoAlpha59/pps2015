@@ -26,18 +26,17 @@ Greencastle, IN, USA\\
 \maketitle
 \begin{abstract}
 \begin{quote}
-Abstract here.
+Poker Squares is played on a board of a 5x5 grid with each row and column representing a 5-card poker hand of cards drawn from a 52-card deck. The resultant size of the game's search tree has impeded the development of quality computer players. Monte-Carlo Tree Search is a means of randomly searching a tree space and through simulation scoring visited nodes. We will first show MCTS applied to the Poker Squares Challenge working within it's game time constraints. Secondly, applying domain knowledge within the algorithm produces a competitive player.
 \end{quote}
 \end{abstract}
 
 \section{Introduction}
-
-Bob gives a quick introduction to MCTS with UCT.
-Quick overview of MCTS success (Go, etc.)
+Monte-Carlo Tree Search is a best-first search technique useful in randomly determined observation sequences as a sample from a probability distribution or stochastic simulations~\cite{Dictionary.com2015}. MCTS became notable when first applied to the game of Go which is multi-player game on a 9x9 grid, previously very complicated to computerize. In 2009~\cite{chaslot2008monte}, computer Go players began regularly defeating professional players. MCTS has gone on to find application in SCRABBLE, POKER, SAMEGAME, SKAT and many other types of games. Significant research has occurred with a wide variety of types of problems finding success with MCTS applied such as; connection games, non-zero sum combinatorial games, single-player games, general game playing, real-time games, non-deterministic games, as well as several non-game related applicatoins. (reference)
 
 Quick overview of PPS, contest
+Poker Squares (or Poker Solitaire) draws from a standard 52-card french deck played on a 5x5 grid game board. As a card is drawn it is placed on a cell where the player is attempting to maximize the best possible scoring hands in rows or columns. A game is complete when all the board is full and a score is accumulated for each of the 10 possible Poker hands based upon a given scoring system. Scoring systems can vary among several standard types, randomly generated, or points given for only one hand type. The varied scoring system aspect of this game's definition is what makes it ``parameterized''. Gettysburg College in conjuction with the Association for the Advancement of Artificial Intelligence (AAAI) sponsored this Parameterized Poker Squares (PPS) Challenge. Participants have been invited to construct computer PPS players to be entered into a tournament competing against other submitted players.
 
-Outline of the rest of the paper...
+We will review the methods used to construct our player in this paper first reviewing related work in MCTS, second providing a more thorough description of PPS, next we will show how we applied MCTS to this problem, followed by experiment results with analysis, and finish with our conclusions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work In Monte-Carlo Tree Search}
