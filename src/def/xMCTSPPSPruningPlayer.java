@@ -81,7 +81,12 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
    long endTime = 0;
    Card getPlayCard = Card.getCard(null);
    long millisRemainingFromGetPlayStart = 0;
+   int getPlayTrials;
    
+   //long possibleMovesStartTime;
+   //long possibleMovesEndTime;
+   //long simulateStartTime;
+   //long simulateEndTime;
    
    /**
     * Gets the current state of the game.
@@ -149,18 +154,10 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 	   // Then we do MCTS with that ChoiceNode at the root.
 	   // Return the desired move.
 	   
-	 getPlayCard = Card.getCard(card.toString());
-	 int getPlayTrials = 0;
-	 
-	 if (verbosity > 1) {
-	 	 System.out.println();
-		 System.out.println("Starting getPlay with card: " + card.toString());
-	 	 System.out.println("numPlays from getPlay start = " + numPlays);
-	 	 System.out.println("milliseconds remaining in the game = " + millisRemaining);
-  		 System.out.println("remainingPlays = " + remainingPlays);
-  		 System.out.println("millisPerPlay = " + millisPerPlay);
-  		 System.out.println("curNode's numPlays = " + curNode.nodeGameState.numPlays);
-     }
+	 getPlayTrials = 0;
+	 getPlayCard = card;
+	 //long timeSpentThisCall = System.currentTimeMillis();
+
 	 
 	// match gameDeck to actual play event; in this way, all indices forward from the card contain a list of unplayed cards
 	  	int cardIndex = numPlays;
@@ -189,7 +186,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		 updateGameState(startingGameState); //update, curNode is now choice
   		 
   		activeState = (card.toString() + activeState.substring(2, activeState.length())); //play first card at first position, curNode is a choice node
-  		xMCTSStringGameState firstMoveGameState = new xMCTSStringGameState(activeState, g.getExpectedBoardScore(activeState, numPlays + 1, gameCanDraw, 1), numPlays + 1);
+  		xMCTSStringGameState firstMoveGameState = new xMCTSStringGameState(activeState, g.getExpectedBoardScore(activeState, numPlays + 1, gameCanDraw, 2), numPlays + 1);
   		curNode.createChildNode(firstMoveGameState, gameDeck, gameCanDraw);
   		updateGameState(firstMoveGameState); //update, curNode is once again chance
 	 } 	 
@@ -215,7 +212,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 
 		 //Create child for second possible relevant move (away from first card)
 		 secondMoveState = (activeState.substring(0, 12) + card.toString() + activeState.substring(14, activeState.length()));
-		 xMCTSStringGameState playByItself = new xMCTSStringGameState(secondMoveState, g.getExpectedBoardScore(secondMoveState, numPlays + 1, gameCanDraw, 2), numPlays + 1);
+		 xMCTSStringGameState playByItself = new xMCTSStringGameState(secondMoveState, g.getExpectedBoardScore(secondMoveState, numPlays + 1, gameCanDraw, 5), numPlays + 1);
 //		 for (int i = 0; i < 5; i++) {
 //			 for (int j = 0; j < 5; j++) {
 //				 int pos = i * 10 + j * 2;
@@ -242,10 +239,21 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 	 
   	 else if (numPlays < 23) {
   		 remainingPlays = (NUM_POS - numPlays); // ignores triviality of last few plays to keep a conservative margin for game completion
-  	     millisPerPlay = (millisRemaining) / (remainingPlays + 1); // dividing time evenly with future getPlay() calls
+  	     millisPerPlay = (millisRemaining - 10) / (remainingPlays - 2); // dividing time evenly with future getPlay() calls
   	     startTime = System.currentTimeMillis();
   	     endTime = startTime + millisPerPlay;
   		 millisRemainingFromGetPlayStart = millisRemaining;
+  		 
+  		 if (verbosity > 1) {
+  		 	 System.out.println();
+  			 System.out.println("Starting getPlay with card: " + card.toString());
+  		 	 System.out.println("numPlays from getPlay start = " + numPlays);
+  		 	 System.out.println("milliseconds remaining in the game = " + millisRemaining);
+  	  		 System.out.println("remainingPlays = " + remainingPlays);
+  	  		 System.out.println("millisPerPlay = " + millisPerPlay);
+  	  		 System.out.println("curNode's numPlays = " + curNode.nodeGameState.numPlays);
+  	     }
+  		 
   		 //Change from chance node to choice node
   		 updateGameState(new xMCTSStringGameState(activeState, currentState.expectedValue, numPlays));
   		 
@@ -295,14 +303,25 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		 //      };
   		 //      c.start();    
 
-
+  		//long beginTrialTime = -69;
+  		//long endTrialTime = -178;
   		 while (System.currentTimeMillis() < endTime) //|| a.isAlive() || b.isAlive() || c.isAlive()) //(trials < 4000)
   		 {
   			 if (verbosity > 1) 
   				 System.out.println("Running trial with node " + curNode.toString());
-
+  			 
+  			 //beginTrialTime = System.currentTimeMillis();
+  			 
   			 runTrial(curNode, true, 0);
   			 getPlayTrials++;
+  			 
+  			// endTrialTime = System.currentTimeMillis();
+  			// if ((endTrialTime - beginTrialTime) > 100) {
+  			 //	System.out.println("MS taken for that trial = " + (endTrialTime - beginTrialTime));
+  			 //	System.out.println("Total time left for trials = " + (endTime - System.currentTimeMillis()));
+  			// 	System.out.println("getPlayTrials = " + getPlayTrials + "\n");
+  	 		//}
+
   		 }
 
   		 if (g.gameStatus(currentState) == xMCTSGame.status.ONGOING) {
@@ -323,7 +342,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   	  		 curNode = best;
   		 }
   		 else {//neither move was pruned
-  			 System.out.println("two children remaining");
+  			// System.out.println("two children remaining");
   		 String[] possibleMoves = new String[2];
   		 int index = 0;
   		// System.out.println("curNode = " + curNode.getState());
@@ -410,6 +429,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		 //System.out.println("curNode = " + curNode.getState().toString());
   	 }
 	 
+//	 System.out.println("Total getPlay Trials = " + getPlayTrials);
 //		 for (int i = 0; i < 5; i++) {//row
 //  			 for (int j = 0; j < 5; j++) {//column
 //  				 int position = i * 10 + j * 2;
@@ -426,6 +446,8 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 		 System.out.println("Done thinking. Chosen Row: " + temp[0] + " Column: " + temp[1]);
 	 }
       
+	 long timeAtEndOfCall = System.currentTimeMillis();
+	 //System.out.println("MS spent in this call to getPlay = " + (timeAtEndOfCall - timeSpentThisCall));
       totalSingleGameTrials += getPlayTrials;
       if (numPlays == 25) {
     	  System.out.println(); //blank line
@@ -465,63 +487,122 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
     * @param myTurn Whether it is this players turn or not.
     * @return The status of the trial.
     */
-   private float runTrial(xMCTSPruningNode node, boolean myTurn, int level)
-   {
-	  String tab = "";
-	  for (int i = 0; i < level; i++) {
-		  tab += "\t";
-	  }
-      float returnScore;
-      node.visit();
-      if (!node.isLeaf()) {
-         //selection
-    	 if (verbosity > 0)
-    		 System.out.println(tab + "Selecting");
-    	 
-         returnScore = runTrial(node.bestSelection(myTurn, tab), myTurn, level + 1);
-      } else {
-         
-         if (verbosity > 1)
-        	 System.out.println(tab + "Node being simulated from: " + node.getState());
-            
-//         int simPlays = node.getState().numPlays;
-         //System.out.println(tab + "numPlays from this trial's node = " + node.getState().numPlays);
-         if (node.choiceNode()) {
-             //expansion
-        	 if (verbosity > 0)
-        		 System.out.println(tab + "Choice Expanding");
-        	 ArrayList<xMCTSStringGameState> possibleMoves = g.getPossibleMoves(node.getState(), node.nodeCanDraw);
-        	 ((xMCTSPruningChoiceNode) node).choiceExpand(possibleMoves, tab, false); //to be in this if it must be a choice node
-        	 
-             //simulation
-             if (verbosity > 0)
-            	 System.out.println(tab + "Simulating");
-             
-        	 returnScore = simulateFrom(node.getState(), false, tab, java.util.Arrays.copyOf(node.nodeDeck, node.nodeDeck.length), java.util.Arrays.copyOf(node.nodeCanDraw, node.nodeCanDraw.length)); // copy(node.getDeck)
-         }
-         else {
-             //expansion
-        	 if (verbosity > 0)
-        		 System.out.println(tab + "Chance Expanding");
-        	 ((xMCTSPruningChanceNode) node).chanceExpand(tab, false);//to be in this else it must be a chance node
-        	 
-             //simulation
-             if (verbosity > 0)
-            	 System.out.println(tab + "Simulating");
-             
-        	 returnScore = simulateFrom(node.getState(), true, tab, java.util.Arrays.copyOf(node.nodeDeck, node.nodeDeck.length), java.util.Arrays.copyOf(node.nodeCanDraw, node.nodeCanDraw.length)); // copy(node.getDeck)
-         }
-            
-      }
-      //backpropogation
-      node.setScore(node.getScore() + returnScore);
-      if (verbosity > 0)
-      	  System.out.println(tab + "Backpropogating from node " + node.toString());
-      
-      if (verbosity > 2)
-    	  System.out.println(tab + "Adding score of " + returnScore + " to this node. Score is now " + node.getScore());
-      
-      return returnScore;
+   private float runTrial(xMCTSPruningNode node, boolean myTurn, int level)	{
+	   // long runTrialStartTime = System.currentTimeMillis();
+	   String tab = "";
+	   for (int i = 0; i < level; i++) {
+		   tab += "\t";
+	   }
+	   float returnScore;
+	   node.visit();
+	   if (g.gameStatus(node.getState()) == xMCTSGame.status.ONGOING) {
+		   if (!node.isLeaf()) {
+			   //selection
+			   if (verbosity > 0)
+				   System.out.println(tab + "Selecting");
+
+			   xMCTSPruningNode nextChild = node.bestSelection(myTurn, tab);
+			  // long recCallStartTime = System.currentTimeMillis();
+			   returnScore = runTrial(nextChild, myTurn, level + 1);
+			   //long recCallEndTime = System.currentTimeMillis();
+			   //if ((recCallEndTime - recCallStartTime) > 100) {
+				//   System.out.println("Time in recursive calls to runTrial = " + (recCallEndTime - recCallStartTime));
+				//   System.out.println("that call's level = " + (level + 1));
+				//   System.out.println("that trial started at node " + nextChild);
+			   //}
+		   } else {
+
+			   if (verbosity > 1)
+				   System.out.println(tab + "Node being simulated from: " + node.getState());
+
+			   //         int simPlays = node.getState().numPlays;
+			   //System.out.println(tab + "numPlays from this trial's node = " + node.getState().numPlays);
+			   if (node.choiceNode()) {
+				   //expansion
+				   if (verbosity > 0)
+					   System.out.println(tab + "Choice Expanding");
+
+				   //possibleMovesStartTime = System.currentTimeMillis();
+				   ArrayList<xMCTSStringGameState> possibleMoves = g.getPossibleMoves(node.getState(), node.nodeCanDraw);
+				  // possibleMovesEndTime = System.currentTimeMillis();
+				   //if ((possibleMovesEndTime - possibleMovesStartTime) > 100) {
+					//   System.out.println("Time in this call to getPossibleMoves = " + (possibleMovesEndTime - possibleMovesStartTime));
+					//   System.out.println("node simulated from = " + node.getState().toString());
+				   //}
+
+				   //if (curNode.getState().numPlays == 21)
+				   //	System.out.println(tab + "this getPossibleMoves run time = " + (possibleMovesEndTime - possibleMovesStartTime));
+				   //long expandStartTime = System.currentTimeMillis();
+				   ((xMCTSPruningChoiceNode) node).choiceExpand(possibleMoves, tab, false); //to be in this if statement it must be a choice node
+				   //long expandEndTime = System.currentTimeMillis();
+				   //if ((expandEndTime - expandStartTime) > 100) {
+					//   System.out.println("Time in this call to choiceExpand = " + (expandEndTime - expandStartTime));
+					//   System.out.println("node being expanded = " + node.getState().toString());
+				   //}
+
+				   //simulation
+				   if (verbosity > 0)
+					   System.out.println(tab + "Simulating");
+
+				   //simulateStartTime = System.currentTimeMillis();
+				   returnScore = simulateFrom(node.getState(), false, tab, java.util.Arrays.copyOf(node.nodeDeck, node.nodeDeck.length), java.util.Arrays.copyOf(node.nodeCanDraw, node.nodeCanDraw.length)); // copy(node.getDeck)
+				   //simulateEndTime = System.currentTimeMillis();
+				   //if ((simulateEndTime - simulateStartTime) > 100) {
+					//   System.out.println("Time in this originally choice simulation = " + (simulateEndTime - simulateStartTime));
+					//   System.out.println("node simulated from = " + node.getState().toString());
+				  // }
+			   }
+			   else {
+				   //expansion
+				   if (verbosity > 0)
+					   System.out.println(tab + "Chance Expanding");
+				   //long expandStartTime = System.currentTimeMillis();
+				   ((xMCTSPruningChanceNode) node).chanceExpand(tab, false);//to be in this else it must be a chance node
+				   //long expandEndTime = System.currentTimeMillis();
+				   //if ((expandEndTime - expandStartTime) > 100) {
+					//   System.out.println("Time in this call to chanceExpand = " + (expandEndTime - expandStartTime));
+					//   System.out.println("node expanded = " + node.getState().toString());
+				   //}
+
+				   //simulation
+				   if (verbosity > 0)
+					   System.out.println(tab + "Simulating");
+
+				   //simulateStartTime = System.currentTimeMillis();
+				   returnScore = simulateFrom(node.getState(), true, tab, java.util.Arrays.copyOf(node.nodeDeck, node.nodeDeck.length), java.util.Arrays.copyOf(node.nodeCanDraw, node.nodeCanDraw.length)); // copy(node.getDeck)
+				   //simulateEndTime = System.currentTimeMillis();
+				   //if ((simulateEndTime - simulateStartTime) > 100) {
+				//	   System.out.println("Time in this originally chance simulation = " + (simulateEndTime - simulateStartTime));
+					//   System.out.println("node simulated from = " + node.getState().toString());
+				   //}
+			   }
+
+		   }
+		   //backpropogation
+		   node.setScore(node.getScore() + returnScore);
+		   if (verbosity > 0)
+			   System.out.println(tab + "Backpropogating from node " + node.toString());
+
+		   if (verbosity > 2)
+			   System.out.println(tab + "Adding score of " + returnScore + " to this node. Score is now " + node.getScore());
+
+		   //if (curNode.getState().numPlays == 21)
+		   //	System.out.println(tab + "this trial's run time = " + (runTrialEndTime - runTrialStartTime));
+	   }
+	   else {
+		   for (int i = 0; i < 5; i++) {//row
+			   for (int j = 0; j < 5; j++) {//column
+				   int position = i * 10 + j * 2;
+				   String temp = node.getState().toString().substring(position, position + 2);
+				   grid[i][j] = Card.getCard(temp);
+			   }
+		   }
+		   //System.out.println("Finished game");
+		   //pointSystem.printGrid(grid);
+		   returnScore = pointSystem.getScore(grid);
+		   
+	   }
+	   return returnScore;
    }
 
    /**

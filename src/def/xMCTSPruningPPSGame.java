@@ -48,7 +48,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	protected PokerSquaresPointSystem pointSystem; // point system
 	public long totalChildrenPruned = 0;
 	protected final double ONE_CARD_WEIGHT = (1.0/10.0);
-	protected final double TWO_CARD_WEIGHT = (3.0/10.0);
+	protected final double TWO_CARD_WEIGHT = (2.5/10.0);
 	protected final double THREE_CARD_WEIGHT = (8.5/10.0);
 	protected final double FOUR_CARD_WEIGHT = 1.0;
 	protected final double FIVE_CARD_WEIGHT = 1.0;
@@ -116,7 +116,13 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 //							pointSystem.printGrid(grid);
 //							System.out.println();
 							
+							//long boardScoreStartTime = System.currentTimeMillis();
 							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw, 5);
+							//long boardScoreEndTime = System.currentTimeMillis();
+						 	// if ((boardScoreEndTime - boardScoreStartTime) > 100) {
+						 	//	 System.out.println("Time in this call to getExpectedBoardScore (from posMoves) = " + (boardScoreEndTime - boardScoreStartTime));
+						 	//	 System.out.println("board called on = " + gameState.toString());
+						 	// }
 							//System.out.println("this child's expected value in possibleMoves = " + boardExpectedValue);
 							//System.out.println("numPlays in possibleMoves (child) = " + childNumPlays);
 							scoreMean += boardExpectedValue;
@@ -201,9 +207,9 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			//	         }
 			//totalPercentPruned = ((totalPercentPruned * timesCalled) + percentPruned)/timesCalled;
 		}
-		//		else {
-		//	    	  System.out.println("This game has already ended");
-		//		}
+		//else {
+		//	  System.out.println("This game has already ended");
+		//}
 		//System.out.println("Parent's Expected Value: " + gameState.expectedValue);
 		//System.out.println("Threshold = " + gameState.expectedValue * DELTA);
 		//System.out.println("Total children pruned = " + totalChildrenPruned);
@@ -262,7 +268,13 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 //							pointSystem.printGrid(grid);
 //							System.out.println();
 							
+							//long boardScoreStartTime = System.currentTimeMillis();
 							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw, 5);
+							// long boardScoreEndTime = System.currentTimeMillis();
+						 	 //if ((boardScoreEndTime - boardScoreStartTime) > 100) {
+						 	//	 System.out.println("Time in this call to getExpectedBoardScore (from simMove) = " + (boardScoreEndTime - boardScoreStartTime));
+						 	//	 System.out.println("board called on = " + gameState.toString());
+						 	// }
 							//System.out.println("this child's expected value = " + boardExpectedValue);
 							//scoreMean += boardExpectedValue;
 							//	                  devCalculate.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, gameState.numPlays + 1));
@@ -360,7 +372,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 
 		for (int childCol = 0; childCol < numHands*2; childCol+= 2) {//for each vertical hand in this potential child state
-		//	System.out.println("Column " + ((childCol / 2)+1));
+			//System.out.println("Column " + ((childCol / 2)+1));
 			handExpectedValue = getExpectedHandScore(new Card[] {Card.getCard(possibleMove.substring(childCol, childCol+2)), 
 																 Card.getCard(possibleMove.substring(childCol+10, childCol+12)),
 																 Card.getCard(possibleMove.substring(childCol+20, childCol+22)), 

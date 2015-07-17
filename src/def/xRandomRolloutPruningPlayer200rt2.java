@@ -123,7 +123,13 @@ public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
 //  	 pointSystem.printGrid(grid);
       
 //      System.out.println("Simulating Possible Moves");
+     // long simMovesStartTime = System.currentTimeMillis();
       ArrayList<xMCTSStringGameState> moves = g.getBestSimMove(simState, simCanDraw);
+     // long simMovesEndTime = System.currentTimeMillis();
+ 	// if ((simMovesEndTime - simMovesStartTime) > 100) {
+ 	//	 System.out.println("Time in this call to getBestSimMove = " + (simMovesEndTime - simMovesStartTime));
+ 	//	 System.out.println("node currently simulated = " + gameState.toString());
+ 	 //}
 	  int chosenMoveIndex = rand.nextInt(moves.size()); //the new board state
       if (verbosity > 3)
     	  System.out.println(tab + moves.get(chosenMoveIndex).toString());
@@ -144,6 +150,9 @@ public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
 	   //System.out.println("setting point system");
 	   this.pointSystem = pointSystem;
 	   g = new xMCTSPruningPPSGame(pointSystem);
+	  // if (true) {
+		//   RampUp allocate = new RampUp();
+	   //}
 	   System.gc();
    }
    

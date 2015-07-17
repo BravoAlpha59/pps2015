@@ -410,6 +410,6 @@ public class PokerSquares {
 //		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 //		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 		//systems.add(PokerSquaresPointSystem.getNegativePointSystem());
-		PokerSquares.playTournament(players, systems, 20, 0L); // use fewer games per system for faster testing
+		PokerSquares.playTournament(players, systems, 200, 0L); // use fewer games per system for faster testing
 	}
 }

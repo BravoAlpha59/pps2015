@@ -47,55 +47,69 @@ public class test {
 		
 		// this begins a scoring test set of hands and board/state (order is important)
 	
-	state = "KS9H5CKHKD" +
-			"TSTDTC4C7D" + 
-			"9DAHAC6H6C" + 
-			"QD4S4H4DQS" +
-			"__8D3S8C3D" +
-			"9H";
-numPlays = 24;
-System.out.println("\n\nnumPlays = " + numPlays);
-//System.out.println("Active card = " + state.substring(state.length() - 2, state.length()));
-setAlreadyPlayed(state);
-canDraw = setCanDraw(alreadyPlayed);
-testState = new xMCTSStringGameState(state, player.getExpectedBoardScore(state, numPlays, canDraw, 5), numPlays);
-//	
-setHands(state);
-player.pointSystem.printGrid(grid);
-
-
-state = "KS__5CKHKD" +
-		"TSTDTC4C7D" + 
-		"9DAHAC6H6C" + 
-		"QD4S4H4DQS" +
-		"9H8D3S8C3D" +
-		"9H";
-numPlays = 24;
-System.out.println("\n\nnumPlays = " + numPlays);
-//System.out.println("Active card = " + state.substring(state.length() - 2, state.length()));
-setAlreadyPlayed(state);
-canDraw = setCanDraw(alreadyPlayed);
-testState = new xMCTSStringGameState(state, player.getExpectedBoardScore(state, numPlays, canDraw, 5), numPlays);
+		state = "6S3H______" +
+				"__________" + 
+				"__________" + 
+				"__________" +
+				"__________" +
+				"4H";
+numPlays = 1;
+testPlayer.setPointSystem(PokerSquaresPointSystem.getAmericanPointSystem(), 1000);
+testPlayer.init();
+testPlayer.getPlay(Card.getCard("6S"), 30000);
+testPlayer.getPlay(Card.getCard("3H"), 30000);
+testPlayer.getPlay(Card.getCard("4H"), 29994);
+		
+		
+//	state = "KS9H5CKHKD" +
+//			"TSTDTC4C7D" + 
+//			"9DAHAC6H6C" + 
+//			"QD4S4H4DQS" +
+//			"__8D3S8C3D" +
+//			"9H";
+//numPlays = 24;
+//System.out.println("\n\nnumPlays = " + numPlays);
+////System.out.println("Active card = " + state.substring(state.length() - 2, state.length()));
+//setAlreadyPlayed(state);
+//canDraw = setCanDraw(alreadyPlayed);
+//testState = new xMCTSStringGameState(state, player.getExpectedBoardScore(state, numPlays, canDraw, 5), numPlays);
+////	
+//setHands(state);
+//player.pointSystem.printGrid(grid);
 //
-setHands(state);
-player.pointSystem.printGrid(grid);
-
-state = "KS__5CKHKD" +
-		"TSTDTC4C7D" + 
-		"9DAHAC6H6C" + 
-		"QD4S4H4DQS" +
-		"__8D3S8C3D" +
-		"9H";
-numPlays = 23;
-System.out.println("numPlays = " + numPlays);
-//System.out.println("Active card = " + state.substring(state.length() - 2, state.length()));
-setAlreadyPlayed(state);
-canDraw = setCanDraw(alreadyPlayed);
-testState = new xMCTSStringGameState(state, player.getExpectedBoardScore(state, numPlays, canDraw, 5), numPlays);
 //
-setHands(state);
-player.pointSystem.printGrid(grid);
-player.getPossibleMoves(testState, canDraw);
+//state = "KS__5CKHKD" +
+//		"TSTDTC4C7D" + 
+//		"9DAHAC6H6C" + 
+//		"QD4S4H4DQS" +
+//		"9H8D3S8C3D" +
+//		"9H";
+//numPlays = 24;
+//System.out.println("\n\nnumPlays = " + numPlays);
+////System.out.println("Active card = " + state.substring(state.length() - 2, state.length()));
+//setAlreadyPlayed(state);
+//canDraw = setCanDraw(alreadyPlayed);
+//testState = new xMCTSStringGameState(state, player.getExpectedBoardScore(state, numPlays, canDraw, 5), numPlays);
+////
+//setHands(state);
+//player.pointSystem.printGrid(grid);
+//
+//state = "KS__5CKHKD" +
+//		"TSTDTC4C7D" + 
+//		"9DAHAC6H6C" + 
+//		"QD4S4H4DQS" +
+//		"__8D3S8C3D" +
+//		"9H";
+//numPlays = 23;
+//System.out.println("numPlays = " + numPlays);
+////System.out.println("Active card = " + state.substring(state.length() - 2, state.length()));
+//setAlreadyPlayed(state);
+//canDraw = setCanDraw(alreadyPlayed);
+//testState = new xMCTSStringGameState(state, player.getExpectedBoardScore(state, numPlays, canDraw, 5), numPlays);
+////
+//setHands(state);
+//player.pointSystem.printGrid(grid);
+//player.getPossibleMoves(testState, canDraw);
 		
 		// intuition 23
 		

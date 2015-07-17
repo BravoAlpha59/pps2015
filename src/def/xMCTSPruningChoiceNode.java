@@ -75,10 +75,10 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
       {
          expanded = true;
          //nextMoves = new ArrayList<xMCTSChanceNode>();
-         Card[] deckCopy = java.util.Arrays.copyOf(nodeDeck, nodeDeck.length);
-         boolean[] canDrawCopy = java.util.Arrays.copyOf(nodeCanDraw, nodeCanDraw.length);
          nextMoves = new ArrayList<xMCTSPruningNode>();
          for (xMCTSStringGameState s : possibleMoves) {
+            Card[] deckCopy = java.util.Arrays.copyOf(nodeDeck, nodeDeck.length);
+            boolean[] canDrawCopy = java.util.Arrays.copyOf(nodeCanDraw, nodeCanDraw.length);
             nextMoves.add(new xMCTSPruningChanceNode(s, deckCopy, verbosity, constant, canDrawCopy));
          }
       }
