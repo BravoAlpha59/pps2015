@@ -31,7 +31,7 @@ Poker Squares is played on a board of a 5x5 grid with each row and column repres
 \end{abstract}
 
 \section{Introduction}
-Monte-Carlo Tree Search is a best-first search technique useful in randomly determined observation sequences as a sample from a probability distribution or stochastic simulations~\cite{Dictionary.com2015}. MCTS became notable when first applied to the game of Go which is multi-player game on a 9x9 grid, previously very complicated to computerize. In 2009~\cite{chaslot2008monte}, computer Go players began regularly defeating professional players. MCTS has gone on to find application in SCRABBLE, POKER, SAMEGAME, SKAT and many other types of games. Significant research has occurred with a wide variety of types of problems finding success with MCTS applied such as; connection games, non-zero sum combinatorial games, single-player games, general game playing, real-time games, non-deterministic games, as well as several non-game related applicatoins. (reference)
+Monte-Carlo Tree Search is a best-first search technique useful in randomly determined observation sequences as a sample from a probability distribution or stochastic simulations\footnote{A definition of stochastic (Dictionary.com)}. MCTS became notable when first applied to the game of Go which is multi-player game on a 9x9 grid, previously very complicated to computerize. In 2009~\cite{chaslot2008monte}, computer Go players began regularly defeating professional players. MCTS has gone on to find application in SCRABBLE, POKER, SAMEGAME, SKAT and many other types of games. Significant research has occurred with a wide variety of types of problems finding success with MCTS applied such as; connection games, non-zero sum combinatorial games, single-player games, general game playing, real-time games, non-deterministic games, as well as several non-game related applicatoins. (reference)
 
 Quick overview of PPS, contest
 Poker Squares (or Poker Solitaire) draws from a standard 52-card french deck played on a 5x5 grid game board. As a card is drawn it is placed on a cell where the player is attempting to maximize the best possible scoring hands in rows or columns. A game is complete when all the board is full and a score is accumulated for each of the 10 possible Poker hands based upon a given scoring system. Scoring systems can vary among several standard types, randomly generated, or points given for only one hand type. The varied scoring system aspect of this game's definition is what makes it ``parameterized''. Gettysburg College in conjuction with the Association for the Advancement of Artificial Intelligence (AAAI) sponsored this Parameterized Poker Squares (PPS) Challenge. Participants have been invited to construct computer PPS players to be entered into a tournament competing against other submitted players.
@@ -67,6 +67,7 @@ scoring system examples.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MCTS Application to Parameterized Poker Squares}
+{\bf SAB: Let's discuss the pruning: big picture idea. Then start writing up the 1, 2, 3, 4, and 5 card calculcations you guys did - how to compute score for each, how that's used in pruning, including the backup to make sure we have children to consider.}
 
 Mention somewhere: started with that code we found online as a baseline. (Make explicit somehow that it's open source - explicit permission for use.)
 
@@ -92,6 +93,8 @@ hardcoding of first couple and last couple moves, equivalence classes of moves
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments and Analysis}
+
+{\bf SAB: Let's start writing up formally the best results. That is, the ones that are clearly the most interesting, that will clearly make it into the final paper. (1,2,3 card weights, for example.)}
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{cp experiments}
@@ -144,18 +147,22 @@ Conclusion 2 - Hard coding of moves. Some moves in Poker Squares can boil down t
 	24th move (2nd to last, two spots remaining on the board) - it is very easy to tell what kind of effect a card will have on the board at this stage in the game, so use the decision making algorithm to determine which of the two spots is better
 	25th (final) move - only one spot remaining, no need to do any decision making or MCTS.
 We saw slight increases in score with each hard-coded move. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small.
+{\bf SAB: Setting aside the issue of occasionally running out of time, is there a score improvement when comparing using hardcoding (and therefore having more time for other moves) versus not using hardcoding? Or did it not seem to make a difference? Why do you think this is?}
 
 Conclusion 3 - Multi threading. Having multiple (four) threads all running on/building the same tree gave us more MCTS trials overall, but did not result in a significant increase in score. Having multiple threads building separate trees and then comparing the results also gave more trials, but resulted in a decrease in score.
-	Multiple threads on the same tree - having more MCTS trials did not help significantly because, although having more trials leads to more information about the game space, the game space of Poker Squares is so large that even a few million more trials does not have much impact.
-	Multiple threads with their own tree - running multiple threads seemed to reduce the individual efficiency  (less trials run in the same amount of time, so fewer nodes are visited and simulated from) of any one thread. This isn't a major deal when running the threads on the same tree, as it does ultimately result in a significant net increase in overall trials. However, when each thread is running on its own tree and at reduced efficiency, each tree has less information on it, so the four best moves found can be less informed than in an individual thread running at higher efficiency. 
+	Multiple threads on the same tree - having more MCTS trials did not help significantly because, although having more trials leads to more information about the game space, the game space of Poker Squares is so large that even a few million more trials does not have much impact. {\bf SAB: How large is the game space? Do we have an idea of what percentage of it can be considered by 1 thread, versus 4 threads? And how are you measuring percentage given that some nodes are visited many times in MCTS, while others are visited even just once?}
+	Multiple threads with their own tree - running multiple threads seemed to reduce the individual efficiency  (less trials run in the same amount of time, so fewer nodes are visited and simulated from) of any one thread. {/bf SAB: What do you mean? Fewer nodes visited?} This isn't a major deal when running the threads on the same tree, as it does ultimately result in a significant net increase in overall trials. However, when each thread is running on its own tree and at reduced efficiency, each tree has less information on it, so the four best moves found can be less informed than in an individual thread running at higher efficiency. 
 
 Conclusion 4 - discussed in conclusion 2 (hard coding)
 
-Conclusion 5 - Cp values, balancing exploration and exploitation
+Conclusion 5 - Cp values, balancing exploration and exploitation {\bf SAB: Yep, give some explanation of this. We should explain why it didn't seem to have much effect, perhaps in light of the size of the state space? Or something else too?}
 
-Conclusion 6 - Squashing minimum and maximum values for a scoring system in order to keep consistency between them
+Conclusion 6 - Squashing minimum and maximum values for a scoring system in order to keep consistency between them{\bf SAB: May need to discuss this in the MCTS Application to PPS section. What was done... Then if there are any interesting results to discuss about this step specifically here, we can include them.}
 
 Ran a test tournament (tourney3) with multiple versions of player (and a depth2 greedy player as a baseline), each with a different C value for the UCT formula. player 1 has a C value of $\frac{1}{\sqrt{2}}$, player 200 has a C value of $\frac{200}{\sqrt{2}}$, and player 725 has a C value of $\frac{725}{\sqrt{2}}$. At the time of tourney3, the UCT formula code was as follows: 
+{\bf SAB: These kind of formulas would be earlier in the paper, like in MCTS Application to PPS section. The different cp values used would be described in the results section. In analysis, here, we'd explain *why* the results worked out in the way they did.}
+
+{\bf SAB: We should make this a little less code-like. No "get", no "Float.MIN\_VALUE". Also, use $log_{10}$ - note the braces grouping the 1 and 0 together as subscripts, compared to $log_(10)$ which makes only ( a subscript. And the tiny command probably isn't a good idea. We just need shorter variable names, but not so short that their meaning isn't fairly clear.}
 
 \tiny
 \begin{equation}
@@ -187,6 +194,7 @@ Try different formulas, keeping our constants and scoring system the same
 Try different constants, keeping our formula and scoring system the same
 Try different scoring systems (squash the scores), keeping our formula and constants the same
 Then mix and match different options until we find something that we believe works best.
+{\bf SAB: Yep, this would all go earlier in the paper - maybe we need to add an "experimental setup" section just before Experimental Results. Or put at beginning of experimental results. This is where we explain what experiments we ran, and then what the results are.}
 
 Squashing the score:  $\frac{curScore - minScore}{maxScore - minScore}$. Basically, making your score a percentage on the range between the min and the max. For American, this theoretical range is 0-725, though we will run into problems in which all of the values are squished close to one another around wherever 100 lands on that scale, since we are not yet consistently scoring above that. We would also run into problems with squashing down the line when we wanted to reintroduce the random, particularly including negative values. The easiest, but not most accurate, way to do this would be to find the lowest score, multiply it by 10 (as if you had scored it 10 times), and set that to minScore, and do the same with the highest score for maxScore. The accuracy problems arise when the low or high scoring hand is not one that can actually be replicated 10 times on the same board. A more accurate yet more costly squash would have to keep track of how many times each hand could be made and which hands could be made together, then add the 10 top scoring and 10 bottom scoring possible hands together. (For example if you used the first method for the American Scoring System you would get 100 (for a royal flush) * 10 = 1000 as the max score, but as you cannot get 10 royal flushes the highest theoretical score with the American System is 725, which is 4 royal flushes, 5 4s of a kind, and a straight flush). Though maybe the fact that squashing in this way is computationally taxing is why they’re giving us extra time at the beginning? We could use it to perform this complex math and be ready to have as accurate of a scoring system as possible by the time the game starts. 
 
