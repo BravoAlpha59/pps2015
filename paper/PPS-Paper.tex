@@ -5,6 +5,7 @@
 \usepackage{times}
 \usepackage{helvet}
 \usepackage{courier}
+\usepackage{graphicx}
 \frenchspacing
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
@@ -31,24 +32,63 @@ Poker Squares is played on a board of a 5x5 grid with each row and column repres
 \end{abstract}
 
 \section{Introduction}
-Monte-Carlo Tree Search is a best-first search technique useful in randomly determined observation sequences as a sample from a probability distribution or stochastic simulations\footnote{A definition of stochastic (Dictionary.com)}. MCTS became notable when first applied to the game of Go which is multi-player game on a 9x9 grid, previously very complicated to computerize. In 2009~\cite{chaslot2008monte}, computer Go players began regularly defeating professional players. MCTS has gone on to find application in SCRABBLE, POKER, SAMEGAME, SKAT and many other types of games. Significant research has occurred with a wide variety of types of problems finding success with MCTS applied such as; connection games, non-zero sum combinatorial games, single-player games, general game playing, real-time games, non-deterministic games, as well as several non-game related applicatoins. (reference)
+Monte-Carlo Tree Search (MCTS) is a best-first search algorithm utilizing random sampling of a given domain in a decision space used to construct a tree from it's results. MCTS became notable when first applied to the game of Go which is multi-player game on a 9x9 grid, previously very complicated to computerize. In 2009~\cite{chaslot2008monte}, computer Go players began regularly defeating professional players. MCTS has gone on to useful applications in SCRABBLE, POKER, SAMEGAME, SKAT and many other types of games. Significant research has occurred with a wide variety of types of problems finding success with MCTS applied such as; connection games, non-zero sum combinatorial games, single-player games, general game playing, real-time games, non-deterministic games, as well as several non-game related applications and planning problems~\cite{browne2010monte}.
 
-Quick overview of PPS, contest
-Poker Squares (or Poker Solitaire) draws from a standard 52-card french deck played on a 5x5 grid game board. As a card is drawn it is placed on a cell where the player is attempting to maximize the best possible scoring hands in rows or columns. A game is complete when all the board is full and a score is accumulated for each of the 10 possible Poker hands based upon a given scoring system. Scoring systems can vary among several standard types, randomly generated, or points given for only one hand type. The varied scoring system aspect of this game's definition is what makes it ``parameterized''. Gettysburg College in conjuction with the Association for the Advancement of Artificial Intelligence (AAAI) sponsored this Parameterized Poker Squares (PPS) Challenge. Participants have been invited to construct computer PPS players to be entered into a tournament competing against other submitted players.
+Poker Squares (or Poker Solitaire) draws from a standard 52-card french deck played on a 5x5 grid game board. As a card is drawn it is placed on a cell where the player is attempting to maximize the best possible scoring hands in rows or columns. A game is complete when all of the board is full and a score is accumulated for each of the 10 possible Poker hands based upon a given scoring system. Scoring systems can vary among several standard types, randomly generated, or points given for only one hand type. The varied scoring system aspect of this game's definition is what makes it ``parameterized''. Gettysburg College in conjuction with the Association for the Advancement of Artificial Intelligence (AAAI) sponsored this Parameterized Poker Squares (PPS) Challenge~\cite{neller2014nsg}. Participants have been invited to construct computer PPS players to compete in a  tournament against other submitted players.
 
-We will review the methods used to construct our player in this paper first reviewing related work in MCTS, second providing a more thorough description of PPS, next we will show how we applied MCTS to this problem, followed by experiment results with analysis, and finish with our conclusions.
+In this paper we will review the methods used to construct our player using MCTS by first reviewing related work in MCTS, second providing a more thorough description of PPS, followed by specifics of how we applied MCTS to this problem along with experimental results and analysis, finishing with our conclusions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work In Monte-Carlo Tree Search}
 
-MCTS overview in~\cite{browne2012survey}. I already added this citation in PPS-Paper.bib, as an illustration.
-A quick summary of MCTS - not nearly enough to actually teach someone who doesn't know about it, but just a little to establish the vocabulary we'll be using, make sure the experienced reader is on the same page as us.
+\begin{figure}
+\begin{center}
+\includegraphics[width=.95\linewidth,height=2.0in]{images/basicprocess.png}
+\end{center}
+\caption{The basic MCTS process}
+\label{fig:NN}
+\end{figure}
 
-UCT aspect of MCTS. Refer to cp values, how many papers don't talk about it, but some do and say there is not significant difference.
+\begin{figure*}[!t]
+\begin{center}
+\includegraphics[width=\textwidth]{images/oneiteration.png}
+\end{center}
+\caption{One iteration of the basic MCTS process}
+\label{fig:NN}
+\end{figure*}
 
-MCTS has been applied to a variety of game types that inform our work here. PPS is a single-player game with uncertainty, so lessons to be learned from MCTS applications to games with either of those properties. For single-player games.... For games with uncertainty (choice and chance nodes)... Selection uses UCT for choice nodes, but a random move for chance nodes
+All MCTS has the same basic structure comprised of methods performing selection, expansion, simulation and backpropagation performed repeatedly until a limit condition is met. The result achieved in each completed iteration is used to construct a tree of nodes with each node representing a specific state. As described by~\cite{browne2012survey} based upon the work of ~\cite{chaslot2008monte} these steps' definitions are:
+\begin{enumerate}
+\item \emph{Selection}: Starting at the root node, a child selection policy is recursively applied to descend through the tree with the action chosen based upon statistics stored about the node. A balance is desired between exploitation and exploration so that both better valued nodes might be used while ensuring new areas of the tree get explored.
+\item \emph{Expansion}: As a state is reached not represented as a node in the tree a node with that state is added.
+\item \emph{Simulation}: From the newly expanded node random simulations of games are performed.
+\item \emph{Backpropagation}: Simulation results are ``backed up'' through the traversed nodes to update visit counts and completed state values.
+\end{enumerate}
 
-pruning was the biggest idea. Summarize some papers about pruning.
+Upper-confidence bound extended for trees (UCT) is an enhancement to MCTS introduced by~\cite{kocsis2006improved} extending UCB1, a bandit algorithm known to solve the exlpoitation-exploration dilemma\footnote{UCB stands for Upper Confidence Bounds and UCT stands for `UCB extended for trees.'}. A simple UCB policy indentified as UCB1 by~\cite{auer2002finite} has a logarithmic growth of regret over the number of plays ($n$):
+$$
+UCB1 = \overline{X}_j + \sqrt{\frac{2\ln{2}}{n_j}}
+$$
+Modified for use processing choice as a multi-armed bandit produces it become:
+$$
+UCT = \overline{X}_j + 2C_p\sqrt{\frac{2\ln{2}}{n_j}}
+$$
+For both scenarios $n$ is the number of times the parent node is visited, while $n_j$ the number of visits to the child $_j$ and $C_p > 0$ is a constant. Exploitation is the first term while exploration is managed by the second term and a seemingly natural balance ensues between them. $C_p$ is the constant in exploration and can be increased or decreased to produce more or less exploration, respectively. ~\cite{kocsis2006improved} suggest $C_p = \frac{1}{\sqrt{2}}$ for rewards in the range $[0,1]$. We found little work other than Browne's reference and Kocsis to our choice of $C_p$ and after many series of experiments evaluating effects on game scores there was minimal impact. Preliminary conclusions  suggest that the overall size of the game tree combined with the time constraint of 30 seconds to play a complete game restricited it's impact. More discussion of this will follow in section {\bf(section)}.
+
+As noted in the introduction, MCTS has been applied to a variety of game types and planning problems that informed our work. PPS is a single-player game with uncertainty and randomness of selection\footnote{Much of the literature uses the term `stochaistic' to name this category}. Most of the literature and research in MCTS has been for multi-player games. These typically resolve to a form of minimax or it's variation expectimax in zero-sum games. For single-player games the strategy is significantly different where a cumulative best score derived from a games scoring rules determine better or worse resolutions. For games with uncertainty or `chance' it becomes necessary to virutalize an opponent scenario to accomplish the functionality of the multi-player game. This is done with two types of nodes, choice and chance. In the MCTS algorithm \emph{selection} uses UCT for choice nodes, but a random move is used for chance nodes. Although we did not do a complete implementation, \cite{schadd2012single} suggests a Single-player MCTS variation which guided some of our early development.
+
+In general move pruning is a technique to remove sub-optimal moves from consideration with the goal of focusing attention on better scoring areas of the tree. A widely known pruning technique applied in multi-player games is $\alpha\beta$. Having experimented with $C_p$ and concluded some possible reasons for it's lack of impact, pruning became a significant area of investigation for us. General pruning strategies applicable to all MCTS are~\cite{browne2010monte}:
+\begin{itemize}
+\item \emph{Soft pruning} which may be searched and selected in the future.
+\item \emph{Hard pruning} removes moves from all possible consideration.
+\end{itemize}
+Specific to UCT, \cite{huang2010pruning} proposes two strategies based upon visit counts:
+\begin{itemize}
+\item \emph{Absolute pruning} prunes all actions from a move except the most visited one .
+\item \emph{Relative pruning} uses an upper-bound on the most visited to detect when the most visited will remain the most visited.
+\end{itemize}
+
+Rather than base a pruning strategy on the visited count our focus was on the estimated board score, or accumulated hand scores, at a given node which could be considered \emph{domain knowledge}. This was a hard pruning strategy because if a node was estimated to fall below a given threshold it would not be added to the tree. We had to be careful of over-pruning leaving no nodes available for selection or simulation crashing the algorithm. This was accomplished by not dipping below a 30\% retention. This helped us to eliminate weaker positions and improve our player's scores significantly as noted in section {\bf(section ref)}.
 
 simulation strategy greatly improved scores
 
@@ -67,7 +107,6 @@ scoring system examples.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MCTS Application to Parameterized Poker Squares}
-{\bf SAB: Let's discuss the pruning: big picture idea. Then start writing up the 1, 2, 3, 4, and 5 card calculcations you guys did - how to compute score for each, how that's used in pruning, including the backup to make sure we have children to consider.}
 
 Mention somewhere: started with that code we found online as a baseline. (Make explicit somehow that it's open source - explicit permission for use.)
 
@@ -94,11 +133,15 @@ hardcoding of first couple and last couple moves, equivalence classes of moves
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments and Analysis}
 
-{\bf SAB: Let's start writing up formally the best results. That is, the ones that are clearly the most interesting, that will clearly make it into the final paper. (1,2,3 card weights, for example.)}
-
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{cp experiments}
-
+In standard UCT MCTS, there are two values that are multiplied together in order to balance exploitation and exploration of nodes. The first value is a node’s average score, determined by the scores given by running simulations over the number of simulations ran from that node or one of its descendents. But with just this value by itself, you would only compare each node’s average score, and therefore you would simply continue to choose the highest scoring node over and over again to run trials on. This leads to a very limited expansion of the player’s knowledge of the game space in question, and is not ideal for evaluating optimal decision making. So a second term, designed to promote exploration, is factored in as well. As part of that term, a constant “Cp” is typically added in order to allow for the increasing or decreasing of exploration (the higher the value, the heavier exploration is prioritized, and vice versa)
+In our experiments, higher Cp values (preferencing more towards exploration instead of exploitation) led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our Cp value at the lower bound of this effectiveness plateau.
+Note - should we run more tests with different scoring systems and Cp values in order to see the specificity of our current weight
+	If we can say that our Cp value should change based on the scoring system, we can go back to squashing down to 0-1 and use 1/rt2, that way we can back up our decision by quoting the Brown paper and claiming to fulfill the Hoeffding inequality.
+	If we can say that our Cp value does not need to change, we would have to look more into the significance of Cp values as stated by other papers, because so far other papers have said that a good Cp depends heavily on the range of scores in use, so we could either dispute that or figure out why it is different for us (the chance nodes? The size of the game space? Go’s game space is even larger than ours, though I can’t recall reading about MCTS Go and Cp values)
+	possible tests: run our code with a way higher (or a significantly lower) scoring system, see if it imbalances our Cp value. If it does, follow up with another squashing experiment.
+	Is this “maximize exploration” value just anything above the standard average of the games? 
 results
 
 analyze them - how do you explain this? Maybe references back to papers from the related work section.
@@ -109,6 +152,22 @@ Merge test
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Domain Knowledge and Simulation}
+Many papers about MCTS claim that adding specified domain knowledge into their player greatly increased performance, no matter the game being played. In our PPS player, we implemented two types of domain knowledge.
+The first type is the implementation of hard coded moves. By this we mean moves where, due to the limited number of effectively different moves that can be made, MCTS does not need to be run in order to make a decision. For example, the very first move of the game. Due to how Poker Squares is played, the very first move of a game does not have any bearing on the potential score of the board. No matter where the first card is played, it takes up a space in one row and in one column, and nothing else. Therefore, we elected to save time for moves where MCTS would be more useful by always placing the first card drawn in the upper left hand corner of the game board.
+
+Similarly, in the 2nd move of the game, the 24 remaining open spaces can be simplified down into two equivalence classes of moves (moves that are different, but have the same ultimate effect on the game board) - the first is to play the new card in the row or column containing the first card played, and the second is to play it in a different row or column, so it begins to build a hand separately from the first. Then you simply need a quick calculation in order to determine which of those options is preferable - saving a lot of time, and eliminating the redundancy of checking moves that will ultimately have the same effect on the board. Additionally, this calculation allowed us to begin to have more control over the MCTS decision making process, instead of just evaluating purely randomized end-game boards.
+
+We also looked towards the end of the game for moves to simplify. The 2nd to last move also only has two relevant moves - the difference being that this time, they’re the only two moves at all. While MCTS is capable of distinguishing between these moves, we decided to use a calculation similar to that of the 2nd move in order to allow for more time for MCTS in earlier moves.
+Finally, we hard coded the final move of the game. There is no need for any kind of decision making for this move, as there is only one possible option left on the board.
+
+Overall, hard coding saved us 4 moves worth of time, resulting in a 19% increase in time for each of the remaining moves over the non-hard-coded player.
+	(calculation done by 4/25 = .16 ( 16\%of the total time allowed), .16/21 = .007 (each move gets an additional .7\% of the total time allowed), 1/25 = .04 (how much of the total time allowed each move gets), .007/.04 = .19 (adding the .7\% of the total time increases an individual move’s time by 19\%)
+Considering that our player can run tens of thousands of simulations in a second (we may want to be more precise here, at least lay out that result somewhere), even an increase of a fraction of a second can give the decision making algorithm at that level significantly more information to make an informed decision with.
+We saw slight increases in score with each hard-coded move. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small.
+
+The second improvement made with domain knowledge was the addition of a board evaluator. Due to Poker Squares’ large game space, randomly simulating moves and returning the randomly generated end-game board does not give accurate results as to how well the card in question could be used in the time given.  
+In order to reduce the massive variation in simulated results, and additionally in order to further push our player towards more optimal decision making, we created an algorithm that would estimate a given incomplete board’s expected value, then, during simulation, instead of randomly selecting a move, it would select the move with the highest expected value. 
+Making this change resulted in a large increase in our player’s average scores. Many other papers have also claimed that an improvement over complete randomization in the simulation step was important to improving their score as well.
 
 This is where we first put in the domain knowledge.
 We have two kinds of domain knowledge: hardcoding, and board evaluation.
