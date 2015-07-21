@@ -70,11 +70,11 @@ All MCTS has the same basic structure comprised of methods performing selection,
 \end{enumerate}
 
 Upper-confidence bound extended for trees (UCT) is an enhancement to MCTS introduced by~\cite{kocsis2006improved} extending UCB1, a bandit algorithm known to solve the exlpoitation-exploration dilemma\footnote{UCB stands for Upper Confidence Bounds and UCT stands for `UCB extended for trees.'}. A simple UCB policy indentified as UCB1 by~\cite{auer2002finite} has a logarithmic growth of regret over the number of plays ($n$):
-\begin{equation}
+\begin{equation} \label{eq:UCB1}
 UCB1 = \overline{X}_j + \sqrt{\frac{2\ln{2}}{n_j}}
 \end{equation}
 Modified for use processing choice as a multi-armed bandit produces it become:
-\begin{equation}
+\begin{equation} \label{eq:UCT}
 UCT = \overline{X}_j + 2C_p\sqrt{\frac{2\ln{2}}{n_j}}
 \end{equation}
 For both scenarios $n$ is the number of times the parent node is visited, while $n_j$ the number of visits to the child $_j$ and $C_p > 0$ is a constant. Exploitation is the first term while exploration is managed by the second term and a seemingly natural balance ensues between them. $C_p$ is the constant in exploration and can be increased or decreased to produce more or less exploration, respectively. ~\cite{kocsis2006improved} suggest $C_p = \frac{1}{\sqrt{2}}$ for rewards in the range $[0,1]$. We found little work other than Browne's reference and Kocsis to guide our choice of $C_p$ and after many series of experiments evaluating effects on game scores there was minimal impact. Preliminary conclusions  suggest that the overall size of the game tree combined with the time constraint of 30 seconds to play a complete game restricited it's impact. More discussion of this will follow in section {\bf(section)}.
@@ -109,7 +109,7 @@ Poker Squares is a Solitaire type game played on a `board' of five rows and five
 
 Generally two scoring systems dominate this game for human play: American and English (British). Table~\ref{tbl:SSAMBR} lists the hand values for each one. Most game rule books indicate that a game score of 200 for American and 70 for English is considered a \emph{winning} result.
 
-\begin{table}
+\begin{table}[b]
 \caption{Scoring Systems: American and British.}
 \label{tbl:SSAMBR}
 \centering
@@ -130,8 +130,6 @@ high card & 0 & 0 \\
 \hline
 \end{tabular}
 \end{table}
-
-Additonal challenge is produced for this contest in that additional random scoring systems might be used as well as systems wherein only one hand type is scored with all others being zero. Two examples of these are shown in Table~\ref{tbl:SSATRD}; Ameritish and Random with negatives. \emph{Ameritish} is the product of combining American and British randomly between their normalized point ranges while \emph{Random} is each hand type randomly assigned a point value between -128 and 128. It is this games aspect of varying scoring systems which puts \emph{Parameterized} into PPS.
 
 \begin{table}
 \caption{Scoring Systems: Ameritish and random.}
@@ -155,10 +153,13 @@ high card & 0 & -128 \\
 \end{tabular}
 \end{table}
 
+Additonal challenge is produced for this contest in that additional random scoring systems might be used as well as systems wherein only one hand type is scored with all others being zero. Two examples of these are shown in Table~\ref{tbl:SSATRD}; Ameritish and Random with negatives. \emph{Ameritish} is the product of combining American and British randomly between their normalized point ranges while \emph{Random} is each hand type randomly assigned a point value between -128 and 128. It is this games aspect of varying scoring systems which puts \emph{Parameterized} into PPS.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MCTS Application to Parameterized Poker Squares}
 
-Mention somewhere: started with that code we found online as a baseline. (Make explicit somehow that it's open source - explicit permission for use.)
+Our initial foray into MCTS for PPS sent us to the internet to see if code was available that might inform our development. In the this search we found an application by Kyle Hughart of Boulder, Colorado named UCT for Games at~\cite{hughart2012uct}. Although it was authored for two-player games with examples for tic-tac-toe and connect four, we found it to be well structured, documented, and open sourced with an MIT License. We did take the additonal step of contacting Mr. Hughart to gain his explicit permission for reuse, since we expected to write a paper with our results, which we received and for that we thank and acknowledge him.
 
 Here we outline what special things we wrestled with. What general MCTS modifications we tried independent of PPS, what MCTS modifications we tried specifically for PPS.
 
@@ -180,11 +181,12 @@ didn't really do multithreading - see experimental results for why.
 
 hardcoding of first couple and last couple moves, equivalence classes of moves
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments and Analysis}
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-\subsection{cp experiments}
+\subsection{$C_p$ Experiments}
 In standard UCT MCTS, there are two values that are multiplied together in order to balance exploitation and exploration of nodes. The first value is a node’s average score, determined by the scores given by running simulations over the number of simulations ran from that node or one of its descendents. But with just this value by itself, you would only compare each node’s average score, and therefore you would simply continue to choose the highest scoring node over and over again to run trials on. This leads to a very limited expansion of the player’s knowledge of the game space in question, and is not ideal for evaluating optimal decision making. So a second term, designed to promote exploration, is factored in as well. As part of that term, a constant $C_p$ is typically added in order to allow for the increasing or decreasing of exploration (the higher the value, the heavier exploration is prioritized, and vice versa)
 
 In our experiments, higher $C_p$ values (preferencing more towards exploration instead of exploitation) led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our $C_p$ value at the lower bound of this effectiveness plateau.
