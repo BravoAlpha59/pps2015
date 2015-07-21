@@ -406,7 +406,7 @@ public class PokerSquares {
 //		players.add(new GreedyMCPlayer(2));
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
-		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());
+		systems.add(PokerSquaresPointSystem.getAmeritishPointSystem());
 //		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 //		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 		//systems.add(PokerSquaresPointSystem.getNegativePointSystem());
