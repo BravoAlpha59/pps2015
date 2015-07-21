@@ -185,44 +185,27 @@ hardcoding of first couple and last couple moves, equivalence classes of moves
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{cp experiments}
-In standard UCT MCTS, there are two values that are multiplied together in order to balance exploitation and exploration of nodes. The first value is a node’s average score, determined by the scores given by running simulations over the number of simulations ran from that node or one of its descendents. But with just this value by itself, you would only compare each node’s average score, and therefore you would simply continue to choose the highest scoring node over and over again to run trials on. This leads to a very limited expansion of the player’s knowledge of the game space in question, and is not ideal for evaluating optimal decision making. So a second term, designed to promote exploration, is factored in as well. As part of that term, a constant $C_p$ is typically added in order to allow for the increasing or decreasing of exploration (the higher the value, the heavier exploration is prioritized, and vice versa)
+
+So we fixed cp at this value, and here's why.
+
+{\bf Added by Clay} In standard UCT MCTS, there are two values that are multiplied together in order to balance exploitation and exploration of nodes. The first value is a node’s average score, determined by the scores given by running simulations over the number of simulations ran from that node or one of its descendents. But with just this value by itself, you would only compare each node’s average score, and therefore you would simply continue to choose the highest scoring node over and over again to run trials on. This leads to a very limited expansion of the player’s knowledge of the game space in question, and is not ideal for evaluating optimal decision making. So a second term, designed to promote exploration, is factored in as well. As part of that term, a constant $C_p$ is typically added in order to allow for the increasing or decreasing of exploration (the higher the value, the heavier exploration is prioritized, and vice versa)
 
 In our experiments, higher $C_p$ values (preferencing more towards exploration instead of exploitation) led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our $C_p$ value at the lower bound of this effectiveness plateau.
 Note - should we run more tests with different scoring systems and $C_p$ values in order to see the specificity of our current weight
 
-If we can say that our $C_p$ value should change based on the scoring system, we can go back to squashing down to 0-1 and use $\frac{1}{\sqrt{2}}$, that way we can back up our decision by quoting the Brown paper and claiming to fulfill the Hoeffding inequality.
+{\bf Note:} If we can say that our $C_p$ value should change based on the scoring system, we can go back to squashing down to 0-1 and use $\frac{1}{\sqrt{2}}$, that way we can back up our decision by quoting the Brown paper and claiming to fulfill the Hoeffding inequality.
 
 If we can say that our $C_p$ value does not need to change, we would have to look more into the significance of $C_p$ values as stated by other papers, because so far other papers have said that a good $C_p$ depends heavily on the range of scores in use, so we could either dispute that or figure out why it is different for us (the chance nodes? The size of the game space? Go’s game space is even larger than ours, though I can’t recall reading about MCTS Go and $C_p$ values)
 
-possible tests: run our code with a way higher (or a significantly lower) scoring system, see if it imbalances our $C_p$ value. If it does, follow up with another squashing experiment.
+{\bf possible tests:} run our code with a way higher (or a significantly lower) scoring system, see if it imbalances our $C_p$ value. If it does, follow up with another squashing experiment.
 
 Is this “maximize exploration” value just anything above the standard average of the games? 
 results
 
 analyze them - how do you explain this? Maybe references back to papers from the related work section.
 
-So we fixed cp at this value, and here's why.
-
-Merge test
-
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Domain Knowledge and Simulation}
-Many papers about MCTS claim that adding specified domain knowledge into their player greatly increased performance, no matter the game being played. In our PPS player, we implemented two types of domain knowledge.
-The first type is the implementation of hard coded moves. By this we mean moves where, due to the limited number of effectively different moves that can be made, MCTS does not need to be run in order to make a decision. For example, the very first move of the game. Due to how Poker Squares is played, the very first move of a game does not have any bearing on the potential score of the board. No matter where the first card is played, it takes up a space in one row and in one column, and nothing else. Therefore, we elected to save time for moves where MCTS would be more useful by always placing the first card drawn in the upper left hand corner of the game board.
-
-Similarly, in the 2nd move of the game, the 24 remaining open spaces can be simplified down into two equivalence classes of moves (moves that are different, but have the same ultimate effect on the game board) - the first is to play the new card in the row or column containing the first card played, and the second is to play it in a different row or column, so it begins to build a hand separately from the first. Then you simply need a quick calculation in order to determine which of those options is preferable - saving a lot of time, and eliminating the redundancy of checking moves that will ultimately have the same effect on the board. Additionally, this calculation allowed us to begin to have more control over the MCTS decision making process, instead of just evaluating purely randomized end-game boards.
-
-We also looked towards the end of the game for moves to simplify. The 2nd to last move also only has two relevant moves - the difference being that this time, they’re the only two moves at all. While MCTS is capable of distinguishing between these moves, we decided to use a calculation similar to that of the 2nd move in order to allow for more time for MCTS in earlier moves.
-Finally, we hard coded the final move of the game. There is no need for any kind of decision making for this move, as there is only one possible option left on the board.
-
-Overall, hard coding saved us 4 moves worth of time, resulting in a 19% increase in time for each of the remaining moves over the non-hard-coded player.
-	(calculation done by 4/25 = .16 ( 16\%of the total time allowed), .16/21 = .007 (each move gets an additional .7\% of the total time allowed), 1/25 = .04 (how much of the total time allowed each move gets), .007/.04 = .19 (adding the .7\% of the total time increases an individual move’s time by 19\%)
-Considering that our player can run tens of thousands of simulations in a second (we may want to be more precise here, at least lay out that result somewhere), even an increase of a fraction of a second can give the decision making algorithm at that level significantly more information to make an informed decision with.
-We saw slight increases in score with each hard-coded move. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small.
-
-The second improvement made with domain knowledge was the addition of a board evaluator. Due to Poker Squares’ large game space, randomly simulating moves and returning the randomly generated end-game board does not give accurate results as to how well the card in question could be used in the time given.  
-In order to reduce the massive variation in simulated results, and additionally in order to further push our player towards more optimal decision making, we created an algorithm that would estimate a given incomplete board’s expected value, then, during simulation, instead of randomly selecting a move, it would select the move with the highest expected value. 
-Making this change resulted in a large increase in our player’s average scores. Many other papers have also claimed that an improvement over complete randomization in the simulation step was important to improving their score as well.
 
 This is where we first put in the domain knowledge.
 We have two kinds of domain knowledge: hardcoding, and board evaluation.
@@ -231,6 +214,38 @@ fixed: Simulation improvement using domain knowledge, but no pruning in selectio
 variable: totally random simulation versus just choose the best move 
 result: choose best move is better
 
+{\bf Added by Clay} Many papers about MCTS claim that adding specified domain knowledge into their player greatly increased performance, no matter the game being played. In our PPS player, we implemented two types of domain knowledge.
+The first type is the implementation of hard coded moves. By this we mean moves where, due to the limited number of effectively different moves that can be made, MCTS does not need to be run in order to make a decision. For example, the very first move of the game. Due to how Poker Squares is played, the very first move of a game does not have any bearing on the potential score of the board. No matter where the first card is played, it takes up a space in one row and in one column, and nothing else. Therefore, we elected to save time for moves where MCTS would be more useful by always placing the first card drawn in the upper left hand corner of the game board.
+Similarly, in the 2nd move of the game, the 24 remaining open spaces can be simplified down into two equivalence classes of moves (moves that are different, but have the same ultimate effect on the game board) - the first is to play the new card in the row or column containing the first card played, and the second is to play it in a different row or column, so it begins to build a hand separately from the first. Then you simply need a quick calculation in order to determine which of those options is preferable - saving a lot of time, and eliminating the redundancy of checking moves that will ultimately have the same effect on the board. Additionally, this calculation allowed us to begin to have more control over the MCTS decision making process, instead of just evaluating purely randomized end-game boards.
+
+We also looked towards the end of the game for moves to simplify. The 2nd to last move also only has two relevant moves - the difference being that this time, they’re the only two moves at all. While MCTS is capable of distinguishing between these moves, we decided to use a calculation similar to that of the 2nd move in order to allow for more time for MCTS in earlier moves.
+Finally, we hard coded the final move of the game. There is no need for any kind of decision making for this move, as there is only one possible option left on the board.
+Overall, hard coding saved us 4 moves worth of time, resulting in a 19\% increase in time for each of the remaining moves over the non-hard-coded player.
+	
+(calculation done by 4/25 = .16 ( 16\%of the total time allowed), .16/21 = .007 (each move gets an additional .7\% of the total time allowed), 1/25 = .04 (how much of the total time allowed each move gets), .007/.04 = .19 (adding the .7\% of the total time increases an individual move’s time by 19\%)
+
+Considering that our player can run tens of thousands of simulations in a second (we may want to be more precise here, at least lay out that result somewhere), even an increase of a fraction of a second can give the decision making algorithm at that level significantly more information to make an informed decision with.
+
+We saw slight increases in score with each hard-coded move. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small. Our player’s average score improved by 1\% due to the 4 moves of hardcoding, so we decided to maintain that change, but not explore the potential of hard coding extra moves.
+
+The second improvement made with domain knowledge was the addition of a board evaluator. Many papers looking at a wide variety of games have consistently shown that using heuristics in the simulation step to bias MCTS towards more reasonable plays resulted in significant increases in performance. We found it reasonable to believe that such a heuristic for Poker Squares would produce a similar result in our own player. However, due to the variety of options for scoring systems in Parameterized Poker Squares, we lose the ability to include a rating for which poker hands are the most optimal to make in our heuristic.
+
+In order to work around this, we created a board evaluation algorithm that determines what poker hands can be made in each of the rows and columns of the game board (also taking into account cards left in the deck). For example, playing a pair in the topmost row prevents you from finishing that row with a straight, flush, or high card.
+
+Then, we calculated a probability for being able to finish any of the remaining possible hands in a given row or column. 
+
+For a row or column with five cards in it, that’s easy. Once you hit 5 cards, that hand is whatever it is.
+
+For four cards, we determine what cards that row or column would need to finish whichever hand is being looked at, then calculate the probability of drawing one of those cards from the cards remaining in the next draw. For example, if you had the Ten, Jack, Queen, and King of Hearts in the topmost row, then the chance of you finishing that hand into a royal flush in the next draw is the chance of drawing the Ace of Hearts from what remains. Alternatively, you could also finish the hand into a flush by playing any of the 6 Hearts cards that won’t finish the hand into a Straight or Royal flush.
+
+If there is more than one move left in the game, then taking only the chance of drawing a specific card in the next draw seems inaccurate. However, trying to use a combinatorial equation to determine the chance of drawing it before the end of the game assumes that you draw all of those cards at once, which is also not how this game is played. Since neither option seemed to increase the realistic accuracy of our algorithm, we went with the option that was less intensive to calculate.
+
+We then add the scores of each of the possible hands remaining (each weighted by its calculated probability) together to get an expected value for that hand. These scores are able to vary from point system to point system, giving our player flexibility in which hand types it tries to prioritize, so if a pair or even high card ends up being more valuable than a flush or full house, the player can properly prioritize which hand types it should be attempting to make.
+
+Due to the heavy computational strain of calculating an expected value for only four cards, and the fact that the calculations would only be more intensive for a hand with fewer cards in it (as there are more cards that need to be filled in, and more work would need to be done to determine what cards are missing, AND it would take multiple draws to finish the hand), we decided to move away from calculating an explicit expected value for hands with fewer that four cards. Instead, for hands below four cards, we use an estimated value. We still calculate what hands are able to be made in these hands, but instead of then calculating the probability of drawing the cards necessary to finish each of those hand types, we weight the score of each of those hands with an a-priori probability of being able to finish that type of hand. We calculated these a-priori values using the British scoring system for Poker Squares, which is said to be based on the difficulty of finishing each of the hands in a game of Poker Squares. We found that this mixed approach to calculating scores balanced estimated accuracy with computational intensiveness.
+
+Once each row and column has a value, they are all added together to create the board as an estimated value. This value can then be compared between siblings, and decisions can be made based on which children look the best. For our simulation step, we found that the best improvement in performance came by only allowing simulations to run with the best-looking child given by our estimated value calculation. This change to simulation gave us an average score increase of 45\% (calculated by 117 - 80 = 36/80 = .45. 117 is the average of the noprunebestsim test, 80 is the average of noprunenosim test)
+
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Pruning Experiments}
 
@@ -238,12 +253,20 @@ fixed: Pruning in selection, with just some "sensible" weights
 variable: pruning just in selection with random sim vs. pruning in selection and simulation vs. pruning in selection and choose best sim.
 result: choose best move is better, and also we see the pruning in selection is helpful
 
+{\bf Added by Clay} After the effectiveness of our board evaluator at improving our player’s average score, we decided to apply a similar technique to the expansion step as well. Similar to evaluating possible moves during the simulation step, we used our algorithm to calculate estimated board values of moves that could be made in the actual game, then only created nodes for the moves that would result in a score above a specified threshold, effectively pruning the rest. This threshold was based on a percentage of the parent of the moves being considered’s score. In order to avoid overpruning, we implemented a minimum percentage of children that could be pruned. If the threshold algorithm pruned enough children that the percentage of children remaining went below our minimum, we would add back in any children above the average estimated values of all the children. We found that this method significantly reduced the size of the game space, but only resulted in a relatively minor increase in score when compared to the increase given by our improvement to the simulation step.
+	
+One possible reason for this disparity is due to the number of simulations that are run compared to the number of times a node is expanded. According to our calculations, our player averages about 10 simulations per expansion. (a number given by our tracking of num pruned nodes) 
+	
+Another possible reason is that, while simulations direct MCTS into which nodes are most valuable, it does not eliminate any nodes from consideration. Pruning in the expansion step, however, could potentially remove play options that aren’t actually suboptimal, due to the imprecise nature of estimated values and imperfections in our calculation.
+
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Further Tuning of Domain Knowledge}
 
 fixed: pruning in selection, choose best move for simulation
 variable: the weights for the board score
 result: the best weights we came up with
+
+{/bf Added by Clay} Once we decided to keep our pruning algorithm, we ran a series of tests meant to determine what values for constants in our equation gave the best average results. When we ran tests for our potential different weights, our highest scoring test increased its score 20\% over the lowest scoring test (sheet four in our results). This shows how important an accurate method for pruning is. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
