@@ -181,6 +181,27 @@ didn't really do multithreading - see experimental results for why.
 
 hardcoding of first couple and last couple moves, equivalence classes of moves
 
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=.95\linewidth,
+	xlabel=$C_P$,
+	ylabel=Mean Score, 
+	axis lines=left,
+	xtick={100, 500, 1000},
+	xmin=0, xmax=1100,
+	ytick={0.00, 30.00,60.00,90.00,120.0},
+	ymin=0,
+	scaled y ticks = false,
+	y tick label style={/pgf/number format/fixed}]
+\addplot [only marks, mark size=1pt] table[y=mean_value, x=cp]{cpexperiment.dat};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\caption{$C_p$: Effect of $C_p$ on mean score.}
+\label{fig:CPEXP}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments and Analysis}
