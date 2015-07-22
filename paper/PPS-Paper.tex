@@ -196,12 +196,14 @@ hardcoding of first couple and last couple moves, equivalence classes of moves
 
 {\bf SAB Explain briefly how this saves time.}
 
+\subsection{The Hard Coding of Moves}
 The first type is the implementation of hard coded moves. By this we mean moves where, due to the limited number of effectively different moves that can be made, MCTS does not need to be run in order to make a decision. For example, the very first move of the game. Due to how Poker Squares is played, the very first move of a game does not have any bearing on the potential score of the board. No matter where the first card is played, it takes up a space in one row and in one column, and nothing else. Therefore, we elected to save time for moves where MCTS would be more useful by always placing the first card drawn in the upper left hand corner of the game board.
 Similarly, in the 2nd move of the game, the 24 remaining open spaces can be simplified down into two equivalence classes of moves (moves that are different, but have the same ultimate effect on the game board) - the first is to play the new card in the row or column containing the first card played, and the second is to play it in a different row or column, so it begins to build a hand separately from the first. Then you simply need a quick calculation in order to determine which of those options is preferable - saving a lot of time, and eliminating the redundancy of checking moves that will ultimately have the same effect on the board. Additionally, this calculation allowed us to begin to have more control over the MCTS decision making process, instead of just evaluating purely randomized end-game boards.
 
 We also looked towards the end of the game for moves to simplify. The 2nd to last move also only has two relevant moves - the difference being that this time, they’re the only two moves at all. While MCTS is capable of distinguishing between these moves, we decided to use a calculation similar to that of the 2nd move in order to allow for more time for MCTS in earlier moves.
 Finally, we hard coded the final move of the game. There is no need for any kind of decision making for this move, as there is only one possible option left on the board.
 
+\subsection {Developing a Parameterized Poker Squares Heuristic}
 The second improvement made with domain knowledge was the addition of a board evaluator. Many papers looking at a wide variety of games have consistently shown that using heuristics in the simulation step to bias MCTS towards more reasonable plays resulted in significant increases in performance. We found it reasonable to believe that such a heuristic for Poker Squares would produce a similar result in our own player. However, due to the variety of options for scoring systems in Parameterized Poker Squares, we lose the ability to include a rating for which poker hands are the most optimal to make in our heuristic.
 
 In order to work around this, we created a board evaluation algorithm that determines what poker hands can be made in each of the rows and columns of the game board (also taking into account cards left in the deck). For example, playing a pair in the topmost row prevents you from finishing that row with a straight, flush, or high card.
@@ -310,9 +312,32 @@ we have 2 values for no pruning - let's just say them in prose.
 
 {\bf SAB: I moved the discussion about domain knowledge into the MCTS Application to parameterized poker squares section.}
 
-{\bf SAB: I moved most of the text that was here to the MCTS APPlication to PPS section}
+{\bf added July 22} To determine the effectiveness of a heuristic simulation, we tested a player that did not utilize domain knowledge against a player that used the heuristic discussed in section (****Developing a Parameterized Poker Squares Heuristic****) in its simulation step. 
 
-For our simulation step, we found that the best improvement in performance came by only allowing simulations to run with the best-looking child given by our estimated value calculation. This change to simulation gave us an average score increase of 45\% (calculated by 117 - 80 = 36/80 = .45. 117 is the average of the noprunebestsim test, 80 is the average of noprunenosim test)
+Using the heuristic during simulation instead of randomizing moves resulted in a significant increase in score. The best improvement in performance came by only allowing simulations to run with the best-looking child given by our heuristic. 
+
+As shown by Table~\ref{tbl:SimulateTable}, using a heuristic to improve the strength of simulations resulted in an average score increase of 45\% over our no-domain-knowledge player.
+
+{\bf We could also note from our data that our heuristic player had a better minimum and maximum scoring board state, if we thought that could be relevant enough to mention}
+
+\begin{minipage}{\linewidth}
+\centering
+%\begin{table}
+\captionof{table}{Effect of Domain Knowledge on Simulation Over 10,000 Games}
+\label{tbl:SimulateTable}
+%\centering
+\begin{tabular}{c c}
+\hline
+Player & Mean Score \\
+\hline
+No Domain Knowledge & 80.6 \\
+Simulate With Heuristic & 117.8 \\
+\hline
+\end{tabular}\par
+%\end{table}
+\bigskip
+Averages calculated over 10,000 games
+\end{minipage}
 
 {\bf SAB: graph(s) and/or table(s). Make sure the above comments are justified and fully explained based on the data shown, and developed into a cohesive narrative.}
 
@@ -327,12 +352,32 @@ result: choose best move is better, and also we see the pruning in selection is 
 
 {\bf SAB: Remember, don't phrase things as a "play-by-play", as in: "After the effectiveness of our board evaluator at improving our player’s average score, we decided to apply a similar technique to the expansion step as well." Note alternative first sentence below.}
 
-This set of experiments considers the application of the board heuristic to the selection step of MCTS. More specifically, when expanding a node of the tree, nodes scoring under a variable threshold on this heuristic were {\it pruned}. 
+{\bf Added July 22}This set of experiments considers the application of the board heuristic to the selection step of MCTS. More specifically, when expanding a choice node of the tree, nodes scoring under a variable threshold with this heuristic were {\it pruned}. The expansion of chance nodes was left unaffected, as we do not get to decide which card we are going to draw. 
 
-{\bf SAB: Note phrases lke "parent of the moves being considered's" and work hard to rephrase more cleanly.}
+As discussed in section (****related works****), there are two typical strategies for pruning. Soft pruning tends to be more accurate over a longer period of time, as there is no risk of unintentionally permanently removing nodes that are more promising than the pruning algorithm makes them appear at first. However, due to the short amount of time each game is allotted, we elected to pursue a method of hard pruning instead.
 
-This threshold was based on a percentage of the parent of the moves being considered's score. In order to avoid overpruning, we implemented a minimum percentage of children that could be pruned. If the threshold algorithm pruned enough children that the percentage of children remaining went below our minimum, we would add back in any children above the average estimated values of all the children. We found that this method significantly reduced the size of the game space, but only resulted in a relatively minor increase in score when compared to the increase given by our improvement to the simulation step.
+When evaluating the children of a choice node for pruning, a scoring threshold is used to determine which children should be kept for consideration in MCTS and which should simply be pruned. This threshold is based on a percentage of the choice node's own score, so that moves that end up reducing the board's estimated value too far below the parent's get pruned first. In order to avoid overpruning (for example, if an undesirable card is drawn, and it does not fit well in any of the open spaces, so all of the children have lower estimated values), we implemented a minimum percentage of children that could be pruned. If the threshold algorithm pruned enough children that the percentage of unpruned children  went below our minimum, we would add back in any children above the average estimated values of all the children. We found that this method significantly reduced the size of the game space and did increase our player's average score, however the increase was not nearly as significant as the addition to simulation.
 
+\begin{minipage}{\linewidth}
+\centering
+%\begin{table}
+\captionof{table}{Effect of Domain Knowledge on Selection}
+\label{tbl:SelectionTable}
+%\centering
+\begin{tabular}{c c c}
+\hline
+Selection Style & Simulation Style & Mean Score \\
+\hline
+No Domain Knowledge & No Domain Knowledge & 80.6 \\
+Pruning & No Domain Knowledge & 88.9 \\
+No Domain Knowledge & Heuristic & 117.8 \\
+Pruning & Heuristic & 120.1 \\
+\hline
+\end{tabular}\par
+%\end{table}
+\bigskip
+Averages calculated over 10,000 games
+\end{minipage}
 {\bf Graph(s), summarizing content of the graphs, explaining cohesively}
 
 One possible reason for this disparity is due to the number of simulations that are run compared to the number of times a node is expanded. According to our calculations, our player averages about 10 simulations per expansion. (a number given by our tracking of num pruned nodes) 
@@ -350,7 +395,7 @@ Refer back to eq. ***** about 1-2-3 weights. Now we'll experiment on those....
 
 
 
-{/bf Added by Clay} Once we decided to keep our pruning algorithm, we ran a series of tests meant to determine what values for constants in our equation gave the best average results. When we ran tests for our potential different weights, our highest scoring test increased its score 20\% over the lowest scoring test (sheet four in our results). This shows how important an accurate method for pruning is. 
+{\bf Added by Clay} Once we decided to keep our pruning algorithm, we ran a series of tests meant to determine what values for constants in our equation gave the best average results. When we ran tests for our potential different weights, our highest scoring test increased its score 20\% over the lowest scoring test (sheet four in our results). This shows how important an accurate method for pruning is. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
