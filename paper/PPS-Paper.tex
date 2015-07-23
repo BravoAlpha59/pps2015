@@ -142,15 +142,15 @@ Specific to UCT, \cite{huang2010pruning} proposes two strategies based upon visi
 
 Poker Squares is a single-player card game played on a 5 x 5 grid. The player draws one card at a time and must determine where to place that card in the grid. Once placed, a card may not be moved. The object of the game is to create as many high-scoring poker hands as possible in each of the five rows and five columns. Due to the overlapping of rows and columns and the uncertainty of what cards will be drawn in what order, players must balance the risk of attempting high-scoring hands with taking more easily-attained hands.
 
-Two scoring systems are most common in human play: American and British. Table~\ref{tbl:scoring} lists the hand values for each. Most rule books suggest that a game score of 200 for American or 70 for English is considered a ``winning'' result.
+Two scoring systems are most common in human play: American and British. Table~\ref{tbl:scoring} lists the hand values for each. Most rule books suggest that a game score of 200 for American or 70 for British is considered a ``winning'' result.
 
 The ``parameterized'' part of the game name comes from the added challenge that the player is not told the scoring system until the moment the game begins. So the scoring system may be standard American or British, or perhaps a system in which positive points are given for a full house and negative points for all other hands, or even a random scoring system as in the last column of Table~\ref{tbl:scoring}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MCTS Application to Parameterized Poker Squares}
-{\bf RTA Still working on this}
+{\bf RTA Ready for review}
 
-\begin{table}[b]
+\begin{table}%[b]
 \caption{American, British, and a random scoring system}
 \label{tbl:scoring}
 \centering
@@ -194,72 +194,54 @@ high card    & 0   & 0   & -128 \\
 %\end{tabular}
 %\end{table}
 
-%RTA mod Our MCTS implementation of PPS is built on top of the code in~\cite{hughart2012uct}, used under the MIT software license. This section Our MCTS implementation of PPS is built on the code in~\cite{hughart2012uct}, used under the MIT software license. This section outlines various modifications made to the core MCTS algorithm, including the addition of PPS domain knowledge.
+%RTA mod Our MCTS implementation of PPS is built on top of the code in~\cite{hughart2012uct}, used under the MIT software license. 
+
+Our MCTS implementation for PPS is built on the code in~\cite{hughart2012uct}, and used under the MIT software license. This section outlines various modifications made to the core MCTS algorithm, including the addition of PPS domain knowledge.
 
 {\bf SAB: Still needs to be done}
 
-{\bf RTA: Copied from related work}
-Rather than base a pruning strategy on the visited count our focus was on estimated board score, or accumulated hand scores, at a given node which could be considered \emph{domain knowledge}. This was a hard pruning strategy because if a node was estimated to fall below a given threshold it would not be added to the tree. We had to be careful of over-pruning leaving no nodes available for selection or simulation and crashing the algorithm. This was accomplished by using a retention policy. This helped us to eliminate weaker positions and improve our player's scores.
+%{\bf SAB: }Standard MCTS with chance and choice nodes. We used "equation 1"   backslash ref brace  closebrace   . Refer back to whatever equation is in the related work section, being explicit that that's what we did.
 
-Another improvement to our player's scoring was accomplished with the implementation of a modified simulation strategy. Standard MCTS suggests choosing a child node at random and running simulations from this child. We were able to improve our scores consistently by choosing the child node with the best estimated board score.
+%{\bf SAB: }Start with the 5-card score, how it's computed 10 times for the board. This is sufficient for the core MCTS algorithm - all you need is the final score. Q value.
 
-{\bf SAB: We can't really say "many of the available papers" without also citing specific examples and explaining briefly what they do. The explanation for each paper may be part of a sentence, up to a few sentences, in length.}
+\subsection{Core MCTS}
 
-%RTA: Many of the available MCTS papers discuss with varying degrees of specificity application of domain knowledge as enhancement of MCTS.
-Our initial implementation of the algorithm followed the model of updating $Q$ and $n$ in the \emph{backpropagation} after a simulation. $Q$ is the calculated board score of a full board of 25 cards based upon the active scoring system. With the objective of elevating our player's final game scores, we developed a system of interim board evaluation calculating an estimated hand score for each row and column containing one to four cards. Once five cards are present this value is no longer an estimate. All of the possible hand types were determined and for one to three card an a-priori probability was applied while once four cards where present then card counting was employed with it's resultant probabilities. To maintain the exploration/exploitation MCTS balance, an increasing weighting factor was applied.
+Our implementation of the algorithm adhered to equation \ref{eq:UCT} following the model of updating $Q$ and $n$ in the \emph{backpropagation} after a \emph{simulation}. $Q$ is the calculated board score of a full board of 25 cards, or 10 5-card hands, based upon the active scoring system. Given the game's time constraint, knowing that 25 moves are necessary to fill the board, 30 seconds was divided evenly across each move. Simulations were executed until the move's time expired which fulfills core MCTS requirements. Our initial expansion created 25 empty choice nodes and randomly selected one in which to play the dealt card then expand the next level of tree and run simulations. Results of these simulations when then inform the placement of the next dealt card iteratively until completion of the game.
 
-{\bf SAB: Again, what literature specifically? What can you say specifically about each of a few selected papers relevant to the topic of this paragraph?}
 
-%RTA: Some of the literature suggested positive results with multi-threading MCTS while others saw no impact. We tested a four thread player 
-We tested a four thread player anticipating a modest increase in the number of trials accomplished. As noted by ~\cite{browne2010monte} to realize a $2X$ increase in score a $10X$ increase in the number of trials completed might be required. Our threaded player only improved on trial counts a little over $2X$ with no statistically viable improvement in score.
-
-One of the last improvements made to our player involved hard-coding the first two and last two moves of a game which bypassed the MCTS process. Initially, the first randomly dealt card would be placed on a randomly selected node of the 25 square grid with subsequently dealt cards randomly placed on available open spaces. With the objective of providing more time for running later trials, we always place the first card at the first space, upper-left corner, on the board. When the next card was dealt it was evaluated as to whether it was of the same suit or face value. If either of these two criteria was met the card would be placed next to the first card in the first row otherwise it was placed in the second position of the second row. Each of the last two dealt cards would be evaluated as to there impact on estimated hand scores and placed so as to maximize that score.
-
-standard MCTS with chance and choice nodes. We used "equation 1"   backslash ref brace  closebrace   . Refer back to whatever equation is in the related work section, being explicit that that's what we did.
-
-Start with the 5-card score, how it's computed 10 times for the board. This is sufficient for the core MCTS algorithm - all you need is the final score. Q value.
-
-pruning - remove children that are "clearly bad", but recognizing we just have an estimate, a heuristic, so not just always taking the "best", because our board evaluation is not going to be 100\% accurate, and we have uncertainty! So we need an heuristic. Lots of domain knowledge.
+%{\bf SAB: }Pruning - remove children that are "clearly bad", but recognizing we just have an estimate, a heuristic, so not just always taking the "best", because our board evaluation is not going to be 100\% accurate, and we have uncertainty! So we need an heuristic. Lots of domain knowledge.
 5 cards: we know exactly.
 4 cards: describe the awesome stuff you guys did. 0-1-2 array, the probabilities
 1,2,3 cards: multipliers
 how 0 cards is rated
-
 So, with that heuristic, how is it used for pruning? Have to get at least some constant times the parent score, but then to avoid pruning everything in some cases, if below 30% of children, then take all above average... Pruning happens for both selection and simulation stages. Pruning only happens on choice nodes.
 
-Another way to modify the system: what does simulation look like? Using the heuristic to make a decision for choice nodes, still random on chance nodes.
+%{\bf SAB: }Another way to modify the system: what does simulation look like? Using the heuristic to make a decision for choice nodes, still random on chance nodes.
 
-didn't really do multithreading - see experimental results for why.
+\subsection{Hard Coding}
 
-hardcoding of first couple and last couple moves, equivalence classes of moves
+%{\bf SAB: }Hardcoding of first couple and last couple moves, equivalence classes of moves
 
-{\bf SAB Moved from experiments section, to be integrated}
+%{\bf SAB Explain briefly how this saves time.}
 
-{\bf SAB Explain briefly how this saves time.}
+An early change was the implementation of hard coded moves. By this we mean moves where, due to the limited number of effectively different moves that can be made, MCTS does not need to be run in order to make a decision. For example, the very first move of the game. Due to how Poker Squares (PS) is played, the very first move of a game does not have any bearing on the potential score of the board. No matter where the first card is played, it takes up a space in one row and in one column, and nothing else. Therefore, we elected to save time for moves where MCTS would be more useful by always placing the first card drawn in the upper left hand corner of the game board. By saving time we mean that since only milliseconds are required to place a card and calculate it's impact on the board (as explained below) this move's allotment of the available 30 seconds is given to later moves. Similarly, in the 2nd move of the game, the 24 remaining open spaces can be simplified into two equivalence classes of moves : the first is to play the new card in the row or column containing the first card played, and the second is to play it in a different row or column, so it begins to build a hand separately from the first. Then only a quick calculation is needed in order to determine which of those options is preferable - saving a lot of time, and eliminating the redundancy of checking moves that will ultimately have the same effect on the board. Additionally, this calculation allowed us to begin to have more control over the MCTS decision making process, instead of just evaluating purely randomized end-game boards.
 
-The first type is the implementation of hard coded moves. By this we mean moves where, due to the limited number of effectively different moves that can be made, MCTS does not need to be run in order to make a decision. For example, the very first move of the game. Due to how Poker Squares is played, the very first move of a game does not have any bearing on the potential score of the board. No matter where the first card is played, it takes up a space in one row and in one column, and nothing else. Therefore, we elected to save time for moves where MCTS would be more useful by always placing the first card drawn in the upper left hand corner of the game board.
-Similarly, in the 2nd move of the game, the 24 remaining open spaces can be simplified down into two equivalence classes of moves (moves that are different, but have the same ultimate effect on the game board) - the first is to play the new card in the row or column containing the first card played, and the second is to play it in a different row or column, so it begins to build a hand separately from the first. Then you simply need a quick calculation in order to determine which of those options is preferable - saving a lot of time, and eliminating the redundancy of checking moves that will ultimately have the same effect on the board. Additionally, this calculation allowed us to begin to have more control over the MCTS decision making process, instead of just evaluating purely randomized end-game boards.
+Similarly,  we also looked towards the end of the game for moves to simplify. The 2nd to last move only has two relevant moves - the difference being that this time, they’re the only two moves at remaining to complete the game. While MCTS is capable of distinguishing between these moves, we decided to use a calculation similar to that of the 2nd move in order to allow for more time for MCTS in earlier moves. Finally, we hard coded the final move of the game. There is no need for any kind of decision making for this move, as there is only one possible option left on the board.
 
-We also looked towards the end of the game for moves to simplify. The 2nd to last move also only has two relevant moves - the difference being that this time, they’re the only two moves at all. While MCTS is capable of distinguishing between these moves, we decided to use a calculation similar to that of the 2nd move in order to allow for more time for MCTS in earlier moves.
-Finally, we hard coded the final move of the game. There is no need for any kind of decision making for this move, as there is only one possible option left on the board.
+\subsection{Heuristics}
 
-The second improvement made with domain knowledge was the addition of a board evaluator. Many papers looking at a wide variety of games have consistently shown that using heuristics in the simulation step to bias MCTS towards more reasonable plays resulted in significant increases in performance. We found it reasonable to believe that such a heuristic for Poker Squares would produce a similar result in our own player. However, due to the variety of options for scoring systems in Parameterized Poker Squares, we lose the ability to include a rating for which poker hands are the most optimal to make in our heuristic.
+With the objective of elevating our player's competitiveness, we developed a system of interim board evaluation calculating an estimated hand score for each row and column which contained one to four cards. Using heuristics in the simulation step biased MCTS towards more reasonable plays resulting in significant increases in performance. Due to the variety of options for scoring systems in PPS, we lose the ability to include a rating for which poker hands are the most optimal to make. To compensate this, all of the possible hand types, from high-card to royal flush, are determined and tracked  as '0' for no longer possible, '1' still possible to make, and '2' already made.  For one to three card an a-priori probability was applied which was derived from standard poker statistics. Once four cards where present then we employed a card counting heuristic assessing what was already played on the board and how many moves remained with its resultant probabilities. When five cards are present this value is no longer an estimate and processed as described above. With this, we calculated a probability for being able to finish any of the remaining possible hands in a given row or column. For example, if you had the Ten, Jack, Queen, and King of Hearts in the topmost row, then the chance of you finishing that hand into a royal flush in the next draw is the chance of drawing the Ace of Hearts from what remains. Alternatively, you could also finish the hand into a flush by playing any of the six Hearts cards that won’t finish the hand into a Straight or Royal flush. A potential issue with this approad is that if there is more than one move left in the game, then taking only the chance of drawing a specific card in the next draw seems inaccurate. However, trying to use a combinatorial equation to determine the chance of drawing it before the end of the game assumes that you draw all of those cards at once, which is also not how this game is played. Since neither option seemed to increase the realistic accuracy of our algorithm, we went with the option that was less intensive to calculate.
 
-In order to work around this, we created a board evaluation algorithm that determines what poker hands can be made in each of the rows and columns of the game board (also taking into account cards left in the deck). For example, playing a pair in the topmost row prevents you from finishing that row with a straight, flush, or high card.
+We then add the scores of each of the possible hands remaining (each weighted by its calculated probability) together to get an expected value for that hand. These scores are able to vary from point system to point system, giving our player flexibility in which hand types it tries to prioritize, so if a pair or even high card ends up being more valuable than a flush or full house, the player can properly prioritize which hand types it should be attempting to make. Due to the heavy computational strain of calculating an expected value for only four cards, and the fact that the calculations would only be more intensive for a hand with fewer cards in it (as there are more cards that need to be filled in, and more work would need to be done to determine what cards are missing, and it would take multiple draws to finish the hand), we decided to move away from calculating an explicit expected value for hands with fewer that four cards. Instead, for hands below four cards, we use an estimated value. Still calculating what hands are able to be made, but instead of calculating the probability of drawing the cards necessary to finish each of those hand types, we weight the score of each hand with an a-priori probability of being able to finish that type of hand. We calculated these a-priori values using the British scoring system for Poker Squares, which is said to be based on the difficulty of finishing each of the hands in a game of Poker Squares. We found that this mixed approach to calculating scores balanced estimated accuracy with computational intensiveness. Once each row and column has a value, they are all added together to create the board as an estimated value. This value can then be compared between siblings, and decisions can be made based on which children look the best. 
 
-Then, we calculated a probability for being able to finish any of the remaining possible hands in a given row or column. 
+Another improvement to our player's scoring was accomplished with the implementation of a modified simulation strategy. Standard MCTS suggests choosing a child node at random and running simulations from this child. We were able to improve our scores consistently by choosing the child node with the best estimated board score.
 
-For a row or column with five cards in it, that’s easy. Once you hit 5 cards, that hand is whatever it is.
 
-For four cards, we determine what cards that row or column would need to finish whichever hand is being looked at, then calculate the probability of drawing one of those cards from the cards remaining in the next draw. For example, if you had the Ten, Jack, Queen, and King of Hearts in the topmost row, then the chance of you finishing that hand into a royal flush in the next draw is the chance of drawing the Ace of Hearts from what remains. Alternatively, you could also finish the hand into a flush by playing any of the 6 Hearts cards that won’t finish the hand into a Straight or Royal flush.
+\subsection{Pruning}
 
-If there is more than one move left in the game, then taking only the chance of drawing a specific card in the next draw seems inaccurate. However, trying to use a combinatorial equation to determine the chance of drawing it before the end of the game assumes that you draw all of those cards at once, which is also not how this game is played. Since neither option seemed to increase the realistic accuracy of our algorithm, we went with the option that was less intensive to calculate.
+%{\bf RTA: Copied from related work}
+Rather than base a pruning strategy on the visited count our focus was on estimated board score calculated as described above. This was a hard pruning strategy because if a node was estimated to fall below a given threshold it would not be added to the tree. A score for each state was determined and a mean calculated of all the children. If a child's score did not exceed a threshold then it was not added to the tree. However, to avoid overpruning, there was a pruning limit which controlled the percentage of pruning allowed. This helped us to eliminate weaker positions and improve our player's scores.
 
-We then add the scores of each of the possible hands remaining (each weighted by its calculated probability) together to get an expected value for that hand. These scores are able to vary from point system to point system, giving our player flexibility in which hand types it tries to prioritize, so if a pair or even high card ends up being more valuable than a flush or full house, the player can properly prioritize which hand types it should be attempting to make.
-
-Due to the heavy computational strain of calculating an expected value for only four cards, and the fact that the calculations would only be more intensive for a hand with fewer cards in it (as there are more cards that need to be filled in, and more work would need to be done to determine what cards are missing, AND it would take multiple draws to finish the hand), we decided to move away from calculating an explicit expected value for hands with fewer that four cards. Instead, for hands below four cards, we use an estimated value. We still calculate what hands are able to be made in these hands, but instead of then calculating the probability of drawing the cards necessary to finish each of those hand types, we weight the score of each of those hands with an a-priori probability of being able to finish that type of hand. We calculated these a-priori values using the British scoring system for Poker Squares, which is said to be based on the difficulty of finishing each of the hands in a game of Poker Squares. We found that this mixed approach to calculating scores balanced estimated accuracy with computational intensiveness.
-
-Once each row and column has a value, they are all added together to create the board as an estimated value. This value can then be compared between siblings, and decisions can be made based on which children look the best. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments and Analysis}
@@ -451,6 +433,85 @@ Another possible reason is that, while simulations direct MCTS into which nodes 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Further Tuning of Domain Knowledge}
 
+\begin{table}
+\caption{Results of experiments on heuristic parameters}
+\label{tbl:heuristicParameterResults}
+\centering
+\begin{tabular}{c c c c c c}
+\hline
+Mean & $\alpha$ & $\beta$ & $\gamma$ & $\beta : \alpha$ & $\gamma : \beta$\\
+\hline
+105.25 & 0.100 & 0.400 & 1.600 & 4.0 & 4.0 \\
+109.07 & 0.050 & 0.400 & 0.600 & 8.0 & 1.5 \\
+109.30 & 0.075 & 0.400 & 0.600 & 5.3 & 1.5 \\
+\hline
+109.89 & 0.125 & 0.400 & 0.600 & 3.2 & 1.5 \\
+110.32 & 0.100 & 0.400 & 0.600 & 4.0 & 1.5 \\
+111.94 & 0.500 & 0.500 & 0.700 & 1.0 & 1.4 \\
+\hline
+112.20 & 0.100 & 0.500 & 0.900 & 5.0 & 1.8 \\
+112.81 & 0.200 & 0.500 & 0.800 & 2.5 & 1.6 \\
+113.87 & 0.200 & 0.400 & 0.600 & 2.0 & 1.5 \\
+\hline
+114.49 & 0.300 & 0.500 & 0.700 & 1.7 & 1.4 \\
+114.91 & 0.200 & 0.600 & 1.200 & 3.0 & 2.0 \\
+115.14 & 0.150 & 0.450 & 1.350 & 3.0 & 3.0 \\
+\hline
+116.77 & 0.200 & 0.400 & 0.700 & 2.0 & 1.8 \\
+116.95 & 0.125 & 0.250 & 0.500 & 2.0 & 2.0 \\
+117.37 & 0.200 & 0.500 & 0.900 & 2.5 & 1.8 \\
+\hline
+118.72 & 0.050 & 0.200 & 0.800 & 4.0 & 4.0 \\
+118.79 & 0.150 & 0.300 & 0.900 & 2.0 & 3.0 \\
+119.42 & 0.050 & 0.150 & 0.450 & 3.0 & 3.0 \\
+\hline
+119.50 & 0.125 & 0.250 & 0.750 & 2.0 & 3.0 \\
+119.66 & 0.200 & 0.400 & 0.900 & 2.0 & 2.3 \\
+119.95 & 0.100 & 0.300 & 0.700 & 3.0 & 2.3 \\
+\hline
+119.99 & 0.150 & 0.300 & 0.600 & 2.0 & 2.0 \\
+120.58 & 0.100 & 0.300 & 0.750 & 3.0 & 2.5 \\
+120.75 & 0.100 & 0.200 & 0.750 & 2.0 & 3.8 \\
+\hline
+121.14 & 0.094 & 0.283 & 0.850 & 3.0 & 3.0 \\
+121.60 & 0.075 & 0.150 & 0.500 & 2.0 & 3.3 \\
+121.68 & 0.100 & 0.300 & 0.800 & 3.0 & 2.7 \\
+\hline
+121.99 & 0.100 & 0.300 & 0.900 & 3.0 & 3.0 \\
+123.21 & 0.100 & 0.300 & 0.850 & 3.0 & 2.8 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1\linewidth]{images/1-2-3_weights.png}
+\end{center}
+\caption{$\alpha$, $\beta$, and $\gamma$ for each resulting mean score.}
+\label{fig:123weights}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=1\linewidth]{images/1-2-3_ratios.png}
+\end{center}
+\caption{$\beta:\alpha$ and $\gamma:\beta$ for each resulting mean score.}
+\label{fig:123ratios}
+\end{figure}
+
+The experimental results described so far show that some modifications have a very small effect, while others have a more significant effect. Recall in equation {\bf *****} that the heuristic includes parameters $\alpha$, $\beta$, and $\gamma$ for the weighting given to one-, two-, and three-card hands, respectively. Prior experiments used a ``reasonable'' guess for these parameters, of {\bf prior parameter values}. In this experiment, we examine these parameters more closely, with the system fixed at a $C_p$ value of {\bf *****}, hardcoding of starting and ending moves, simulation choosing the single highest-scored move (no randomness), and selection using pruning based on board score. These represent the best design decisions resulting from the previous experiments. The parameter settings considered further here have an influence on both the selection and simulation steps, as both depend on the heuristic.
+
+Twenty-nine different trials were conducted for various settings of the parameters, with each trial involving several hours of game play. A few intuitive ideas were used to constrain the number of permutations considered. First, we ensured that $\alpha \leq \beta \leq \gamma$, since all else being equal, a hand with more cards is closer to completing any potential hands than one with fewer cards, and so it should be valued more highly. Second, the parameter space can be constrained somewhat by considering the ratios $\beta : \alpha$ and $\gamma : \beta$. This can bring new insights into what parameter settings may be more similar than would first appear by considering magnitudes alone, thus leading to hypotheses about what portions of the space should be prioritized for consideration. Having said this, however, recall that four-card hands are evaluated using an entirely different formula. So in fact the magnitudes of $\alpha$, $\beta$, and $\gamma$ do matter as well, rather than just the ratios, because hands with three or fewer cards will be compared not just among themselves but against four- and even five-card hands. So using ratios can be a useful analysis tool, but should not be used to the exclusion of considerations of magnitude.
+
+Results of these experiments are shown in Table~\ref{tbl:heuristicParameterResults} and in Figures~\ref{fig:123weights} and \ref{fig:123ratios}, with the table showing the raw data used to generate the figures. Note that the table is sorted in order of increasing mean score, with values ranging from 105.25 to 123.21. For each mean score, the $\alpha$, $\beta$, and $\gamma$ values and the $\beta : \alpha$ and $\gamma : \beta$ ratios are provided. Visualization is challenging due to the presence of three independent variables, but some important insights can be gained from Figures~\ref{fig:123weights} and \ref{fig:123ratios}. In both graphs, note that the horizontal axis is the mean score, and vertical axis is the weight. Thus, the three shapes on the far left in Figure~\ref{fig:123weights} correspond to the values of $\alpha$, $\beta$, and $\gamma$ in the first row of the table. These are the parameter settings that led to a mean score of 105.25.
+
+Note in both graphs that the results are fairly scattered on the left side where mean scores are lower, yet somewhat more uniform on the right side where mean scores are higher. This demonstrates a preference for certain parameter settings to obtain the highest scores. For example, in Figure~\ref{fig:123weights}, not only the single highest-scoring player, but nearly all higher-scoring players tend to have values around $\alpha = 0.1$, $\beta = 0.3$, and $\gamma = 0.85$, with stronger convergence in the $\alpha$ and $\beta$ values.
+
+Figure~\ref{fig:123ratios} shows ratios. Recall that ratios are harder to work with because they ignore the magnitudes of the parameters, and thus the convergence is not quite as clear as in the parameter values themselves. Nevertheless a trend is visible, in which both a $\beta : \alpha$ ratio and $\gamma : \beta$ ratio of 2 or 3 is found in the highest-scoring players. Note that these ratios correspond well to the ideal parameter values already mentioned.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf SAB ***** Make sure we address the different scoring systems - does system perform well with them?}
 fixed: pruning in selection, choose best move for simulation
 variable: the weights for the board score
 result: the best weights we came up with
