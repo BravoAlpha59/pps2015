@@ -45,11 +45,11 @@ import java.util.Random;
 public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
 {
 
-   public xRandomRolloutPruningPlayer200rt2()
+   public xRandomRolloutPruningPlayer200rt2(float C)
    {
       super();
       //The constant used for UCT calculating
-      this.C = (float) (200/Math.sqrt(2));
+      this.C = C;
    }
 
    /**

@@ -564,6 +564,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 	    currentState = g.getStartingState();
 	    curNode = new xMCTSPruningChanceNode(currentState, java.util.Arrays.copyOf(gameDeck, gameDeck.length), verbosity, C, java.util.Arrays.copyOf(gameCanDraw, gameCanDraw.length));
 	    totalSingleGameTrials = 0;
+	    System.out.println("This player's C value = " + C);
 	}
 	
 	

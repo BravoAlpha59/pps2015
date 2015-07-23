@@ -80,10 +80,10 @@ Upper-confidence bound extended for trees (UCT) is an enhancement to MCTS introd
 %\begin{equation} \label{eq:UCB1}
 %UCB1 = \overline{X}_j + \sqrt{\frac{2\ln{2}}{n_j}}
 %\end{equation}
-%Modified for use processing choice as a multi-armed bandit produces it become:
-%\begin{equation} \label{eq:UCT}
-%UCT = \overline{X}_j + 2C_p\sqrt{\frac{2\ln{2}}{n_j}}
-%\end{equation}
+Modified for use processing choice as a multi-armed bandit produces it become:
+\begin{equation} \label{eq:UCT}
+UCT = \overline{X}_j + 2C_p\sqrt{\frac{2\ln{2}}{n_j}}
+\end{equation}
 
 For both UCB1 and UCT $n$ is the number of times a parent node is visited, while $n_j$ the number of visits to the child $_j$ and $C_p > 0$ is a constant. Exploitation is the first term while exploration is managed by the second term and a seemingly natural balance ensues between them. 
 
@@ -254,9 +254,36 @@ Once each row and column has a value, they are all added together to create the 
 \subsection{The Exploration--Exploitation Tradeoff}
 Recall from equation (\ref{eq:UCT}) that MCTS with UCT attempts to balance the {\it exploitation} of relatively effective paths with the {\it exploration} of lesser-known paths. This balance is controlled via the constant $C_p$, where a higher value means a stronger emphasis on exploration. As discussed previously, ~\cite{kocsis2006improved} suggest that $C_p = \frac{1}{\sqrt{2}}$ is ideal when rewards range in $[0,1]$. 
 
-but we can't easily have a range 0...1. Theoretical max is very high, such that most values would be very close. Or could take observed max, but extra time to compute, and problems as observations change over time.
+A rewards range of 0 to 1 is simple when applied to a 2 player game. 0 can represent a loss, and 1 can represent a win. However, because Poker Squares is a single player game, success is measured based on an end-of-game score instead of on whether or not the game was won. Depending on the scoring system, final scores could be in the high hundreds, entirely negative, or anywhere in between. 
 
-but we tried anyway: explain exact vs. inexact squashing. Put those 6 results in a table, argue that they're basically the same.
+Due to the importance of the scoring sytem in setting an optimal  $C_p$ value in UCT, we created a score squashing algorithm that normalized the minimum and maximum potential board scores of a scoring system to 0 and 1. We tried two methods of squashing. The first calculated a highly accurate minimum and maximum score, taking into account the fact that certain hand types can only be made a certain amount of times. For example, in the American scoring system, Royal Flushes have the best score. But you can only make four Royal Flushes on the same board, so it fills in the remaining possible hands with the best scoring moves that are still possible. Once four Royal Flushes are placed (they must all be parallel, so either all four must be in rows or all four must be in columns), a Straight Flush can be placed in the fifth row or column, but no more variations of straights or flushes can be placed on this board. So the final five hands are filled with the next best scoring hand, Four of a Kind, for a final score of 725. The minimum score in the American System is easy - it is possible to only have a high card hand in all rows and columns, so the minimum possible score is 0. 
+
+This method is computationally expensive to calculate, so we also created a less accurate but much faster method of calculating a minimum and maximum - take the lowest hand score and multiply it by ten for the minimum, and multiply the highest by 10 for the maximum. This results in a range of 0 - 1000 for the American scoring system, which is wider than the precise calculation, but also much simpler to calculate. Additionally, we tested a squashing system that normalized 200 to 1, and another that normalized 2000 to 1, to determine how much imprecision in the normalization could affect performance. 
+
+\begin{minipage}{\linewidth}
+\centering
+%\begin{table}
+\captionof{table}{Effect of Score Normalization}
+\label{tbl:SquashingTable}
+%\centering
+\begin{tabular}{c c c}
+\hline
+Player & Normalization Range & Mean Score \\
+\hline
+Precise Squashing & 0-725 & 91.36 \\
+Imprecise Squashing & 0-1000 & 91.23 \\
+Max 200 & 0 - 200 & 90.12 \\
+Max 2000 & 0 - 2000 & 89.54 \\
+\hline
+\end{tabular}\par
+%\end{table}
+\bigskip
+Averages calculated over 1,000 games
+\end{minipage}
+
+These tests all used a  $C_p$ of $\frac{1}{\sqrt{2}}$. As mentioned previously, this has been shown to be the ideal  $C_p$ value using ranges between 0 and 1.
+
+The results in Table~\ref{tbl:SquashingTable} show that the range normalized to between 0 and 1 has little effect on performance.
 
 conclusion: squashing precision isn't so important.
 
@@ -264,34 +291,32 @@ Then show no-squashing results. Clearly show that if you have a low Cp, you need
 
 {\bf SAB: say we tried squashing anyway, can see these results.}
 
-No squashing, exact squashing, inexact squashing. Explain each.
-Different cp values, why we chose them.
-Graph each of these over cp values.
-
-$C_p$ values were tested by running ****number**** games under the American scoring system. These experiments were done with a simple MCTS implementation; no domain knowledge was applied to pruning in selection nor simulation. Results are shown in in figure~\ref{fig:CPEXP}. Then explain results...{\bf SAB: I'm not totally sure what conclusions we can make until we clean up this graph. So is the following true?} In our experiments, higher $C_p$ values (preferencing more towards exploration instead of exploitation) led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our $C_p$ value at the lower bound of this effectiveness plateau.
-
-{\bf SAB: I started playing around with this graph (trying a logarthmic scale for the x-axis. Maybe this will be a good idea?) But I don't understand this data. We have some means in the 700's. How is that possible? (That's why the graph looks so bad.)}
+We then tested various $C_p$ values on the American scoring system to determine what an optimal $C_p$ value would look like without squashing, and how different $C_p$ affect player performance.
 
 \begin{figure}
 \begin{center}
 \begin{tikzpicture}
-\begin{semilogxaxis}[width=.95\linewidth,    % was axis
+\begin{axis}[width=.95\linewidth,    % was axis
 	xlabel=$C_P$,
 	ylabel=Mean Score, 
 	axis lines=left,
-	xtick={30, 60, 90, 120},
-	xmin=0, xmax=1100,
-	ytick={0.00, 30.00,60.00,90.00,120.0},
-	ymin=0,
+	%xtick={0.00, 5.00, 10.00, 25.00, 50.00},
+	xmin=0, xmax = 60,
+	ytick={30.00, 60.00,90.00,120.0},
+	ymin=0, ymax = 100,
 	scaled y ticks = false,
 	y tick label style={/pgf/number format/fixed}]
 \addplot [only marks, mark size=1pt] table[y=mean_value, x=cp]{data/cpexperiment.dat};
-\end{semilogxaxis}  % was axis
+\end{axis}  % was axis
 \end{tikzpicture}
 \end{center}
-\caption{$C_p$: Effect of $C_p$ on mean score.}
+\caption{$C_p$: Effect of $C_p$ on Mean Score, no Squashing.}
 \label{fig:CPEXP}
 \end{figure}
+
+$C_p$ values were tested by running ****number**** games under the American scoring system. These experiments were done with a simple MCTS implementation; no domain knowledge was applied to pruning in selection nor simulation. Results are shown in in figure~\ref{fig:CPEXP}. Then explain results...{\bf SAB: I'm not totally sure what conclusions we can make until we clean up this graph. So is the following true?} 
+
+In our experiment shown by Figure~\ref{fig:CPEXP}, higher $C_p$ values (preferencing more towards exploration instead of exploitation) led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our $C_p$ value at the lower bound of this effectiveness plateau.
 
 Note - should we run more tests with different scoring systems and $C_p$ values in order to see the specificity of our current weight
 
@@ -348,7 +373,7 @@ As shown by Table~\ref{tbl:SimulateTable}, using a heuristic to improve the stre
 \begin{minipage}{\linewidth}
 \centering
 %\begin{table}
-\captionof{table}{Effect of Domain Knowledge on Simulation Over 10,000 Games}
+\captionof{table}{Effect of Domain Knowledge on Simulation}
 \label{tbl:SimulateTable}
 %\centering
 \begin{tabular}{c c}
