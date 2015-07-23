@@ -379,9 +379,11 @@ public class PokerSquares {
 		System.out.println("\n\nTournament evaluation demo:");
 		ArrayList<PokerSquaresPlayer> players = new ArrayList<PokerSquaresPlayer>();
 		players.add(new xRandomRolloutPruningPlayer200rt2((float) 5));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 6));
+		players.add(new xRandomRolloutPruningPlayer200rt2((float) 7));
 		players.add(new xRandomRolloutPruningPlayer200rt2((float) 8));
+		players.add(new xRandomRolloutPruningPlayer200rt2((float) 9));
 		players.add(new xRandomRolloutPruningPlayer200rt2((float) 10));
+		players.add(new xRandomRolloutPruningPlayer200rt2((float) (200/Math.sqrt(2))));
 //		players.add(new xRandomRolloutPlayer1rt2());
 //		players.add(new xRandomRolloutPlayer200rt2());
 //		players.add(new xRandomRolloutPlayer725rt2());
@@ -413,6 +415,6 @@ public class PokerSquares {
 //		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 //		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 		//systems.add(PokerSquaresPointSystem.getNegativePointSystem());
-		PokerSquares.playTournament(players, systems, 100, 0L); // use fewer games per system for faster testing
+		PokerSquares.playTournament(players, systems, 300, 0L); // use fewer games per system for faster testing
 	}
 }

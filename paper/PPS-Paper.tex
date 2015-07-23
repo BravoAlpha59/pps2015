@@ -299,13 +299,7 @@ These tests all used a  $C_p$ of $\frac{1}{\sqrt{2}}$. As mentioned previously, 
 
 The results in Table~\ref{tbl:SquashingTable} show that the range normalized to between 0 and 1 has little effect on performance.
 
-conclusion: squashing precision isn't so important.
-
-Then show no-squashing results. Clearly show that if you have a low Cp, you need to squash (for this domain). Explain why in terms of the mathematics of the formula - that high scores would overwhelm visit counts without better weighting of those visit counts. But up from 5 to 10000, not seeing much difference. Probably mention Dominion paper here.
-
-{\bf SAB: say we tried squashing anyway, can see these results.}
-
-We then tested various $C_p$ values on the American scoring system to determine what an optimal $C_p$ value would look like without squashing, and how different $C_p$ affect player performance.
+We then tested various $C_p$ values on the American scoring system to determine what an optimal $C_p$ value would look like without squashing, and how different $C_p$ values affect player performance.
 
 \begin{figure}
 \begin{center}
@@ -328,61 +322,51 @@ We then tested various $C_p$ values on the American scoring system to determine 
 \label{fig:CPEXP}
 \end{figure}
 
-$C_p$ values were tested by running ****number**** games under the American scoring system. These experiments were done with a simple MCTS implementation; no domain knowledge was applied to pruning in selection nor simulation. Results are shown in in figure~\ref{fig:CPEXP}. Then explain results...{\bf SAB: I'm not totally sure what conclusions we can make until we clean up this graph. So is the following true?} 
+$C_p$ values were tested by running 700 games per value under the American scoring system. These experiments were done with a simple MCTS implementation; no domain knowledge was applied in selection or simulation. 
 
-In our experiment shown by Figure~\ref{fig:CPEXP}, higher $C_p$ values (preferencing more towards exploration instead of exploitation) led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our $C_p$ value at the lower bound of this effectiveness plateau.
+In our experiment shown by Figure~\ref{fig:CPEXP}, higher $C_p$ values  led to better results, up until further increases leveled off in effectiveness. It seems that dividing the searches as evenly as possible between siblings (nodes at the same level, as possible choices of progressing the game from its current state) led to the best results, which would explain why anything higher (which would not change anything significant, as exploration is already weighted far more heavily than exploitation) had no significant effect. So we fixed our $C_p$ value at the lower bound of this effectiveness plateau.
 
-Note - should we run more tests with different scoring systems and $C_p$ values in order to see the specificity of our current weight
+Additionally, by comparing Table~\ref{tbl:SquashingTable} with Figure~\ref{fig:CPEXP} you can see that the squashing values with a  $C_p$ of $\frac{1}{\sqrt{2}}$ performed at the same level as the best scoring  $C_p$ values with no squashing algorithm. 
 
-{\bf SAB: Do we also want to include experiments about other scoring systems. We have a little bit of data already with a random scoring system.}
+%Note - should we run more tests with different scoring systems and $C_p$ values in order to see the specificity of our current weight
+%
+%{\bf SAB: Do we also want to include experiments about other scoring systems. We have a little bit of data already with a random scoring system.}
+%
+%{\bf Note:} If we can say that our $C_p$ value should change based on the scoring system, we can go back to squashing down to 0-1 and use $\frac{1}{\sqrt{2}}$, that way we can back up our decision by quoting the Brown paper and claiming to fulfill the Hoeffding inequality.
+%
+%If we can say that our $C_p$ value does not need to change, we would have to look more into the significance of $C_p$ values as stated by other papers, because so far other papers have said that a good $C_p$ depends heavily on the range of scores in use, so we could either dispute that or figure out why it is different for us (the chance nodes? The size of the game space? Go’s game space is even larger than ours, though I can’t recall reading about MCTS Go and $C_p$ values)
 
-{\bf Note:} If we can say that our $C_p$ value should change based on the scoring system, we can go back to squashing down to 0-1 and use $\frac{1}{\sqrt{2}}$, that way we can back up our decision by quoting the Brown paper and claiming to fulfill the Hoeffding inequality.
+%{\bf possible tests:} run our code with a way higher (or a significantly lower) scoring system, see if it imbalances our $C_p$ value. If it does, follow up with another squashing experiment.
 
-If we can say that our $C_p$ value does not need to change, we would have to look more into the significance of $C_p$ values as stated by other papers, because so far other papers have said that a good $C_p$ depends heavily on the range of scores in use, so we could either dispute that or figure out why it is different for us (the chance nodes? The size of the game space? Go’s game space is even larger than ours, though I can’t recall reading about MCTS Go and $C_p$ values)
-
-{\bf possible tests:} run our code with a way higher (or a significantly lower) scoring system, see if it imbalances our $C_p$ value. If it does, follow up with another squashing experiment.
-
-Is this “maximize exploration” value just anything above the standard average of the games? 
-results
-
-{\bf SAB: May just need to say that since we didn't see a big difference in preliminary experiments, we didn't explore it further, but there could be more to explore in future work.}
+%{\bf SAB: May just need to say that since we didn't see a big difference in preliminary experiments, we didn't explore it further, but there could be more to explore in future work.}
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Hardcoding Certain Moves}
 
-As discussed in section (****related work****), many researchers have found great benefit in the application of domain knowledge to MCTS. Section (****MCTS Application to parameterized poker squares****) describes the two types of domain knowledge used in PPS in this work: hard-coding of some moves, and a heuristic evaluation of the board.
-
-show experimental results that demonstrate that hardcoding doesn't hurt scores. And clearly saves time as previously argued, so we'll just use it.
-
-doesn't help much - try to explain why in terms of size of the domain.
+As discussed in section (****related work****), many researchers have found great benefit in the application of domain knowledge to MCTS. Section (****MCTS Application to parameterized poker squares****) describes two types of domain knowledge used in PPS in this work. The first application is the implementation of hard-coded moves, or moves that skip MCTS in favor of a faster calculation.
 
 Overall, hard coding saved us 4 moves worth of time, resulting in a 19\% increase in time for each of the remaining moves over the non-hard-coded player.
 	
-(calculation done by 4/25 = .16 ( 16\%of the total time allowed), .16/21 = .007 (each move gets an additional .7\% of the total time allowed), 1/25 = .04 (how much of the total time allowed each move gets), .007/.04 = .19 (adding the .7\% of the total time increases an individual move’s time by 19\%)
+%(calculation done by 4/25 = .16 ( 16\%of the total time allowed), .16/21 = .007 (each move gets an additional .7\% of the total time allowed), 1/25 = .04 (how much of the total time allowed each move gets), .007/.04 = .19 (adding the .7\% of the total time increases an individual move’s time by 19\%)
 
 Considering that our player can run tens of thousands of simulations in a second (we may want to be more precise here, at least lay out that result somewhere), even an increase of a fraction of a second can give the decision making algorithm at that level significantly more information to make an informed decision with.
 
-We saw slight increases in score with each hard-coded move. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small. Our player’s average score improved by 1\% due to the 4 moves of hardcoding, so we decided to maintain that change, but not explore the potential of hard coding extra moves.
+Even with four moves worth of time saved, we saw an almost negligible change in score. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small. Our player’s average score improved by 1\% due to the 4 moves of hardcoding. Because hard coding saved computation time and at the very least did not decrease our score, we decided to maintain that change, but not explore the potential of further hard coding.
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Domain Knowledge and Simulation}
 
-fixed: Simulation improvement using domain knowledge, but no pruning in selection
-variable: totally random simulation versus just choose the best move 
-result: choose best move is better
+%fixed: Simulation improvement using domain knowledge, but no pruning in selection
+%variable: totally random simulation versus just choose the best move 
+%result: choose best move is better
 
-we have 2 values for no pruning - let's just say them in prose.
-
-
-{\bf SAB: I moved the discussion about domain knowledge into the MCTS Application to parameterized poker squares section.}
-
-{\bf added July 22} To determine the effectiveness of a heuristic simulation, we tested a player that did not utilize domain knowledge against a player that used the heuristic discussed in section (****Developing a Parameterized Poker Squares Heuristic****) in its simulation step. 
+The second type of domain knowledge we applied was the creation heuristic evaluation of the game board to be used during the simulation step of MCTS. To determine the effectiveness of a heuristic simulation, we tested a player that did not utilize domain knowledge against a player that used the heuristic discussed in section (****Developing a Parameterized Poker Squares Heuristic****) in its simulation step. 
 
 Using the heuristic during simulation instead of randomizing moves resulted in a significant increase in score. The best improvement in performance came by only allowing simulations to run with the best-looking child given by our heuristic. 
 
 As shown by Table~\ref{tbl:SimulateTable}, using a heuristic to improve the strength of simulations resulted in an average score increase of 45\% over our no-domain-knowledge player.
 
-{\bf We could also note from our data that our heuristic player had a better minimum and maximum scoring board state, if we thought that could be relevant enough to mention}
+%{\bf We could also note from our data that our heuristic player had a better minimum and maximum scoring board state, if we thought that could be relevant enough to mention}
 
 \begin{minipage}{\linewidth}
 \centering
@@ -403,20 +387,16 @@ Simulate With Heuristic & 117.8 \\
 Averages calculated over 10,000 games
 \end{minipage}
 
-{\bf SAB: graph(s) and/or table(s). Make sure the above comments are justified and fully explained based on the data shown, and developed into a cohesive narrative.}
-
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Domain Knowledge and Selection}
 
-we have 4 values here - could put in a small table.
-
-fixed: Pruning in selection, with just some "sensible" weights
-variable: pruning just in selection with random sim vs. pruning in selection and simulation vs. pruning in selection and choose best sim.
-result: choose best move is better, and also we see the pruning in selection is helpful
-
-{\bf SAB: Remember, don't phrase things as a "play-by-play", as in: "After the effectiveness of our board evaluator at improving our player’s average score, we decided to apply a similar technique to the expansion step as well." Note alternative first sentence below.}
-
-{\bf Added July 22}This set of experiments considers the application of the board heuristic to the selection step of MCTS. More specifically, when expanding a choice node of the tree, nodes scoring under a variable threshold with this heuristic were {\it pruned}. The expansion of chance nodes was left unaffected, as we do not get to decide which card we are going to draw. 
+%fixed: Pruning in selection, with just some "sensible" weights
+%variable: pruning just in selection with random sim vs. pruning in selection and simulation vs. pruning in selection and choose best sim.
+%result: choose best move is better, and also we see the pruning in selection is helpful
+%
+%{\bf SAB: Remember, don't phrase things as a "play-by-play", as in: "After the effectiveness of our board evaluator at improving our player’s average score, we decided to apply a similar technique to the expansion step as well." Note alternative first sentence below.}
+%
+This set of experiments considers the application of the board heuristic to the selection step of MCTS. More specifically, when expanding a choice node of the tree, nodes scoring under a variable threshold with this heuristic were {\it pruned}. The expansion of chance nodes was left unaffected, as we do not get to decide which card we are going to draw. 
 
 As discussed in section (****related works****), there are two typical strategies for pruning. Soft pruning tends to be more accurate over a longer period of time, as there is no risk of unintentionally permanently removing nodes that are more promising than the pruning algorithm makes them appear at first. However, due to the short amount of time each game is allotted, we elected to pursue a method of hard pruning instead.
 
@@ -442,7 +422,6 @@ Pruning & Heuristic & 120.1 \\
 \bigskip
 Averages calculated over 10,000 games
 \end{minipage}
-{\bf Graph(s), summarizing content of the graphs, explaining cohesively}
 
 One possible reason for this disparity is due to the number of simulations that are run compared to the number of times a node is expanded. According to our calculations, our player averages about 10 simulations per expansion. (a number given by our tracking of num pruned nodes) 
 
@@ -451,18 +430,91 @@ Another possible reason is that, while simulations direct MCTS into which nodes 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Further Tuning of Domain Knowledge}
 
-fixed: pruning in selection, choose best move for simulation
-variable: the weights for the board score
-result: the best weights we came up with
+%fixed: pruning in selection, choose best move for simulation
+%variable: the weights for the board score
+%result: the best weights we came up with
 
-Refer back to eq. ***** about 1-2-3 weights. Now we'll experiment on those....
+ %Once we decided to keep our pruning algorithm, we ran a series of tests meant to determine what values for constants in our equation gave the best average results. When we ran tests for our potential different weights, our highest scoring test increased its score 20\% over the lowest scoring test (sheet four in our results). This shows how important an accurate method for pruning is. 
 
+\begin{table}
+\caption{Results of experiments on heuristic parameters}
+\label{tbl:heuristicParameterResults}
+\centering
+\begin{tabular}{c c c c c c}
+\hline
+Mean & $\alpha$ & $\beta$ & $\gamma$ & $\beta : \alpha$ & $\gamma : \beta$\\
+\hline
+105.25 & 0.100 & 0.400 & 1.600 & 4.0 & 4.0 \\
+109.07 & 0.050 & 0.400 & 0.600 & 8.0 & 1.5 \\
+109.30 & 0.075 & 0.400 & 0.600 & 5.3 & 1.5 \\
+\hline
+109.89 & 0.125 & 0.400 & 0.600 & 3.2 & 1.5 \\
+110.32 & 0.100 & 0.400 & 0.600 & 4.0 & 1.5 \\
+111.94 & 0.500 & 0.500 & 0.700 & 1.0 & 1.4 \\
+\hline
+112.20 & 0.100 & 0.500 & 0.900 & 5.0 & 1.8 \\
+112.81 & 0.200 & 0.500 & 0.800 & 2.5 & 1.6 \\
+113.87 & 0.200 & 0.400 & 0.600 & 2.0 & 1.5 \\
+\hline
+114.49 & 0.300 & 0.500 & 0.700 & 1.7 & 1.4 \\
+114.91 & 0.200 & 0.600 & 1.200 & 3.0 & 2.0 \\
+115.14 & 0.150 & 0.450 & 1.350 & 3.0 & 3.0 \\
+\hline
+116.77 & 0.200 & 0.400 & 0.700 & 2.0 & 1.8 \\
+116.95 & 0.125 & 0.250 & 0.500 & 2.0 & 2.0 \\
+117.37 & 0.200 & 0.500 & 0.900 & 2.5 & 1.8 \\
+\hline
+118.72 & 0.050 & 0.200 & 0.800 & 4.0 & 4.0 \\
+118.79 & 0.150 & 0.300 & 0.900 & 2.0 & 3.0 \\
+119.42 & 0.050 & 0.150 & 0.450 & 3.0 & 3.0 \\
+\hline
+119.50 & 0.125 & 0.250 & 0.750 & 2.0 & 3.0 \\
+119.66 & 0.200 & 0.400 & 0.900 & 2.0 & 2.3 \\
+119.95 & 0.100 & 0.300 & 0.700 & 3.0 & 2.3 \\
+\hline
+119.99 & 0.150 & 0.300 & 0.600 & 2.0 & 2.0 \\
+120.58 & 0.100 & 0.300 & 0.750 & 3.0 & 2.5 \\
+120.75 & 0.100 & 0.200 & 0.750 & 2.0 & 3.8 \\
+\hline
+121.14 & 0.094 & 0.283 & 0.850 & 3.0 & 3.0 \\
+121.60 & 0.075 & 0.150 & 0.500 & 2.0 & 3.3 \\
+121.68 & 0.100 & 0.300 & 0.800 & 3.0 & 2.7 \\
+\hline
+121.99 & 0.100 & 0.300 & 0.900 & 3.0 & 3.0 \\
+123.21 & 0.100 & 0.300 & 0.850 & 3.0 & 2.8 \\
+\hline
+\end{tabular}
+\end{table}
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=1\linewidth]{images/1-2-3_weights.png}
+\end{center}
+\caption{$\alpha$, $\beta$, and $\gamma$ for each resulting mean score.}
+\label{fig:123weights}
+\end{figure}
 
-{\bf Added by Clay} Once we decided to keep our pruning algorithm, we ran a series of tests meant to determine what values for constants in our equation gave the best average results. When we ran tests for our potential different weights, our highest scoring test increased its score 20\% over the lowest scoring test (sheet four in our results). This shows how important an accurate method for pruning is. 
+\begin{figure}
+\begin{center}
+\includegraphics[width=1\linewidth]{images/1-2-3_ratios.png}
+\end{center}
+\caption{$\beta:\alpha$ and $\gamma:\beta$ for each resulting mean score.}
+\label{fig:123ratios}
+\end{figure}
 
+The experimental results described so far show that some modifications have a very small effect, while others have a more significant effect. Recall in equation {\bf *****} that the heuristic includes parameters $\alpha$, $\beta$, and $\gamma$ for the weighting given to one-, two-, and three-card hands, respectively. Prior experiments used a ``reasonable'' guess for these parameters, or {\bf prior parameter values}. In this experiment, we examine these parameters more closely, with the system fixed at a $C_p$ value of {\bf *****}, hardcoding of starting and ending moves, simulation choosing the single highest-scored move (no randomness), and selection using pruning based on board score. These represent the best design decisions resulting from the previous experiments. The parameter settings considered further here have an influence on both the selection and simulation steps, as both depend on the heuristic.
 
+Twenty-nine different trials were conducted for various settings of the parameters, with each trial involving several hours of game play. A few intuitive ideas were used to constrain the number of permutations considered. First, we ensured that $\alpha \leq \beta \leq \gamma$, since all else being equal, a hand with more cards is closer to completing any potential hands than one with fewer cards, and so it should be valued more highly. Second, the parameter space can be constrained somewhat by considering the ratios $\beta : \alpha$ and $\gamma : \beta$. This can bring new insights into what parameter settings may be more similar than would first appear by considering magnitudes alone, thus leading to hypotheses about what portions of the space should be prioritized for consideration. Having said this, however, recall that four-card hands are evaluated using an entirely different formula. So in fact the magnitudes of $\alpha$, $\beta$, and $\gamma$ do matter as well, rather than just the ratios, because hands with three or fewer cards will be compared not just among themselves but against four- and even five-card hands. So using ratios can be a useful analysis tool, but should not be used to the exclusion of considerations of magnitude.
+
+Results of these experiments are shown in Table~\ref{tbl:heuristicParameterResults} and in Figures~\ref{fig:123weights} and \ref{fig:123ratios}, with the table showing the raw data used to generate the figures. Note that the table is sorted in order of increasing mean score, with values ranging from 105.25 to 123.21. For each mean score, the $\alpha$, $\beta$, and $\gamma$ values and the $\beta : \alpha$ and $\gamma : \beta$ ratios are provided. Visualization is challenging due to the presence of three independent variables, but some important insights can be gained from Figures~\ref{fig:123weights} and \ref{fig:123ratios}. In both graphs, note that the horizontal axis is the mean score, and vertical axis is the weight. Thus, the three shapes on the far left in Figure~\ref{fig:123weights} correspond to the values of $\alpha$, $\beta$, and $\gamma$ in the first row of the table. These are the parameter settings that led to a mean score of 105.25.
+
+Note in both graphs that the results are fairly scattered on the left side where mean scores are lower, yet somewhat more uniform on the right side where mean scores are higher. This demonstrates a preference for certain parameter settings to obtain the highest scores. For example, in Figure~\ref{fig:123weights}, not only the single highest-scoring player, but nearly all higher-scoring players tend to have values around $\alpha = 0.1$, $\beta = 0.3$, and $\gamma = 0.85$, with stronger convergence in the $\alpha$ and $\beta$ values.
+
+Figure~\ref{fig:123ratios} shows ratios. Recall that ratios are harder to work with because they ignore the magnitudes of the parameters, and thus the convergence is not quite as clear as in the parameter values themselves. Nevertheless a trend is visible, in which both a $\beta : \alpha$ ratio and $\gamma : \beta$ ratio of 2 or 3 is found in the highest-scoring players. Note that these ratios correspond well to the ideal parameter values already mentioned.
+
+{\bf SAB ***** Make sure we address the different scoring systems - does system perform well with them?}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{whatevs}
 
 Now we step back and look at bigger picture conclusions from the results, and theorize about why certain things were more effective than others.
