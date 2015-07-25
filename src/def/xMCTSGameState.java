@@ -41,11 +41,5 @@ package def;
  */
 public interface xMCTSGameState
 {
-   /**
-    * Determines whether two gamestates are equal.
-    *
-    * @param g is the gamestate to be compared to this one
-    * @return True if g is equal to this gamestate, otherwise false.
-    */
-   //public boolean equals(xMCTSGameState g);
+	
 }

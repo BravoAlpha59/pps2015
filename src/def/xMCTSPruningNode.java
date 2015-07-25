@@ -6,7 +6,6 @@ import java.util.Random;
 public abstract class xMCTSPruningNode {
 
 	
-	//public ArrayList<? extends xMCTSNode> nextMoves;
 	public ArrayList<xMCTSPruningNode> nextMoves;
 	protected xMCTSStringGameState nodeGameState;
 	protected int timesVisited;
@@ -14,11 +13,10 @@ public abstract class xMCTSPruningNode {
 	protected final Random r;
 	protected boolean expanded = false;
 	public Card[] nodeDeck;
-	protected int verbosity;
 	protected float constant;
 	protected boolean[] nodeCanDraw;
 	   
-	public xMCTSPruningNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant, boolean[] nodeCanDraw)
+	public xMCTSPruningNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, float constant, boolean[] nodeCanDraw)
 	   {
 	      this.nodeGameState = nodeGameState;
 	      this.nodeDeck = nodeDeck;
@@ -26,15 +24,11 @@ public abstract class xMCTSPruningNode {
 	      score = 0;
 	      nextMoves = new ArrayList<xMCTSPruningNode>();
 	      r = new Random();
-	      this.verbosity = verbosity;
 	      this.constant = constant;
 	      this.nodeCanDraw = nodeCanDraw;
 	   }
 	
-	//public abstract void expand(ArrayList<xMCTSStringGameState> possibleMoves, String tab, boolean print); //Have expand take a game instead? then it can create its own arrayList using the game
-	
-	
-	public abstract xMCTSPruningNode bestSelection(boolean myTurn, String tab);
+	public abstract xMCTSPruningNode bestSelection();
 	
 	/**
 	    * Returns the number of times this node has been visited.
@@ -143,7 +137,6 @@ public abstract class xMCTSPruningNode {
 	    */
 	   public int[] bestMoveLocation(Card card) {
 		   int temp = nodeGameState.toString().indexOf(card.toString());
-		   //System.out.println("Index of card " + card.toString() + " is " + temp);
 		   if (temp != -1) {
 			   temp /= 2;
 			   int[] retVal = {temp/5, temp%5};

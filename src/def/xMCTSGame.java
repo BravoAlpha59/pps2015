@@ -37,20 +37,19 @@ import java.util.ArrayList;
 /**
  * A class that implements this interface will encapsulate the rules of a given
  * game, including the calculation of available legal moves, and evaluating
- * gamestates for end game conditions (wins and draws).
+ * gamestates for end game conditions.
  *
- * @author Kyle
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 public interface xMCTSGame
 {
 
    enum status
    {
-
-      PLAYER1WIN,
-      PLAYER2WIN,
-      ONGOING,
-      DRAW;
+      GAMEEND,
+      ONGOING;
    }
 
    
@@ -85,12 +84,5 @@ public interface xMCTSGame
     * @return Starting game state.
     */
    public xMCTSStringGameState getStartingState();
-
-   /**
-    * Prints the state of the game to system.out.
-    *
-    * @param state The gamestate to be printed.
-    */
-   public void printState(xMCTSGameState state);
 
 }

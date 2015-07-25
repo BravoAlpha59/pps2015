@@ -38,7 +38,6 @@ package def;
  *
  * @author Kyle
  */
-import java.util.ArrayList;
 
 public class xMCTSPruningChanceNode extends xMCTSPruningNode
 {
@@ -48,9 +47,9 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
     *
     * @param nodeGameState The GameState this node will keep score for.
     */
-   public xMCTSPruningChanceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant, boolean[] nodeCanDraw)
+   public xMCTSPruningChanceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, float constant, boolean[] nodeCanDraw)
    {
-	   super(nodeGameState, nodeDeck, verbosity, constant, nodeCanDraw);
+	   super(nodeGameState, nodeDeck, constant, nodeCanDraw);
    }
 
    /**
@@ -58,10 +57,8 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
     *
     * @param possibleMoves The list of moves available, used to determine number of plays
     */
-   public synchronized void chanceExpand(String tab, boolean print)
+   public synchronized void chanceExpand()
    {
-//	  if (verbosity > 0)
-//		  System.out.println(tab + "Chance expanding");
 	  
 	  if (!expanded)
       {
@@ -71,17 +68,11 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
          Card[] currChildDeck;
          boolean[] currChildCanDraw;
          Card temp;
-         if (verbosity > 4) {
-        	 System.out.println(tab + "This node's deck: " + java.util.Arrays.toString(nodeDeck));
-        	 System.out.print(tab + "possible draws: \t         ");
-         }
          for (int i = numPlays; i < nodeDeck.length; i++) {
         	 currChildDeck = java.util.Arrays.copyOf(nodeDeck, nodeDeck.length);
         	 currChildCanDraw = java.util.Arrays.copyOf(nodeCanDraw, nodeCanDraw.length);
         	 childStateStringRep = nodeGameState.toString().substring(0, nodeGameState.toString().length() - 2);
         	 childStateStringRep += currChildDeck[i].toString();
-        	 if (verbosity > 4)
-        		 System.out.print(currChildDeck[i].toString() + " ");
         	 
         	 // swap i into the "already played" section
         	 temp = currChildDeck[i];
@@ -91,10 +82,8 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
         	 //turn off i in canDraw for this child
         	 currChildCanDraw[(temp.getRank() + (temp.getSuit() * xCard.NUM_RANKS))] = false;
         	 
-        	 nextMoves.add(new xMCTSPruningChoiceNode(new xMCTSStringGameState(childStateStringRep, nodeGameState.expectedValue, numPlays), currChildDeck, verbosity, constant, currChildCanDraw));
+        	 nextMoves.add(new xMCTSPruningChoiceNode(new xMCTSStringGameState(childStateStringRep, nodeGameState.expectedValue, numPlays), currChildDeck, constant, currChildCanDraw));
          }
-         if (verbosity > 4)
-        	 System.out.println();
       }
    }
 
@@ -105,14 +94,10 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
     * contains this node.
     * @return A random child of this node
     */
-   public xMCTSPruningNode bestSelection(boolean myTurn, String tab)
+   public xMCTSPruningNode bestSelection()
    {
-	  if (verbosity > 2) 
-		  System.out.println(tab + "Chance bestSelection");
 	  
 	  xMCTSPruningNode temp = getRandomChild();
-	  if (verbosity > 2)
-		  System.out.println(tab + "Chance selected node: " + temp);
 	  
 	  if (temp.choiceNode()) //if temp is a choice node...
 		  return temp;
@@ -135,10 +120,7 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
    public void createChildNode(xMCTSStringGameState s, Card[] deck, boolean[] canDraw) { 
 	   Card[] deckCopy = java.util.Arrays.copyOf(deck, deck.length);
        boolean[] canDrawCopy = java.util.Arrays.copyOf(canDraw, canDraw.length);
-	   nextMoves.add(new xMCTSPruningChoiceNode(s, deckCopy, verbosity, constant, canDrawCopy));
-	  //System.out.println("This chance node created a choice node");
-	  // System.out.println(java.util.Arrays.toString(deckCopy));
-	  // System.out.println(java.util.Arrays.toString(canDrawCopy));
+	   nextMoves.add(new xMCTSPruningChoiceNode(s, deckCopy, constant, canDrawCopy));
    }
    
    /**

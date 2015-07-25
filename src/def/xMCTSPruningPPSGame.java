@@ -79,7 +79,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	{
 		int parentNumPlays = gameState.numPlays; // curNode or Parent node
 		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);
-		//		ArrayList<xMCTSStringGameState> devCalculate = new ArrayList<xMCTSStringGameState>();
 		ArrayList<xMCTSStringGameState> prunedMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);
 		double boardExpectedValue; //The expected value of each board
 		double scoreMean = 0;
@@ -89,11 +88,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 		if (gameStatus(gameState) == xMCTSGame.status.ONGOING) {
 			String activeCard = gameState.toString().substring(gameState.toString().length() - 2, gameState.toString().length());
-//			System.out.println("Call to getPossibleMoves with parent " + gameState.toString());
-//			System.out.println("Parent's expected value = " + gameState.expectedValue);
-//			System.out.println("DELTA value = " + DELTA);
-//			System.out.println("Threshold value = " + gameState.expectedValue * DELTA);
-//			System.out.println("numPlays = " + numPlays);
 
 			int gridSize = SIZE*2; //Size is the size of the actual game grid... with 2 characters per card, size*2 is the grid size of string representations
 			for (int row = 0; row < gridSize; row += 2) {//for each position in this state being checked
@@ -106,49 +100,19 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 										gameState.toString().length());
 
 						if (parentNumPlays < 24 && parentNumPlays > 0) {//ignore triviality of first and last moves; do pruning for all others
-//							for (int i = 0; i < 5; i++) {//row
-//								for (int j = 0; j < 5; j++) {//column
-//									int position = i * 10 + j * 2;
-//									String temp = possibleMove.toString().substring(position, position + 2);
-//									grid[i][j] = Card.getCard(temp);
-//								}
-//							}
-//							pointSystem.printGrid(grid);
-//							System.out.println();
 							
-							//long boardScoreStartTime = System.currentTimeMillis();
 							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw, 5);
-							//long boardScoreEndTime = System.currentTimeMillis();
-						 	// if ((boardScoreEndTime - boardScoreStartTime) > 100) {
-						 	//	 System.out.println("Time in this call to getExpectedBoardScore (from posMoves) = " + (boardScoreEndTime - boardScoreStartTime));
-						 	//	 System.out.println("board called on = " + gameState.toString());
-						 	// }
-							//System.out.println("this child's expected value in possibleMoves = " + boardExpectedValue);
-							//System.out.println("numPlays in possibleMoves (child) = " + childNumPlays);
 							scoreMean += boardExpectedValue;
-							//	                  devCalculate.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, gameState.numPlays + 1));
 
 							if (boardExpectedValue >= (gameState.expectedValue * DELTA)) { //If this play has a score below the parent's weighted with delta
-								//System.out.println("Adding this child\n");
 								posMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
 							}
 							else {
-								//System.out.println("Pruning this child\n");
 								prunedMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
 								totalChildrenPruned++;
 							}
-							
-//							if (numPlays == 23) {
-//								System.out.println("This child's state = " + possibleMove);
-//								System.out.println("This child's score = " + boardExpectedValue);
-//								System.out.println("Parent's expected score = " + gameState.expectedValue);
-//							}
 						}
 						else { //numplays 0 or 24, so no pruning here
-							//System.out.println("This move is trivial");
-							//if (numPlays == 0)
-							//	System.out.println("numPlays is 0");
-							//System.out.println("possibleMove - " + possibleMove);
 							posMoves.add(new xMCTSStringGameState(possibleMove, 0.0, childNumPlays));
 						}
 					}
@@ -158,70 +122,24 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				double totalMoves = posMoves.size() + prunedMoves.size();
 				if (posMoves.size() < PRUNE_LIMIT * (posMoves.size() + prunedMoves.size())) {//If posMoves' size is below a certain percent of the total number of moves, add all already-pruned moves above the average of the children to posMoves
 					scoreMean /= (posMoves.size() + prunedMoves.size());
-					//System.out.println("the average of these children = " + scoreMean);
 					double adjust_rounding = 0.0;
 					for (xMCTSStringGameState move : prunedMoves) {
-						//System.out.println("this child = " + move.toString());
-						//System.out.println("this child's expected value = " + move.expectedValue);
 						if (scoreMean >= 0.0)
 							adjust_rounding = POSITIVE_ROUND_ADJ;
 						else
 							adjust_rounding = NEGATIVE_ROUND_ADJ;
 						if (move.expectedValue >= scoreMean * adjust_rounding) {
-							//System.out.println("Adding this pruned move back to posMoves: " + move.toString());
 							totalChildrenPruned--;
 							posMoves.add(move);
 						}
-						//						if (numPlays == 23) {
-//							System.out.println("This child's state = " + move.toString());
-//							System.out.println("This child's score = " + move.expectedValue);
-//							System.out.println("restoring threshold = " + scoreMean * 0.999999);
-//						}
 					}
 				}
 			timesCalled++; 
 			overAllMoves += totalMoves;
 			percentPruned = (posMoves.size() / totalMoves);
-			//System.out.println("numPlays = " + numPlays + " size of posMoves = " + posMoves.size() + " size of prunedMoves = " + prunedMoves.size() + " total moves " + totalMoves + " percentPruned = " + percentPruned);
 			totalPercentPruned += percentPruned;
 			}
-			//Standard deviation/average calculator
-			//	         if (numPlays < 24 && numPlays > 0) {
-			//	        	 //	         double standardDev = 0;
-			//	        	 scoreMean /= devCalculate.size();
-			//	        	 //	         double diff;
-			//	        	 //	         for(xMCTSStringGameState child : devCalculate) {
-			//	        	 //	        	diff = child.expectedValue - scoreMean;
-			//	        	 //	 			standardDev += diff * diff;
-			//	        	 //	         }
-			//	        	 //	         standardDev = Math.sqrt(standardDev/devCalculate.size());
-			//
-			////	        	 System.out.println("scoreMean = " + scoreMean);
-			//	        	 for (xMCTSStringGameState child : devCalculate) {
-			////	        		 System.out.println("This child's Expected Value: " + child.expectedValue);
-			//	        		 if (child.expectedValue >= (scoreMean * DELTA)) { //If this play has a score below the standard deviation
-			////	        			 System.out.println("Adding this child");
-			//	        			 posMoves.add(child);
-			//	        		 }
-			//	        	 }
-			//	         }
-			//totalPercentPruned = ((totalPercentPruned * timesCalled) + percentPruned)/timesCalled;
 		}
-		//else {
-		//	  System.out.println("This game has already ended");
-		//}
-		//System.out.println("Parent's Expected Value: " + gameState.expectedValue);
-		//System.out.println("Threshold = " + gameState.expectedValue * DELTA);
-		//System.out.println("Total children pruned = " + totalChildrenPruned);
-		//System.out.println("posMoves' final size = " + posMoves.size());
-//		if (numPlays == 23) {
-//			System.out.println("num possible moves = " + posMoves.size());
-//		}
-// 		 System.out.println("unpruned children:");
-// 		 for (int i = 0; i < posMoves.size(); i++) {
-// 			 System.out.println(posMoves.get(i));
-// 			 System.out.println(posMoves.get(i).expectedValue);
-// 		 }
 		return posMoves;
 	}
 	
@@ -230,10 +148,8 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	{
 		int parentNumPlays = gameState.numPlays; // curNode or Parent node
 		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>(1);
-		//		ArrayList<xMCTSStringGameState> devCalculate = new ArrayList<xMCTSStringGameState>();
 		ArrayList<xMCTSStringGameState> prunedMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);
 		double boardExpectedValue; //The expected value of each board
-		//double scoreMean = 0;
 		double percentPruned;
 		int childNumPlays = gameState.numPlays + 1;
 
@@ -241,11 +157,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		if (gameStatus(gameState) == xMCTSGame.status.ONGOING) {
 			String activeCard = gameState.toString().substring(gameState.toString().length() - 2, gameState.toString().length());
 			double maxChildExpectedValue = Double.NEGATIVE_INFINITY;
-//			System.out.println("Call to getBestSimMove with parent " + gameState.toString());
-//			System.out.println("Parent's expected value = " + gameState.expectedValue);
-//			System.out.println("DELTA value = " + DELTA);
-//			System.out.println("Threshold value = " + gameState.expectedValue * DELTA);
-//			System.out.println("numPlays = " + numPlays);
 
 			int gridSize = SIZE*2; //Size is the size of the actual game grid... with 2 characters per card, size*2 is the grid size of string representations
 			for (int row = 0; row < gridSize; row += 2) {//for each position in this state being checked
@@ -258,44 +169,14 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 										gameState.toString().length());
 
 						if (parentNumPlays < 24 && parentNumPlays > 0) {//ignore triviality of first and last moves; do pruning for all others
-//							for (int i = 0; i < 5; i++) {//row
-//								for (int j = 0; j < 5; j++) {//column
-//									int position = i * 10 + j * 2;
-//									String temp = possibleMove.toString().substring(position, position + 2);
-//									grid[i][j] = Card.getCard(temp);
-//								}
-//							}
-//							pointSystem.printGrid(grid);
-//							System.out.println();
-							
-							//long boardScoreStartTime = System.currentTimeMillis();
 							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw, 5);
-							// long boardScoreEndTime = System.currentTimeMillis();
-						 	 //if ((boardScoreEndTime - boardScoreStartTime) > 100) {
-						 	//	 System.out.println("Time in this call to getExpectedBoardScore (from simMove) = " + (boardScoreEndTime - boardScoreStartTime));
-						 	//	 System.out.println("board called on = " + gameState.toString());
-						 	// }
-							//System.out.println("this child's expected value = " + boardExpectedValue);
-							//scoreMean += boardExpectedValue;
-							//	                  devCalculate.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, gameState.numPlays + 1));
-
-						//	if (boardExpectedValue >= (gameState.expectedValue * DELTA)) { //If this play has a score below the parent's weighted with delta
-								//System.out.println("Adding this child\n");
-						//		posMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, gameState.numPlays + 1));
-						//	}
-						//	else {
-								//System.out.println("Pruning this child\n");
 								if (boardExpectedValue > maxChildExpectedValue) {
 									maxChildExpectedValue = boardExpectedValue;
-									//System.out.println("new max child");
 								}
 								prunedMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
 								totalChildrenPruned++;
-						//	}
 						}
 						else { //numplays 0 or 24, so no pruning here
-							//if (numPlays == 0)
-							//	System.out.println("numPlays is 0");
 							posMoves.add(new xMCTSStringGameState(possibleMove, 0.0, childNumPlays));
 						}
 					}
@@ -303,10 +184,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			}
 			if (parentNumPlays < 24 && parentNumPlays > 0) {//should only run this when considering pruning
 					for (xMCTSStringGameState move : prunedMoves) {
-						//System.out.println("this child = " + move.toString());
-						//System.out.println("this child's expected value = " + move.expectedValue);
 						if (move.expectedValue == maxChildExpectedValue) {
-							//System.out.println("Adding this pruned move back to posMoves: " + move.toString());
 							totalChildrenPruned--;
 							posMoves.add(move);
 							break;
@@ -315,40 +193,9 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			timesCalled++;
 			overAllMoves += prunedMoves.size();
 			percentPruned = (posMoves.size() / (double) prunedMoves.size());
-			//System.out.println("numPlays = " + numPlays + " size of posMoves = " + posMoves.size() + " size of prunedMoves = " + prunedMoves.size() + " total moves " + totalMoves + " percentPruned = " + percentPruned);
 			totalPercentPruned += percentPruned;
 			}
-			//Standard deviation/average calculator
-			//	         if (numPlays < 24 && numPlays > 0) {
-			//	        	 //	         double standardDev = 0;
-			//	        	 scoreMean /= devCalculate.size();
-			//	        	 //	         double diff;
-			//	        	 //	         for(xMCTSStringGameState child : devCalculate) {
-			//	        	 //	        	diff = child.expectedValue - scoreMean;
-			//	        	 //	 			standardDev += diff * diff;
-			//	        	 //	         }
-			//	        	 //	         standardDev = Math.sqrt(standardDev/devCalculate.size());
-			//
-			////	        	 System.out.println("scoreMean = " + scoreMean);
-			//	        	 for (xMCTSStringGameState child : devCalculate) {
-			////	        		 System.out.println("This child's Expected Value: " + child.expectedValue);
-			//	        		 if (child.expectedValue >= (scoreMean * DELTA)) { //If this play has a score below the standard deviation
-			////	        			 System.out.println("Adding this child");
-			//	        			 posMoves.add(child);
-			//	        		 }
-			//	        	 }
-			//	         }
-			//totalPercentPruned = ((totalPercentPruned * timesCalled) + percentPruned)/timesCalled;
 		}
-		//		else {
-		//	    	  System.out.println("This game has already ended");
-		//		}
-		//System.out.println("Parent's Expected Value: " + gameState.expectedValue);
-		//System.out.println("Threshold = " + gameState.expectedValue * DELTA);
-		//System.out.println("Total children pruned = " + totalChildrenPruned);
-		//System.out.println("posMoves' final size = " + posMoves.size());
-		//for (xMCTSStringGameState child : posMoves)
-			//System.out.println(child.toString());
 		return posMoves;
 	}
 	
@@ -360,7 +207,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		// SIZE is 5: the size of one dimension of the board grid (5x5)
 		// when numHands is 5, you check all 5 hands in rows and columns. When numHands is 4, you only check the first 4 hands in rows and columns.
 		for (int childRow = 0; childRow < numHands*SIZE*2; childRow += SIZE*2) {//for each horizontal hand in this potential child state
-			//System.out.println("Row " + ((childRow / (SIZE*2))+1));
 			handExpectedValue = getExpectedHandScore(new Card[] {Card.getCard(possibleMove.substring(childRow, childRow+2)), 
 																 Card.getCard(possibleMove.substring(childRow+2, childRow+4)),
 																 Card.getCard(possibleMove.substring(childRow+4, childRow+6)), 
@@ -372,7 +218,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 
 		for (int childCol = 0; childCol < numHands*2; childCol+= 2) {//for each vertical hand in this potential child state
-			//System.out.println("Column " + ((childCol / 2)+1));
 			handExpectedValue = getExpectedHandScore(new Card[] {Card.getCard(possibleMove.substring(childCol, childCol+2)), 
 																 Card.getCard(possibleMove.substring(childCol+10, childCol+12)),
 																 Card.getCard(possibleMove.substring(childCol+20, childCol+22)), 
@@ -381,8 +226,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 													 numPlays, canDraw);
 			boardExpectedValue += handExpectedValue;
 		}
-
-		//System.out.println("This board's expected value in expectedBoardScore: " + boardExpectedValue);
 		return boardExpectedValue;
 	}
 
@@ -411,9 +254,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					else //5 cards
 						cardCountWeight = FIVE_CARD_WEIGHT;
 					handExpectedValue += handProbabilities[i] * pointSystem.getHandScore(i) * cardCountWeight;
-					//System.out.println("Possible hand id: " + i);
-					//System.out.println("Probability of finishing this hand in the next draw: " + handProbabilities[i]);
-					//System.out.println("the score of this hand type = " + pointSystem.getHandScore(i));
 				}
 
 			}
@@ -432,14 +272,10 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				else //(numCards == 1)
 					cardCountWeight = ONE_CARD_WEIGHT;
 	
-//				System.out.println("cardCountWeight = " + cardCountWeight);
 				isHandPossible = getPossibleHands(hand, rankCounts, suitCounts, numCards);
 				for (int i = 0; i < isHandPossible.length; i++) {
 					if (isHandPossible[i] == COMPLETED) { //if a hand type is possible, add its a-priori expected value to this hand's expected value including the card weights
 						handExpectedValue += /*aprioriProb[i] * */pointSystem.getHandScore(i) * cardCountWeight;// do we need to weight by probability if it's already complete?
-						//System.out.println("Possible hand id: " + i);
-						//System.out.println("apriori probability of drawing this hand = " + aprioriProb[i]);
-						//System.out.println("the score of this hand type = " + pointSystem.getHandScore(i));
 					}
 					else if (isHandPossible[i] == POSSIBLE) {//if a hand type is possible, add its a-priori expected value to this hand's expected value including the card and moves remaining weights
 						handExpectedValue += aprioriProb[i] * pointSystem.getHandScore(i) * cardCountWeight; 
@@ -450,8 +286,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				handExpectedValue += ZERO_CARD;
 			}
 		}
-
-		//System.out.println("This hand's expected value: " + handExpectedValue + "\n");
 		return handExpectedValue;
 	}
 
@@ -469,7 +303,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
    {
       String s = state.toString().substring(0, state.toString().length() - 2);
       if (!s.contains("_")) {
-         return xMCTSGame.status.PLAYER1WIN;
+         return xMCTSGame.status.GAMEEND;
       } else {
          return xMCTSGame.status.ONGOING;
       }
@@ -491,19 +325,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	   totalPercentPruned = 0;
 	   timesCalled = 0;
 	   overAllMoves = 0;
-   }
-
-   @Override
-   public void printState(xMCTSGameState state)
-   {
-      System.out.println(state.toString().substring(0, 10));
-      System.out.println(state.toString().substring(10, 19));
-      System.out.println(state.toString().substring(20, 29));
-      System.out.println(state.toString().substring(30, 39));
-      System.out.println(state.toString().substring(40, 49));
-   }
-   
-   
+   } 
    
 	/**
 	 *  getPossibleHands - gets an array of cards representing a poker hand and evaluates the possible hands
@@ -511,39 +333,27 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	 *  @return array of the int flags representing the 10 possible poker hands
 	 */
 	public int[] getPossibleHands(Card[] hand, int[] rankCounts, int[] suitCounts, int numCards){
-		//boolean[] possibleHands;
 		int[] posHands;
+		
 		// rankCounts[0] is how many Aces you have...
 		// rankCounts[1] is how many 2's you have...
 		// suitCounts[0] is how many Clubs you have...
 
 		if (numCards == 5) {
-			//possibleHands = new boolean[] {false, false, false, false, false, false, false, false, false, false};
 			posHands = new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-			//possibleHands[PokerHand.getPokerHandId(hand)] = true;
 			posHands[PokerHand.getPokerHandId(hand)] = COMPLETED;
-			//System.out.println("5 cards = " + java.util.Arrays.toString(posHands));
 			return posHands;
 		}
 		else if (numCards == 1) { 		// can possibly eliminate the royal flush
 			if (!((rankCounts[0] == 0) && (rankCounts[9] == 0) && (rankCounts[10] == 0) && (rankCounts[11] == 0) && (rankCounts[12] == 0))) { //If a royal flush is possible
-				posHands = new int[] {COMPLETED, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE};
-				//System.out.println("1 card, royal possible = " + java.util.Arrays.toString(posHands));
-				return posHands;
-				//return new int[] {POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE};
-				//return new boolean[] {true, true, true, true, true, true, true, true, true, true};
+				return new int[] {COMPLETED, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE};
 			}
 			
 			else {
-				posHands = new int[] {COMPLETED, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, IMPOSSIBLE};
-				//System.out.println("1 card, no royal = " + java.util.Arrays.toString(posHands));
-				return posHands;
-				//return new int[] {POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, IMPOSSIBLE};
-				//return new boolean[] {true, true, true, true, true, true, true, true, true, false};
+				return new int[] {COMPLETED, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, IMPOSSIBLE};
 			}
 		}
 		else {
-			//possibleHands = new boolean[] {true, true, true, true, true, true, true, true, true, true};
 			posHands = new int[] {COMPLETED, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE, POSSIBLE};
 			
 			// Compute count of rank counts
@@ -557,16 +367,12 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			// rankCountCounts[i] is the number of times that you have i cards of the same rank.
 			// For example: [11, 1, 0, 1, 0, ....] means you have 1 three of a kind, 1 "1 of a kind", and 11 ranks that don't appear at all.
 			// maxOfAKind is the most of any one rank you have
-
-//			boolean hasHigh = true;
-//			boolean hasPair = true;
 			
 			// process at least 2 cards
 			// can possibly eliminate Straight, Flush, Straight flush and/or Royal flush
 			if (numCards >= 2){
 				//Pair check, once you have a pair you can no longer have a high card
 				if (maxOfAKind == 2) {
-					//hasHigh = false;
 					posHands[0] = IMPOSSIBLE;
 					posHands[1] = COMPLETED;
 				}
@@ -581,7 +387,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				boolean hasAceHighStraight = !(rankCounts[0] > 1 || rankCounts[1] > 0 || rankCounts[2] > 0 || rankCounts[3] > 0 || rankCounts[4] > 0 || rankCounts[5] > 0 || 
 						rankCounts[6] > 0 || rankCounts[7] > 0 || rankCounts[8] > 0 || rankCounts[9] > 1 || rankCounts[10] > 1 || rankCounts[11] > 1 || rankCounts[12] > 1);
 
-				//				if (!hasAceHighStraight) {
 				// Don't have ace high straight. Do we have any other kind of straight?
 				int rank = 0;
 				while (rankCounts[rank] == 0)
@@ -620,19 +425,15 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				//				}
 
 				// Royal Flush
-				//possibleHands[9] = hasFlush && hasAceHighStraight;
 				if (!(hasFlush && hasAceHighStraight))
 					posHands[9] = IMPOSSIBLE;
 				//Straight Flush, only on if its not a royal
-				//possibleHands[8] = hasFlush && hasStraight;
 				if (!(hasFlush && hasStraight))
 					posHands[8] = IMPOSSIBLE;
 				//Flush, only on if not a straight flush or royal
-				//possibleHands[5] = hasFlush;
 				if (!(hasFlush))
 					posHands[5] = IMPOSSIBLE;
 				//Straight, only on if not a straight flush or royal
-				//possibleHands[4] = hasStraight || hasAceHighStraight;
 				if (!(hasStraight || hasAceHighStraight))
 					posHands[4] = IMPOSSIBLE;
 				
@@ -640,9 +441,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 			
 			if (numCards == 3) {
-				//boolean hasFour = false;
-				//boolean hasFull = false;
-				//boolean hasTwoPair = true;
 			
 				if (maxOfAKind == 1) {
 					posHands[6] = IMPOSSIBLE;
@@ -650,56 +448,30 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				}
 				
 				else if (maxOfAKind == 2) {
-					//hasFull = true;
-					//hasFour = true;
 					posHands[0] = IMPOSSIBLE;
 					posHands[1] = COMPLETED;
 				}
 				
 				else if (maxOfAKind == 3) {
-					//hasFull = true;
-					//hasFour = true;
-					//hasPair = false;
-					//hasHigh = false;
-					//hasTwoPair = false;
 					posHands[0] = IMPOSSIBLE;
 					posHands[1] = IMPOSSIBLE;
 					posHands[2] = IMPOSSIBLE;
 					posHands[3] = COMPLETED;
 				}
-				
-				//possibleHands[2] = hasTwoPair;
-				//possibleHands[6] = hasFull;
-				//possibleHands[7] = hasFour;
-				
 				// no matter what, with 2 spaces open could still have 2 of a kind or 3 of a kind or two pairs
 			}
 			
 			// process at least 4 cards
 			if (numCards == 4){
 				// with one card remaining to draw
-				//boolean hasTwoPair = true;
-				//boolean hasThree = true;
-				//boolean hasFour = false;
-				//boolean hasFull = false;
 
 				if (maxOfAKind == 3) { // three-of-a-kind
-					//hasFour = true;
-					//hasFull = true;
-					//hasTwoPair = false;
-					//hasPair = false;
-					//hasHigh = false;
 					posHands[0] = IMPOSSIBLE;
 					posHands[1] = IMPOSSIBLE;
 					posHands[2] = IMPOSSIBLE;
 					posHands[3] = COMPLETED;
 				}	
 				else if (maxOfAKind == 4) {// four-of-a-kind
-					//hasFour = true;
-					//hasThree = false;
-					//hasTwoPair = false;
-					//hasPair = false;
-					//hasHigh = false;
 					posHands[0] = IMPOSSIBLE;
 					posHands[1] = IMPOSSIBLE;
 					posHands[2] = IMPOSSIBLE;
@@ -707,30 +479,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					posHands[7] = COMPLETED;
 				}
 				else if (rankCountCounts[2] == 2) { // two pair
-					//hasFull = true;
-					//hasThree = false;
-					//hasPair = false;
-					//hasHigh = false;
 					posHands[0] = IMPOSSIBLE;
 					posHands[1] = IMPOSSIBLE;
 					posHands[3] = IMPOSSIBLE;
 					posHands[2] = COMPLETED;
 				}
 				else if (rankCountCounts[2] < 1) { // 0 pairs
-					//hasThree = false;
-					//hasTwoPair = false;
 					posHands[1] = IMPOSSIBLE;
 					posHands[2] = IMPOSSIBLE;
 				}
-				//possibleHands[2] = hasTwoPair;
-				//possibleHands[3] = hasThree;
-				//possibleHands[6] = hasFull;
-				//possibleHands[7] = hasFour;
 			}
-
-			//possibleHands[0] = hasHigh;
-			//possibleHands[1] = hasPair;
-			//System.out.println(numCards + " cards = " + java.util.Arrays.toString(posHands));
 			return posHands;
 		}
 	}
@@ -758,10 +516,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			handProbs[PokerHand.getPokerHandId(hand)] = 1.0;
 			return handProbs;
 		}
-		//		else if (numCards == 1) { 		// can possibly eliminate the royal flush
-		//			return new boolean[] {true, true, true, true, true, true, true, true, true, !((rankCounts[0] == 0) && (rankCounts[9] == 0) && (rankCounts[10] == 0) && (rankCounts[11] == 0) && (rankCounts[12] == 0))};
-		//		}
-		//		else {
 		possibleHands = new boolean[] {true, true, true, true, true, true, true, true, true, true};
 
 		// Compute count of rank counts
@@ -931,7 +685,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					}
 				}
 				suitIndex = findSuitIndex(suitCounts);
-//				System.out.println("Calculating probability for royal flush");
 				if (canDraw[rankIndex + (suitIndex * xCard.NUM_RANKS)])
 					handProbs[PokerHand.ROYAL_FLUSH.id] = calcProbability(numPlays, 1);
 
@@ -993,7 +746,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						}
 					}
 
-//					System.out.println("Calculating probability for straight flush");
 					handProbs[PokerHand.STRAIGHT_FLUSH.id] = calcProbability(numPlays, numPossibleCards);
 
 					//Remove the chances of drawing a royal or straight flush
@@ -1046,7 +798,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 							}
 						}
 					}
-//					System.out.println("Calculating probability for Four of a kind");
 					handProbs[PokerHand.FOUR_OF_A_KIND.id] = calcProbability(numPlays, numPossibleCards);
 				}
 
@@ -1111,7 +862,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 									}
 								}
 				}
-//					System.out.println("Calculating probability for Full House");
 					handProbs[PokerHand.FULL_HOUSE.id] = calcProbability(numPlays, numPossibleCards);
 			}
 
@@ -1129,7 +879,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 							numPossibleCards++;
 					}
 				}
-//				System.out.println("Calculating probability for flush");
 				handProbs[PokerHand.FLUSH.id] = calcProbability(numPlays, numPossibleCards);
 
 				//Don't double count hands that make royal or straight flushes
@@ -1253,8 +1002,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 							numPossibleCards++;
 					}
 				}
-
-//				System.out.println("Calculating probability for straight");
 				handProbs[PokerHand.STRAIGHT.id] = calcProbability(numPlays, numPossibleCards);
 
 				//Remove the chances of drawing a royal or straight flush
@@ -1290,7 +1037,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 							break;
 						}
 					}
-//					System.out.println("Calculating probability for three of a kind");
 					handProbs[PokerHand.THREE_OF_A_KIND.id] = calcProbability(numPlays, numPossibleCards);
 				}
 			}
@@ -1323,7 +1069,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 								numPossibleCards++;
 						}
 					}
-//					System.out.println("Calculating probability for two pair");
 					handProbs[PokerHand.TWO_PAIR.id] = calcProbability(numPlays, numPossibleCards);
 				}		
 			}
@@ -1358,7 +1103,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 								numPossibleCards++;
 						}
 					}
-//					System.out.println("Calculating probability for one pair");
 					handProbs[PokerHand.ONE_PAIR.id] = calcProbability(numPlays, numPossibleCards);
 				}
 			}
@@ -1369,9 +1113,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				
 			}
 		}	 // end if (numCards == 4)	
-		//System.out.println(numCards + " cards (probabilities) = " + java.util.Arrays.toString(handProbs));
 		return handProbs;
-		//		}
 	}
 
 	/**

@@ -45,11 +45,11 @@ import java.util.Random;
 public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
 {
 
-   public xRandomRolloutPruningPlayer200rt2()
+   public xRandomRolloutPruningPlayer200rt2(float C)
    {
       super();
       //The constant used for UCT calculating
-      this.C = (float) (200/Math.sqrt(2));
+      this.C = C;
    }
 
    /**
@@ -59,7 +59,7 @@ public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
     * @return the game status at the end of the simulation.
     */
    @Override
-   protected float simulateFrom(xMCTSStringGameState state, boolean randomize, String tab, Card[] simDeck,  boolean[] simCanDraw) // simDeck
+   protected float simulateFrom(xMCTSStringGameState state, boolean randomize, Card[] simDeck,  boolean[] simCanDraw) // simDeck
    {
       xMCTSGame.status s = g.gameStatus(state);
       if (s != xMCTSGame.status.ONGOING) {
@@ -70,13 +70,11 @@ public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
 	            	grid[i][j] = Card.getCard(temp);
 	            }
     	  }
-    	 if (verbosity > 4)
-        	 pointSystem.printGrid(grid);
         	 
     	 float score = pointSystem.getScore(grid);
          return score;
       } else {
-         return simulateFrom(getRandomMoveFrom(state, tab, simDeck, randomize, simCanDraw), true, tab, simDeck, simCanDraw); // simDeck
+         return simulateFrom(getRandomMoveFrom(state, simDeck, randomize, simCanDraw), true, simDeck, simCanDraw); // simDeck
       }
    }
 
@@ -86,22 +84,13 @@ public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
     * @param gameState a game state from which a random child state is desired.
     * @return a random child state of the passed state.
     */
-   private xMCTSStringGameState getRandomMoveFrom(xMCTSStringGameState gameState, String tab, Card[] simDeck, boolean randomize, boolean[] simCanDraw)
+   private xMCTSStringGameState getRandomMoveFrom(xMCTSStringGameState gameState, Card[] simDeck, boolean randomize, boolean[] simCanDraw)
    {
-      Random rand = new Random();
+      Random random = new Random();
       int totalSimPlays = gameState.numPlays;
       xMCTSStringGameState simState;
-      //System.out.println("\n\nsimPlays = " + totalSimPlays);
       if (randomize) {
 	      int simCard = random.nextInt(NUM_CARDS - totalSimPlays) + totalSimPlays; //a randomly selected card
-	      if (verbosity > 4) {
-	    	  System.out.print(tab + "Possible cards to simulate from: ");
-	    	  for (int i = totalSimPlays; i < simDeck.length; i++) {
-	    		  System.out.print(simDeck[i] + " ");
-	    	  }
-		      if (verbosity > 4) 
-		    	  System.out.println();
-	      }
 	      Card card = simDeck[simCard]; //Match deck to event
 	      simDeck[simCard] = simDeck[totalSimPlays];
 		  simDeck[totalSimPlays] = card;
@@ -113,50 +102,18 @@ public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
       else
     	  simState = gameState;
       
-//	  for (int i = 0; i < 5; i++) {
-//          for (int j = 0; j < 5; j++) {
-//          	int pos = i * 10 + j * 2;
-//          	String temp = simState.toString().substring(pos, pos + 2);
-//          	grid[i][j] = Card.getCard(temp);
-//          }
-//	  }
-//  	 pointSystem.printGrid(grid);
-      
-//      System.out.println("Simulating Possible Moves");
-     // long simMovesStartTime = System.currentTimeMillis();
       ArrayList<xMCTSStringGameState> moves = g.getBestSimMove(simState, simCanDraw);
-     // long simMovesEndTime = System.currentTimeMillis();
- 	// if ((simMovesEndTime - simMovesStartTime) > 100) {
- 	//	 System.out.println("Time in this call to getBestSimMove = " + (simMovesEndTime - simMovesStartTime));
- 	//	 System.out.println("node currently simulated = " + gameState.toString());
- 	 //}
-	  int chosenMoveIndex = rand.nextInt(moves.size()); //the new board state
-      if (verbosity > 3)
-    	  System.out.println(tab + moves.get(chosenMoveIndex).toString());
-//      System.out.println("chosen move's numPlays = " + moves.get(chosenMoveIndex).numPlays);
-//	  for (int i = 0; i < 5; i++) {
-//          for (int j = 0; j < 5; j++) {
-//          	int pos = i * 10 + j * 2;
-//          	String temp = moves.get(chosenMoveIndex).toString().substring(pos, pos + 2);
-//          	grid[i][j] = Card.getCard(temp);
-//          }
-//	  }
-//  	 pointSystem.printGrid(grid);
-      
+	  int chosenMoveIndex = random.nextInt(moves.size()); //the new board state
       return moves.get(chosenMoveIndex);
    }
    
    public void setPointSystem(PokerSquaresPointSystem pointSystem, long millis) {
-	   //System.out.println("setting point system");
 	   this.pointSystem = pointSystem;
 	   g = new xMCTSPruningPPSGame(pointSystem);
-	  // if (true) {
-		//   RampUp allocate = new RampUp();
-	   //}
 	   System.gc();
    }
    
    public String getName() {
-	   return "xRandomRolloutPruningPlayer200rt2";
+	   return "xRandomRolloutPruningPlayer" + C;
    }
 }
