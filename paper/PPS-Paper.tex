@@ -31,10 +31,11 @@ Greencastle, IN, USA\\
 \maketitle
 \begin{abstract}
 \begin{quote}
-Poker Squares is a single-player card game played on a 5 x 5 grid, in which a player attempts to create as many high-scoring Poker hands as possible. As a stochastic single-player game with an extremely large state space, this game offers an interesting area of application for Monte-Carlo Tree Search (MCTS). This paper describes a variety of enhancements made to the core MCTS algorithm to improve computer play. These enhancements include hardcoding of beginning and ending moves, pruning of choice nodes in the MCTS selection stage, and a greedy MCTS simulation algorithm. The latter two enhancements make extensive use of domain knowledge in the form of a probabilistic state evaluation heuristic. Experimental results demonstrate both the general efficacy of these enhancements and their ideal parameter settings.
+Poker Squares is a single-player card game played on a 5 x 5 grid, in which a player attempts to create as many high-scoring Poker hands as possible. As a stochastic single-player game with an extremely large state space, this game offers an interesting area of application for Monte-Carlo Tree Search (MCTS). This paper describes a variety of enhancements made to the core MCTS algorithm to improve computer play. These enhancements include pruning of choice nodes in the MCTS selection stage, and a greedy MCTS simulation algorithm. These enhancements make extensive use of domain knowledge in the form of a probabilistic state evaluation heuristic. Experimental results demonstrate both the general efficacy of these enhancements and their ideal parameter settings.
 \end{quote}
 \end{abstract}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 %Monte-Carlo Tree Search (MCTS) is a best-first search algorithm utilizing random sampling of the state space to construct a tree. Since early successes in the game of Go~\ref{*****}{\bf early Go reference here}, MCTS has garnered significant attention in the AI gaming community, with many successful applications to a variety of games~\cite{browne2012survey}.
 
@@ -74,8 +75,9 @@ Two scoring systems are most common in human play: American and British. Table~\
 \label{fig:OneIter}
 \end{figure}
 
-This paper considers the application of Monte-Carlo Tree Search (MCTS) to PPS. Like other game-playing algorithms, at its core MCTS involves the creation of a game tree to decide on a move. MCTS is typically applied to games with extremely large trees, because the algorithm is designed to build the tree selectively rather than exhaustively. This paper begins with a brief introduction to MCTS, followed by a discussion of related work, key enhancements to MCTS to play this game, experiments showing the effectiveness and ideal use of these enhancements, {\bf SAB what other sections will we eventually add} {\it RTA conclusions, and future work}.
+This paper considers the application of Monte-Carlo Tree Search (MCTS) to PPS. Like other game-playing algorithms, at its core MCTS involves the creation of a game tree to decide on a move. MCTS is typically applied to games with extremely large trees, because the algorithm is designed to build the tree selectively rather than exhaustively. This paper begins with a brief introduction to MCTS, followed by a discussion of related work, key enhancements to MCTS to play this game, experiments showing the effectiveness and ideal use of these enhancements, and future work.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Monte-Carlo Tree Search}
 
 Figure~\ref{fig:OneIter} summarizes the iterative {\it RTA was repeated} four-stage process of MCTS: selection, expansion, simulation, and backpropagation. The {\it selection} step balances goals of exploration and exploitation to select a node for further consideration. Briefly, a measure of the most ``interesting'' child of a given node is applied recursively from the root down the tree to some not-fully-expanded descendant node. One common measure of the most ``interesting'' child is the upper-confidence bound applied to trees (UCT)~\cite{kocsis2006improved}, in which a child $j$ is chosen to maximize:
@@ -110,7 +112,7 @@ Additional pruning strategies using domain knowledge have been applied to the mu
 
 Simulation strategies enhanced with domain knowledge have also been useful in MCTS research. For example, in \cite{winands2010monte} an MCTS player for the strategy game Lines of Action used a simulation that was cut short, backpropagating a heuristic evaluation prior to the end of the game rather than playing to completion. Another approach is to use a heuristic to guide simulation, rather than choosing moves randomly. For example, \cite{schadd2012single} reports a 50\% increase in average score in the game SameGame when an accurate heuristic was added.
 
-{\bf SAB: Anything else about domain knowledge? Maybe Cp adjustments - Dominion, and Kocsis and ...}
+%{\bf SAB: Anything else about domain knowledge? Maybe Cp adjustments - Dominion, and Kocsis and ...}
 
 % RTA - commented
 %Rather than base a pruning strategy on the visited count our focus was on estimated board score, or accumulated hand scores, at a given node which could be considered \emph{domain knowledge}. This was a hard pruning strategy because if a node was estimated to fall below a given threshold it would not be added to the tree. We had to be careful of over-pruning leaving no nodes available for selection or simulation and crashing the algorithm. This was accomplished by using a retention policy. This helped us to eliminate weaker positions and improve our player's scores.
@@ -243,33 +245,52 @@ Note that the higher scores in Table~\ref{tbl:noSquashing} are comparable to the
 
 The goal of these experiments was to fix a $C_p$ value for the experiments that follow. Table~\ref{tbl:noSquashing} suggests that, for the American scoring system, around $C_p \geq 10$ is an appopriate value to counteract the magnitude of the typical scores. Higher $C_p$ values neither increase nor decrease the mean score. Since some scoring systems will tend to have higher average scores than the American system, it is prudent to fix $C_p$ at a substantially higher value than the minimum acceptable for the American system. Thus, in future experiments, we use $C_p = 200 / \sqrt{2} = 141.4$.\footnote{This value was originally chosen based on the idea that 200 is often considered a ``winning'' score in the American system, and thus we were comparing it to a squashed value of 1. In practice this value gave good results across scoring systems, and so its use was continued, although other values would be appropriate as well.}
 
-{\bf SAB More experiments for table 3 (Cp, no squashing, no pruning, random simulation, no calculations)}
-
 % ***** {\bf SAB Do we want to discuss how it's better to have a higher Cp value - that some scoring systems need higher ones than others do?}
 
 \begin{table}
 \captionof{table}{Effect of $C_p$ Values With No Squashing}
 \label{tbl:noSquashing}
 \centering
-\begin{tabular}{c c c}
+\begin{tabular}{c c || c c}
 \hline
-$C_p$ & Mean Score \\
+{\bf $C_p$} & {\bf Mean Score} & {\bf $C_p$} & {\bf Mean Score} \\
 \hline
-0 & 15 \\
-$1 / \sqrt{2}$ & 64 \\
-5 & 90 \\
-10 & 93 \\
+0 & 15 &                                        50 & 93        \\
+$1 / \sqrt{2}$ & 64 &                      100 & 92                       \\
+5 & 90 &                                        $200 / \sqrt{2}$ & 91       \\
+10 & 93 &                                      6000 & 92        \\
 25 & 94 \\
-50 & 93 \\
-100 & 92 \\
-$200 / \sqrt{2}$ & 91 \\
 %1500 & 91 \\
 %3000 & 93 \\
 %6000 & 92 \\
-10000 & 93 \\
+%10000 & 93 \\
 \hline
 \end{tabular}
 \end{table}
+
+%\begin{table}
+%\captionof{table}{Effect of $C_p$ Values With No Squashing}
+%\label{tbl:noSquashing}
+%\centering
+%\begin{tabular}{c c c}
+%\hline
+%{\bf $C_p$} & {\bf Mean Score} \\
+%\hline
+%0 & 15 \\
+%$1 / \sqrt{2}$ & 64 \\
+%5 & 90 \\
+%10 & 93 \\
+%25 & 94 \\
+%50 & 93 \\
+%100 & 92 \\
+%$200 / \sqrt{2}$ & 91 \\
+%%1500 & 91 \\
+%%3000 & 93 \\
+%%6000 & 92 \\
+%10000 & 93 \\
+%\hline
+%\end{tabular}
+%\end{table}
 
 %\begin{figure}
 %\begin{center}
@@ -321,60 +342,64 @@ $200 / \sqrt{2}$ & 91 \\
 %{/bf CPL before saying for sure what Cp we're sticking with, I'd like to discuss the results of the overnight tests as a group. They seem strange to me, but I think if we can figure it out we can have a more optimal Cp than our current 200/rt2}
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Computational Cost of the Heuristic}
+
+As described above, the state-evaluation heuristic can be applied to create alternative selection and simulation strategies. Of course, the heuristic calculation comes at a computational cost. Heuristic calculations mean more time required per iteration of the MCTS process, and therefore fewer iterations total in a given amount of time. Thus before the selection and simulation strategies are considered experimentally, we examine the practical cost of the heuristic calculation itself.
+
+We do this by considering heuristic {\it calculations} but not {\it applications} to any enhanced selection or simulation strategy. Results are included in rows (1) - (4) of Table~\ref{tbl:SelSim} for the American scoring system. Row (1) reflects standard MCTS, with UCT-based selection and random simulation. Rows (2) - (4) also use these standard strategies, yet include unused heuristic calculations when indicated with ``+ Calc.'' That is, ``+ Calc.'' indicates that the heuristic calculations are performed, but not actually applied to any pruning or simulation enhancements. The drop in scores in rows (2) - (4) compared to row (1) gives a reasonable indication of the cost of spending time on heuristic calculations rather than more iterations of MCTS. Thus any enhancement to selection or simulation must overcome the deficit of the added calculation cost before being worthwhile. This deficit is 13 points (comparing rows (1) and (4)) in the American scoring system when the heuristic is calculated in both selection and simulation. The following subsections explore the extent to which some enhancements do overcome this deficit.
+
+\begin{table}
+\captionof{table}{Selection and simulation results over 2000 games}
+\label{tbl:SelSim}
+\centering
+\begin{tabular}{c c c c}
+\hline
+{\bf Row} & {\bf Selection} & {\bf Simulation} & {\bf Mean Score} \\
+\hline
+\hline
+(1) & UCT & Random & 92 \\
+(2) & UCT + Calc. & Random & \\
+(3) & UCT & Random + Calc. & \\
+(4) & UCT + Calc. & Random + Calc. & 79 \\
+\hline
+(5) & UCT & Prune-Random & 95 \\
+(6) & UCT & Best-Move & 112 \\
+\hline
+(7) & Best-Move & Random & 72 \\
+(8) & Prune-UCT & Random & 91 \\
+\hline
+(9) & Prune-UCT & Best-Move & 113 \\
+\hline
+\end{tabular}
+\end{table}
+
+%-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Domain Knowledge and Simulation}
 
 %fixed: Simulation improvement using domain knowledge, but no pruning in selection
 %variable: totally random simulation versus just choose the best move 
 %result: choose best move is better
 
-As described above, domain knowledge has also been applied to the system via the state heuristic. This allows alternatives to the random simulation of standard MCTS. One such alternative, {\it best-move simulation}, is to use the heuristic to evaluate all children of a given node, and choose the highest-scoring child. Table~\ref{tbl:Simulate} shows the results of experimentation with this approach using the American scoring system and $C_p = 200 / \sqrt{2}$. Each row in the table is given an ID number to facilitate discussion.
+The state-evaluation heuristic can be used to create some alternatives to random simulation. One such alternative, {\it prune-random} simulation, randomly selects each move not from the complete set of possible moves, but rather from a smaller set of nodes after pruning those scored beneath a threshold. The pruning technique used here is the same as that previously described for selection. Another option is {\it best-move} simulation, in which the highest-scoring child is always chosen.
 
-Note the only difference between items (1) and (2) is whether or not heuristic calculations are done; in neither case are the calculations actually applied in simulation. Thus the drop in score from 91 to 81 demonstrates the cost of these calculations, as fewer iterations of MCTS can be achieved in a given amount of time. The 118 mean score for best-move simulation (item (3)) demonstrates that, despite the added cost of the heuristic calculations, when those calculations are actually applied to enable an enhanced simulation strategy, the added cost is worthwhile. This is consistent with what other MCTS research has shown about enhanced simulation strategies.
+Rows (1), (3), (5), and (6) of Table~\ref{tbl:SelSim} show the relevant results for these simulation experiments. Note prune-random simulation's mean score of 95 (row (5)) shows some improvement over the 92 of standard MCTS (row (1)). This is more striking when considering that prune-random actually overcame the drop down to {\bf **fill in***} of the added heuristic calculation cost, as shown in row (3).
 
-\begin{table}
-\captionof{table}{*****What we want}
-\label{tbl:Selection}
-\centering
-\begin{tabular}{c c c c}
-\hline
-ID & Sel. Method & Sim. Method & Mean Score \\
-\hline
-(done) & No prune calc & Random calc & 81 \\  % cost of calculations
-(done) & No prune no calc & Random no calc & 91 \\ % no calculations
-() & No prune no calc & best-move & \\ % (instead of (3)
-() & & & \\
-() & & & \\
-() & & & \\
+Even more impressive, however, are the gains for best-move simulation (row (6)). This approach earned a mean score of 112, significantly higher than the calculation deficit score of {\bf fill in} (row (3)) and the standard MCTS score of 92. The demonstrates that, despite the added cost of the heuristic calculations, they are worthwhile in particular in a best-move simulation strategy.
 
-
-
-(done) & No prune no calc & Random no calc & 91 \\
-() & No prune calc & Random no calc & \\
-() & No prune no calc & Random calc & \\
-
-
-
-
-\hline
-\end{tabular}
-\end{table}
-
-
-
-\begin{table}
-\captionof{table}{Effect of Domain Knowledge on Simulation}
-\label{tbl:Simulate}
-\centering
-\begin{tabular}{c c c}
-\hline
-ID & Sim. Method & Mean Score \\
-\hline
-(1) & Random w/ Calc. & 81 \\
-(2) & Random w/o Calc. & 91 \\
-(3) & Best-Move & 118 \\
-\hline
-\end{tabular}
-\end{table}
+%\begin{table}
+%\captionof{table}{Effect of Domain Knowledge on Simulation}
+%\label{tbl:Simulate}
+%\centering
+%\begin{tabular}{c c c}
+%\hline
+%ID & Sim. Method & Mean Score \\
+%\hline
+%(1) & Random w/ Calc. & 81 \\
+%(2) & Random w/o Calc. & 91 \\
+%(3) & Best-Move & 118 \\
+%\hline
+%\end{tabular}
+%\end{table}
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Domain Knowledge and Selection}
@@ -384,42 +409,34 @@ ID & Sim. Method & Mean Score \\
 %result: choose best move is better, and also we see the pruning in selection is helpful
 %
 
-This set of experiments considers the application of the state heuristic to the selection step of MCTS, allowing for pruning of clearly suboptimal children. Results are shown in Table~\ref{tbl:Selection} under the American scoring system. ID numbers are continued from Table~\ref{tbl:Simulate} to facilitate comparisons.
+This next set of experiments considers the application of the state heuristic to the selection step of MCTS. We consider {\it best-move} selection, in which only the best child (according to the heuristic) is available for selection. We also consider {\it prune-UCT} selection, in which the heuristic is used to prune children below a threshold as described previously.
 
-Note that pruning selection with random simulation (item (5)) requires heuristic calculations; again, these come at a cost in fewer MCTS iterations in a given amount of time. It is important to compare the resulting mean score of 89 to the 91 in core MCTS with no calculations (item (2)). This demonstrates that pruning as designed here does not show sufficient benefit to overcome the cost of the heuristic calculations. Recall from item (3), however, that the calculations are clearly worthwhile when best-move simulation is used. So
+Consider again Table~\ref{tbl:SelSim}. Row (7) makes it clear that with a score of 72, best-move selection is highly ineffective, scoring even worse than row (2) in which the calculations are performed but not applied. This is not at all surprising, since such a drastic approach severely limits the number of nodes available for exploration, based only on imprecise heuristics.
 
+With a mean score of 91 (row (8)), Prune-UCT selection shows improvement over the non-application of the calculations ({\bf fill in} in row (2)) but apparently a slight loss compared to standard MCTS (92 in row (1)). However, it is also interesting to consider rows (6) versus (9). Using best-move simulation instead of random simulation, there is a 1 point increase, rather than descrease, in using prune-UCT selection. Taken together, these results lead us to conclude that the application of prune-UCT as defined here is a wash -- the benefit is approximately equivalent to the cost. Thus in the final experiment, we use prune-UCT selection and best-move simulation.
 
-{\bf SAB pruning is barely not worth the cost. So we should try not doing it - don't even calculate the heuristic! (but still doing best-move simulation).}
+{\bf Some good analysis commented out here - should probably bring it back in.}
+%*****Why does best-move simulation show a much larger gain than prune-UCT selection? One possible explanation is that for each single application of the heuristic in selection/expansion, there are many applications of the heuristic in simulation. So simulation comes at a greater cost (compare deficit rows 3,1 vs. 2,1) but is also used more frequently, thus the domain knowledge of the heuristic is applied much more frequently in simulation.
 
+%*****Another possible reason is that, while simulations direct MCTS into which nodes are most valuable, it does not eliminate any nodes from consideration. Pruning in the expansion step, however, could potentially remove play options that aren’t actually suboptimal, due to the imprecise nature of estimated values and imperfections in our calculation.
 
+%Additionally, using our selection pruning algorithm to prune in simulation (instead of simply taking the best move) results in an increase in score over a purely random simulation step, however best-move in simulation performs better. However, best-move applied to the selection step drastically reduces the average performance. This may be because the best-move algorithm isn't perfectly calculating the best possible move every single time, however it does give the MCTS algorithm a more accurate idea of what to expect performance-wise than a pure random simulation does. This logic does not apply to the selection step, where a discounted move can never be looked at again. Pruning in selection tries to reduce the number of suboptimal moves looked at without removing the best options accidentally. Best-move in selection reduces the number of possible moves for MCTS to consider too greatly.
 
-Note that selection with pruning scores show a modest increase over the core MCTS selection method, using no pruning. When combined with either of the two simulation methods discussed so far, pruning selection and best-move simulation are ideal.
-
-{\bf SAB again, these data seem inconsistent. In Cp experiments, we have low 90's doing core MCTS (no pruning). Now with pruning we have 88.9? What's going on with these numbers? We have to figure this out before we submit the paper - this would never pass the publication review process.}
-
-{\bf It may be beneficial to us to rework the Cp tables to use the data from the newest round of Cp experiments, the ones run this weekend. Although I am not sure why there is such a major discrepancy in score between now and our original player, at the very least we can keep all the data consistent by only using our current player edited to not perform pruning.}
-
-\begin{table}
-\captionof{table}{Effect of Domain Knowledge on Selection}
-\label{tbl:Selection}
-\centering
-\begin{tabular}{c c c c}
-\hline
-ID & Sel. Method & Sim. Method & Mean Score \\
-\hline
-(4) & Best-Move & Best-Move & 84 \\
-(5) & Pruning & Random & 89 \\
-(6) & Pruning & Pruning & 107 \\
-(7) & Pruning & Best-Move & 120 \\
-\hline
-\end{tabular}
-\end{table}
-
-{\bf SAB Clearly the calcs are good for Sim. For pruning alone, don't appear to be worth it! But already have for simulation, so can use them without any additional cost here for a little more benefit.}
-
-Note that, while pruning selection is helpful, it does not provide as significant a jump as best-move simulation. One possible reason for this disparity is due to the number of simulations that are run compared to the number of times a node is expanded. According to our calculations, our player averages about 10 simulations per expansion. (a number given by our tracking of num pruned nodes)  Another possible reason is that, while simulations direct MCTS into which nodes are most valuable, it does not eliminate any nodes from consideration. Pruning in the expansion step, however, could potentially remove play options that aren’t actually suboptimal, due to the imprecise nature of estimated values and imperfections in our calculation.
-
-Additionally, using our selection pruning algorithm to prune in simulation (instead of simply taking the best move) results in an increase in score over a purely random simulation step, however best-move in simulation performs better. However, best-move applied to the selection step drastically reduces the average performance. This may be because the best-move algorithm isn't perfectly calculating the best possible move every single time, however it does give the MCTS algorithm a more accurate idea of what to expect performance-wise than a pure random simulation does. This logic does not apply to the selection step, where a discounted move can never be looked at again. Pruning in selection tries to reduce the number of suboptimal moves looked at without removing the best options accidentally. Best-move in selection reduces the number of possible moves for MCTS to consider too greatly.
+%\begin{table}
+%\captionof{table}{Effect of Domain Knowledge on Selection}
+%\label{tbl:Selection}
+%\centering
+%\begin{tabular}{c c c c}
+%\hline
+%ID & Sel. Method & Sim. Method & Mean Score \\
+%\hline
+%(4) & Best-Move & Best-Move & 84 \\
+%(5) & Pruning & Random & 89 \\
+%(6) & Pruning & Pruning & 107 \\
+%(7) & Pruning & Best-Move & 120 \\
+%\hline
+%\end{tabular}
+%\end{table}
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Further Tuning of Domain Knowledge}
@@ -430,57 +447,57 @@ Additionally, using our selection pruning algorithm to prune in simulation (inst
 
  %Once we decided to keep our pruning algorithm, we ran a series of tests meant to determine what values for constants in our equation gave the best average results. When we ran tests for our potential different weights, our highest scoring test increased its score 20\% over the lowest scoring test (sheet four in our results). This shows how important an accurate method for pruning is. 
 
-\begin{table}
-\caption{Results of experiments on heuristic parameters}
-\label{tbl:heuristicParameterResults}
-\centering
-\begin{tabular}{c c c c c c}
-\hline
-Mean & $\alpha$ & $\beta$ & $\gamma$ & $\beta : \alpha$ & $\gamma : \beta$\\
-\hline
-105.25 & 0.100 & 0.400 & 1.600 & 4.0 & 4.0 \\
-109.07 & 0.050 & 0.400 & 0.600 & 8.0 & 1.5 \\
-109.30 & 0.075 & 0.400 & 0.600 & 5.3 & 1.5 \\
-\hline
-109.89 & 0.125 & 0.400 & 0.600 & 3.2 & 1.5 \\
-110.32 & 0.100 & 0.400 & 0.600 & 4.0 & 1.5 \\
-111.94 & 0.500 & 0.500 & 0.700 & 1.0 & 1.4 \\
-\hline
-112.20 & 0.100 & 0.500 & 0.900 & 5.0 & 1.8 \\
-112.81 & 0.200 & 0.500 & 0.800 & 2.5 & 1.6 \\
-113.87 & 0.200 & 0.400 & 0.600 & 2.0 & 1.5 \\
-\hline
-114.49 & 0.300 & 0.500 & 0.700 & 1.7 & 1.4 \\
-114.91 & 0.200 & 0.600 & 1.200 & 3.0 & 2.0 \\
-115.14 & 0.150 & 0.450 & 1.350 & 3.0 & 3.0 \\
-\hline
-116.77 & 0.200 & 0.400 & 0.700 & 2.0 & 1.8 \\
-116.95 & 0.125 & 0.250 & 0.500 & 2.0 & 2.0 \\
-117.37 & 0.200 & 0.500 & 0.900 & 2.5 & 1.8 \\
-\hline
-118.72 & 0.050 & 0.200 & 0.800 & 4.0 & 4.0 \\
-118.79 & 0.150 & 0.300 & 0.900 & 2.0 & 3.0 \\
-119.42 & 0.050 & 0.150 & 0.450 & 3.0 & 3.0 \\
-\hline
-119.50 & 0.125 & 0.250 & 0.750 & 2.0 & 3.0 \\
-119.66 & 0.200 & 0.400 & 0.900 & 2.0 & 2.3 \\
-119.95 & 0.100 & 0.300 & 0.700 & 3.0 & 2.3 \\
-\hline
-119.99 & 0.150 & 0.300 & 0.600 & 2.0 & 2.0 \\
-120.58 & 0.100 & 0.300 & 0.750 & 3.0 & 2.5 \\
-120.75 & 0.100 & 0.200 & 0.750 & 2.0 & 3.8 \\
-\hline
-121.14 & 0.094 & 0.283 & 0.850 & 3.0 & 3.0 \\
-121.60 & 0.075 & 0.150 & 0.500 & 2.0 & 3.3 \\
-121.68 & 0.100 & 0.300 & 0.800 & 3.0 & 2.7 \\
-\hline
-121.99 & 0.100 & 0.300 & 0.900 & 3.0 & 3.0 \\
-123.21 & 0.100 & 0.300 & 0.850 & 3.0 & 2.8 \\
-\hline
-\end{tabular}
-\end{table}
+%\begin{table}
+%\caption{Results of experiments on heuristic parameters}
+%\label{tbl:heuristicParameterResults}
+%\centering
+%\begin{tabular}{c c c c c c}
+%\hline
+%Mean & $\alpha$ & $\beta$ & $\gamma$ & $\beta : \alpha$ & $\gamma : \beta$\\
+%\hline
+%105.25 & 0.100 & 0.400 & 1.600 & 4.0 & 4.0 \\
+%109.07 & 0.050 & 0.400 & 0.600 & 8.0 & 1.5 \\
+%109.30 & 0.075 & 0.400 & 0.600 & 5.3 & 1.5 \\
+%\hline
+%109.89 & 0.125 & 0.400 & 0.600 & 3.2 & 1.5 \\
+%110.32 & 0.100 & 0.400 & 0.600 & 4.0 & 1.5 \\
+%111.94 & 0.500 & 0.500 & 0.700 & 1.0 & 1.4 \\
+%\hline
+%112.20 & 0.100 & 0.500 & 0.900 & 5.0 & 1.8 \\
+%112.81 & 0.200 & 0.500 & 0.800 & 2.5 & 1.6 \\
+%113.87 & 0.200 & 0.400 & 0.600 & 2.0 & 1.5 \\
+%\hline
+%114.49 & 0.300 & 0.500 & 0.700 & 1.7 & 1.4 \\
+%114.91 & 0.200 & 0.600 & 1.200 & 3.0 & 2.0 \\
+%115.14 & 0.150 & 0.450 & 1.350 & 3.0 & 3.0 \\
+%\hline
+%116.77 & 0.200 & 0.400 & 0.700 & 2.0 & 1.8 \\
+%116.95 & 0.125 & 0.250 & 0.500 & 2.0 & 2.0 \\
+%117.37 & 0.200 & 0.500 & 0.900 & 2.5 & 1.8 \\
+%\hline
+%118.72 & 0.050 & 0.200 & 0.800 & 4.0 & 4.0 \\
+%118.79 & 0.150 & 0.300 & 0.900 & 2.0 & 3.0 \\
+%119.42 & 0.050 & 0.150 & 0.450 & 3.0 & 3.0 \\
+%\hline
+%119.50 & 0.125 & 0.250 & 0.750 & 2.0 & 3.0 \\
+%119.66 & 0.200 & 0.400 & 0.900 & 2.0 & 2.3 \\
+%119.95 & 0.100 & 0.300 & 0.700 & 3.0 & 2.3 \\
+%\hline
+%119.99 & 0.150 & 0.300 & 0.600 & 2.0 & 2.0 \\
+%120.58 & 0.100 & 0.300 & 0.750 & 3.0 & 2.5 \\
+%120.75 & 0.100 & 0.200 & 0.750 & 2.0 & 3.8 \\
+%\hline
+%121.14 & 0.094 & 0.283 & 0.850 & 3.0 & 3.0 \\
+%121.60 & 0.075 & 0.150 & 0.500 & 2.0 & 3.3 \\
+%121.68 & 0.100 & 0.300 & 0.800 & 3.0 & 2.7 \\
+%\hline
+%121.99 & 0.100 & 0.300 & 0.900 & 3.0 & 3.0 \\
+%123.21 & 0.100 & 0.300 & 0.850 & 3.0 & 2.8 \\
+%\hline
+%\end{tabular}
+%\end{table}
 
-\begin{figure}
+\begin{figure}[t]
 \begin{center}
 \includegraphics[width=1\linewidth]{images/1-2-3_weights.png}
 \end{center}
@@ -488,7 +505,7 @@ Mean & $\alpha$ & $\beta$ & $\gamma$ & $\beta : \alpha$ & $\gamma : \beta$\\
 \label{fig:123weights}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
 \begin{center}
 \includegraphics[width=1\linewidth]{images/1-2-3_ratios.png}
 \end{center}
@@ -496,43 +513,29 @@ Mean & $\alpha$ & $\beta$ & $\gamma$ & $\beta : \alpha$ & $\gamma : \beta$\\
 \label{fig:123ratios}
 \end{figure}
 
-The experimental results described so far show that some modifications have a very small effect, while others have a more significant effect. Recall in the discussion of the state heuristic that it includes parameters $\alpha$, $\beta$, and $\gamma$ for the weighting given to one-, two-, and three-card hands, respectively. Prior experiments used a ``reasonable'' guess for these parameters. In this experiment, we examine these parameters more closely, with the system fixed at a $C_p$ value of {\bf SAB Cp value used here *****}, hardcoding of starting and ending moves, pruning selection, and best-move simulation. These represent the best design decisions resulting from the previous experiments. The parameter settings considered here have an influence on both the selection and simulation steps, as both depend on the heuristic.
+This final set of experiments considers further tuning of the heuristic. Recall that thus far heuristic parameters are fixed at $\alpha = 0.2$, $\beta = 0.4$, and $\gamma = 0.6$ for the weighting given to one-, two-, and three-card hands, respectively. This section considers various settings of these parameters. We constrain $\alpha \leq \beta \leq \gamma$, and consider both parameter magnitudes and the ratios $\beta : \alpha$ and $\gamma : \beta$ in selecting experimental settings.
 
-Twenty-nine different trials were conducted for various settings of the parameters, with each trial involving several hours of game play. A few intuitive ideas were used to constrain the number of permutations considered. First, we ensured that $\alpha \leq \beta \leq \gamma$, since all else being equal, a hand with more cards is closer to completing any potential hands than one with fewer cards, and so it should be valued more highly. Second, the parameter space can be constrained somewhat by considering the ratios $\beta : \alpha$ and $\gamma : \beta$. This can bring new insights into what parameter settings may be more similar than would first appear by considering magnitudes alone, thus leading to hypotheses about what portions of the space should be prioritized for consideration. Having said this, however, recall that four-card hands are evaluated using an entirely different formula. So in fact the magnitudes of $\alpha$, $\beta$, and $\gamma$ do matter as well, rather than just the ratios, because hands with three or fewer cards will be compared not just among themselves but against four- and even five-card hands. So using ratios can be a useful analysis tool, but should not be used to the exclusion of considerations of magnitude.
+%This can bring new insights into what parameter settings may be more similar than would first appear by considering magnitudes alone, thus leading to hypotheses about what portions of the space should be prioritized for consideration. Having said this, however, recall that four-card hands are evaluated using an entirely different formula. So in fact the magnitudes of $\alpha$, $\beta$, and $\gamma$ do matter as well, rather than just the ratios, because hands with three or fewer cards will be compared not just among themselves but against four- and even five-card hands. So using ratios can be a useful analysis tool, but should not be used to the exclusion of considerations of magnitude.
 
-Results of these experiments are shown in Table~\ref{tbl:heuristicParameterResults} and in Figures~\ref{fig:123weights} and \ref{fig:123ratios}, with the table showing the raw data used to generate the figures. Note that the table is sorted in order of increasing mean score, with values ranging from 105.25 to 123.21. For each mean score, the $\alpha$, $\beta$, and $\gamma$ values and the $\beta : \alpha$ and $\gamma : \beta$ ratios are provided. Visualization is challenging due to the presence of three independent variables, but some important insights can be gained from Figures~\ref{fig:123weights} and \ref{fig:123ratios}. In both graphs, note that the horizontal axis is the mean score, and vertical axis is the weight. Thus, the three shapes on the far left in Figure~\ref{fig:123weights} correspond to the values of $\alpha$, $\beta$, and $\gamma$ in the first row of the table. These are the parameter settings that led to a mean score of 105.25.
+Results of these experiments are shown in Figures~\ref{fig:123weights} and \ref{fig:123ratios}. For each setting of $\alpha$, $\beta$, and $\gamma$, a mean score is obtained under the American scoring system. For example, when $\alpha = 0.1$, $\beta = 0.4$, and $\gamma = 1.6$, a mean score of 105 was obtained. This corresponds to the left-most area in Figure~\ref{fig:123weights}, where the vertical placement of the symbols indicates the parameter settings, and the horizontal placement indicates the mean score. In Figure~\ref{fig:123ratios}, since $\beta:\alpha = \gamma:\beta = 4.0$ for these parameter settings, the two ratio symbols are both at (105, 4) on the far left of the figure.
 
-Note in both graphs that the results are fairly scattered on the left side where mean scores are lower, yet somewhat more uniform on the right side where mean scores are higher. This demonstrates a preference for certain parameter settings to obtain the highest scores. For example, in Figure~\ref{fig:123weights}, not only the single highest-scoring player, but nearly all higher-scoring players tend to have values around $\alpha = 0.1$, $\beta = 0.3$, and $\gamma = 0.85$, with stronger convergence in the $\alpha$ and $\beta$ values.
+Note in both figures that the results are fairly scattered on the left side where mean scores are lower, yet somewhat more uniform on the right side where mean scores are higher. This demonstrates a preference for certain parameter settings to obtain the highest scores. For example, in Figure~\ref{fig:123weights}, not only the single highest-scoring player, but nearly all higher-scoring players tend to have values around $\alpha = 0.1$, $\beta = 0.3$, and $\gamma = 0.85$, with stronger convergence in the $\alpha$ and $\beta$ values. Some trends are also visible in Figure~\ref{fig:123ratios}, in the highest-scoring players tend to have both ratios around 2 or 3. The single highest-scoring player has $\alpha = 0.1$, $\beta = 0.3$, $\gamma = 0.85$, with a mean score of 123.21 in the American scoring system.
 
-Figure~\ref{fig:123ratios} shows ratios. Recall that ratios are harder to work with because they ignore the magnitudes of the parameters, and thus the convergence is not quite as clear as in the parameter values themselves. Nevertheless a trend is visible, in which both a $\beta : \alpha$ ratio and $\gamma : \beta$ ratio of 2 or 3 is found in the highest-scoring players. Note that these ratios correspond well to the ideal parameter values already mentioned.
+%{\bf SAB But we have more experiments here too, right? Some that ran for an extra long time, and some on the 4-card weight. What important conclusions could we draw from those if we wrote them up carefully?}
 
-{\bf SAB But we have more experiments here too, right? Some that ran for an extra long time, and some on the 4-card weight. What important conclusions could we draw from those if we wrote them up carefully?}
+%{\bf SAB ***** Make sure we address the different scoring systems - does system perform well with them?}
 
-{\bf SAB ***** Make sure we address the different scoring systems - does system perform well with them?}
-
-{\bf CPL addressed in the Cp section}
-
-{\bf SAB Maybe a section about broader conclusions to draw... (not just in PPS)}
+%{\bf SAB Maybe a section about broader conclusions to draw... (not just in PPS)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Future Work}
+\section{Conclusion and Future Work}
 
-{\bf SAB Might have room for a section like this........}
+This paper has described the application of MCTS to Parameterized Poker Squares. Experiments show that pruning in the selection/expansion step as implemented here is not effective enough to justify the added computation cost, while a best-move simulation is far superior to random. Further gains were found through careful tuning of the state-evaluation heuristic.
 
-The size of our game space is calculated as $\frac{52!}{27\times26}$ or $1.12 \times 10^{65}$. MCTS constructs very large trees and as surveyed in~\cite{browne2012survey} may be well suited to parallelization and\/or multi-threading. Several techniques are possible such as parallel tree simulation where multiple trees are processed simultaneously. A possible drawback to this approach is that since each thread uses a copy of the same tree they may traverse similar or even identical parts of the tree. Root parallelization initiates each thread with the same beginning root but then builds independant trees. A possible advantage here is that each thread may run to a limit and stop at any time idependantly.
+This work generates a number of interesting follow-up questions for further research. It is possible that further experiments on the pruning threshold policy (including the $\delta$ value) could tune the pruning procedure for better gains, or that an alternative heuristic for pruning may be more effective. The experiments on $C_p$ values warrant further exploration and perhaps generalization to other games in the hope of identifying best practices when squashing to $[0,1]$ is challenging. Finally, given the significant time-constraints of the PPS player described here, significant gains may be found in applications of parallelism.
 
-if we had a simpler heuristic, would pruning be worth it?
 
-maybe alter order of single-player MCTS (Schadd)
 
-For pruning, quote from before: Thus an additional safeguard is put in place, that no more than 70\% of the children of any given parent may be pruned. If the  $\delta \cdot h(p)$ threshold prunes more than this amount, then only the bottom 50\% of the children are pruned.
-If we experiment on this, pruning might be better - more worthwhile.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Conclusion}
-
-A quick wrap-up.
 
 %
 %\section{whatevs}
