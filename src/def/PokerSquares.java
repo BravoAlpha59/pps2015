@@ -304,7 +304,7 @@ public class PokerSquares {
 		PokerSquaresPointSystem.setSeed(0L);
 		PokerSquaresPointSystem system = PokerSquaresPointSystem.getAmericanPointSystem();
 		System.out.println(system);
-		new PokerSquares(new xRandomRolloutPruningPlayer200rt2((float) (200)), PokerSquaresPointSystem.getAmericanPointSystem()).play();
+		new PokerSquares(new xRandomRolloutPruningPlayer((float) (200)), PokerSquaresPointSystem.getAmericanPointSystem()).play();
 
 		// Demonstration of batch game play (30 seconds per game)
 		System.out.println("\n\nBatch game demo:");

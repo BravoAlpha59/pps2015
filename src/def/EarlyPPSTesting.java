@@ -6,7 +6,7 @@ public class EarlyPPSTesting {
 
 	public static void main(String[] args) {
 		System.out.println("\n\nEarly Parameterized Poker Squares Testing:");
-		PokerSquaresPlayer player = new xRandomRolloutPruningPlayer200rt2((float) 10); // TODO - replace the RandomPlayer with your best player
+		PokerSquaresPlayer player = new xRandomRolloutPruningPlayer((float) 10); // TODO - replace the RandomPlayer with your best player
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
 		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());

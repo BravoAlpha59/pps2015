@@ -42,10 +42,10 @@ package def;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class xRandomRolloutPruningPlayer200rt2 extends xMCTSPPSPruningPlayer
+public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 {
 
-   public xRandomRolloutPruningPlayer200rt2(float C)
+   public xRandomRolloutPruningPlayer(float C)
    {
       super();
       //The constant used for UCT calculating

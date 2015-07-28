@@ -12,7 +12,7 @@ public class test {
 	static xMCTSStringGameState testState;
 	static boolean[] canDraw;
 	static ArrayList<xMCTSStringGameState> possibleMoves;
-	static xRandomRolloutPruningPlayer200rt2 testPlayer = new xRandomRolloutPruningPlayer200rt2();
+	static xRandomRolloutPruningPlayer testPlayer = new xRandomRolloutPruningPlayer();
 	static int[] posHands;
 
 	public static void main (String[] args) {

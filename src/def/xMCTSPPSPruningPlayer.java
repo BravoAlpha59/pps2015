@@ -59,15 +59,16 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 	                                             // we swap each dealt card to its correct index.  Thus, from index numPlays 
 												 // onward, we maintain a list of undealt cards for MC simulation.
    protected float C; //constant used in the UCT formula
-   protected long totalTrials = 0;
+   protected boolean[] gameCanDraw;
+   
+   //tracking variables for debugging
+   protected long totalTrials = 0; 
    protected long totalPruning = 0;
    protected long totalSingleGameTrials;
    protected float averageTimeRemaining = 0;
    protected long numGamesPlayed = 0;
    
-   protected boolean[] gameCanDraw;
-   
-   //Created outside of getPlay for debugging
+   //Created outside of getPlay for further debugging
    int remainingPlays = 0;
    long millisPerPlay = 0; 
    long startTime = 0;
@@ -75,29 +76,20 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
    Card getPlayCard = Card.getCard(null);
    long millisRemainingFromGetPlayStart = 0;
    int getPlayTrials;
-   
-   /**
-    * Gets the current state of the game.
-    *
-    * @return the current state of the game.
-    */
-   public xMCTSStringGameState getCurrentState()
-   {
-      return currentState;
-   }
 
    /**
-    * Instantiates the player.
+    * Instantiates the player. Nothing happens here because all game creation and setup is done in either init or setPointSystem
     *
-    * @param g The Game being played.
-    * @param player1 Whether or not this player is player 1.
-    * @param thinkTime How many milliseconds this player is allowed to think per
-    * turn (Longer think time yields better simulations.
     */
    public xMCTSPPSPruningPlayer()
    {
    }
 
+   /**
+    * mutates curNode and currentState into the child of curNode that matches String S
+    * 
+    * @param s the state representing the child that curNode should be updated to.
+    */
    public void updateGameState(xMCTSStringGameState s)
    {
       try {
@@ -122,7 +114,11 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 
    /**
     * Simulates possible games until allowed think time runs out, and then makes
-    * a move.
+    * a move by returning the position of that move on the board
+    * 
+    * @param card the Card object "drawn" by the PokerSquares code.
+    * @param millisRemaining the time left to play the game
+    * @return an array of two integers, representing the row and the column of the game grid location of the chosen move
     */
    public int[] getPlay(Card card, long millisRemaining)
    {
@@ -150,6 +146,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 	 String activeState = currentState.toString().substring(0, currentState.toString().length() - 2);
 	 activeState += card.toString();
 	 
+	 //Hard coding for first move of the game
 	 if (numPlays == 0) {
 		 xMCTSStringGameState startingGameState = new xMCTSStringGameState(activeState, currentState.expectedValue, numPlays); //Draw first card, curNode starts as chance
   		 curNode.createChildNode(startingGameState, gameDeck, gameCanDraw);
@@ -161,6 +158,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		updateGameState(firstMoveGameState); //update, curNode is once again chance
 	 } 	 
 	 
+	 //Hard coding for second move of the game
 	 else if (numPlays == 1) {
 		 //Change from chance node to choice node
 		 xMCTSStringGameState startingGameState = new xMCTSStringGameState(activeState, currentState.expectedValue, numPlays); //Draw first card, curNode starts as chance
@@ -187,6 +185,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 		 ((xMCTSPruningChanceNode) curNode).chanceExpand();
 	 }
 	 
+	 //divide up time among remaining moves, then run MCTS as many times as possible
   	 else if (numPlays < 23) {
   		 remainingPlays = (NUM_POS - numPlays); // ignores triviality of last few plays to keep a conservative margin for game completion
   	     millisPerPlay = (millisRemaining) / (remainingPlays - 1); // dividing time evenly with future getPlay() calls
@@ -210,6 +209,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		 }
   	 }
 
+	 //Hard coding for the penultimate move of the game
   	 else if (numPlays == 23) {
   		 //Change from chance node to choice node
   		 updateGameState(new xMCTSStringGameState(activeState, currentState.expectedValue, numPlays));
@@ -253,6 +253,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		 }
   	 }
 
+	 //Hard coding for the final move of the game
   	 else if (numPlays == 24) {
   		 //Chance to choice node
   		 updateGameState(new xMCTSStringGameState(activeState, currentState.expectedValue, numPlays));
@@ -264,9 +265,10 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   	 }
 
 	 numPlays++;
-	 //return an array holding the row and column of the move that results in the bestMove node
+	 //return an array holding the row and column of the move that resulted in this new state
 	 int[] temp = curNode.bestMoveLocation(card);
       
+	 //all the tracking information for debugging, only displayed on the final move of each game
       totalSingleGameTrials += getPlayTrials;
       if (numPlays == 25) {
     	  System.out.println(); //blank line
@@ -298,47 +300,50 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
     * simulation (selection, expansion, simulation, and backpropogation).
     * Selection: Pick a node to simulate from by recursively applying UCB.
     * Expansion: Add a new set of nodes to the link tree as children of the
-    * selected node. Simulation: Pick one of those nodes and simulate a game
-    * from it. Backpropogation: Rank all nodes selected during the selection
+    * selected node. 
+    * Simulation: Pick one of those nodes and simulate a game from it. 
+    * Backpropogation: Rank all nodes selected during the selection
     * step based on simulation outcome.
     *
     * @param node The node to begin running the trial from.
-    * @param myTurn Whether it is this players turn or not.
-    * @return The status of the trial.
+    * @return The score calculated by the simulation step of this trial.
     */
    private float runTrial(xMCTSPruningNode node)	{
 	   float returnScore;
 	   node.visit();
+	   //if runTrial is called on a node representing an unfinished game state
 	   if (g.gameStatus(node.getState()) == xMCTSGame.status.ONGOING) {
 		   if (!node.isLeaf()) {
-			   //selection
+			   //selection. proceed further down the tree. The path chosen is determined by the UCT equation
 
 			   xMCTSPruningNode nextChild = node.bestSelection();
 			   returnScore = runTrial(nextChild);
 		   } else {
 
 			   if (node.choiceNode()) {
-				   //expansion
+				   //expansion. Create a child node for each possible move location remaining on the board.
 				   ArrayList<xMCTSStringGameState> possibleMoves = g.getPossibleMoves(node.getState(), node.nodeCanDraw);
 				  
 				   ((xMCTSPruningChoiceNode) node).choiceExpand(possibleMoves); //to be in this if statement it must be a choice node
 
-				   //simulation
+				   //simulation. Play out a game to the end, then use that end score as the Q value for this trial. Because this is a choice node,
+				   //you have already randomly drawn a card, and therefore want randomize to begin as false.
 				   returnScore = simulateFrom(node.getState(), false, java.util.Arrays.copyOf(node.nodeDeck, node.nodeDeck.length), java.util.Arrays.copyOf(node.nodeCanDraw, node.nodeCanDraw.length)); // copy(node.getDeck)
 			   }
 			   else {
-				   //expansion
+				   //expansion. Create a child node for each card still possible to draw
 				   ((xMCTSPruningChanceNode) node).chanceExpand();//to be in this else it must be a chance node
 
-				   //simulation
+				   //simulation. Play out a game to the end, then use that end score as the Q value for this trial. Because this is a chance node,
+				   //you need to begin simulation by randomly drawing a card, so randomize begins as true.
 				   returnScore = simulateFrom(node.getState(), true, java.util.Arrays.copyOf(node.nodeDeck, node.nodeDeck.length), java.util.Arrays.copyOf(node.nodeCanDraw, node.nodeCanDraw.length)); // copy(node.getDeck)
 			   }
 
 		   }
-		   //backpropogation
+		   //backpropogation. Return the simulation score and update all nodes in this recursive sequence.
 		   node.setScore(node.getScore() + returnScore);
 	   }
-	   else {
+	   else {//if runTrial is called on a node representing a completed game
 		   for (int i = 0; i < 5; i++) {//row
 			   for (int j = 0; j < 5; j++) {//column
 				   int position = i * 10 + j * 2;
@@ -346,7 +351,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 				   grid[i][j] = Card.getCard(temp);
 			   }
 		   }
-		   returnScore = pointSystem.getScore(grid);
+		   returnScore = pointSystem.getScore(grid); //no need to attempt to select, expand, or simulate, just return the completed board's score.
 		   
 	   }
 	   return returnScore;
@@ -358,6 +363,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
     * or "finishing move" detection if desired.
     *
     * @param state the state to be simulated from.
+    * @param whether or not to begin simulating by randomly drawing a card
     * @return the resulting status of the simulation.
     */
    protected abstract float simulateFrom(xMCTSStringGameState state, boolean randomize, Card[] simDeck,  boolean[] simCanDraw);
