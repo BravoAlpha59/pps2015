@@ -12,7 +12,6 @@ public class PokerSquaresPointSystem {
 	private static final int MIN_HAND_SCORE = -128; // maximum permissible hand score
 	private static final int SIZE = PokerSquares.SIZE; // Poker Squares number of rows/columns
 	private final int[] scores; // scores for each corresponding hand classification id number
-	protected static long[] hands = new long[10]; // accumulate counts of hands by scoring system hand id
 	
 	/**
 	 * Create a point system given an array of hand scores. The score at index n corresponds to the score for 
@@ -164,11 +163,6 @@ public class PokerSquaresPointSystem {
 		return new PokerSquaresPointSystem(new int[] {0, 1, 3, 6, 12, 5, 10, 16, 30, 30});
 	}
 	
-	//Socring system added in for testing
-	public static PokerSquaresPointSystem getNegativePointSystem() {
-		return new PokerSquaresPointSystem(new int[] {-128, 11, -126, 118, 16, -102, -64, 32, -55, -23});
-	}
-	
 	/**
 	 * Return an "Ameritish" point system randomly generated between the normalized point ranges established by the American and British systems.
 	 * @return an "Ameritish" point system randomly generated between the normalized point ranges established by the American and British systems
@@ -207,41 +201,7 @@ public class PokerSquaresPointSystem {
 		}
 		for (int col = 0; col < SIZE; col++) 
 			System.out.printf("%3d ", handScores[SIZE + col]);
-		System.out.printf("%3d Total\n", totalScore);		
-	}
-	
-	/**
-	 * Print the given game hands and scores.
-	 * @param grid given game grid 
-	 */
-	public void printHands(Card[][] grid) {
-		// get scores
-		int[] handScores = new int[2 * SIZE];
-		
-		// print hands
-		for (int row = 0; row < SIZE; row++) {
-			Card[] hand = new Card[SIZE];
-			for (int col = 0; col < SIZE; col++) { 
-				hand[col] = grid[row][col];
-//				System.out.printf(" %s ", grid[row][col] == null ? "--" : grid[row][col].toString());
-			}
-			handScores[row] = getHandScore(hand);
-			// accumulate totals
-			hands[PokerHand.getPokerHandId(hand)]++;
-//			System.out.printf("%3d\n", handScores[row]);
-		}
-
-		for (int col = 0; col < SIZE; col++){ 
-			Card[] hand = new Card[SIZE];
-			for (int row = 0; row < SIZE; row++){ 
-				hand[row] = grid[row][col];
-//				System.out.printf(" %s ", grid[row][col] == null ? "--" : grid[row][col].toString());
-			}
-			handScores[SIZE + col] = getHandScore(hand);
-			// accumulate totals
-			hands[PokerHand.getPokerHandId(hand)]++;
-//			System.out.printf("%3d\n", handScores[SIZE + col]);
-		}
+		System.out.printf("%3d Total\n", totalScore);
 	}
 	
 	

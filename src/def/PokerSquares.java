@@ -56,11 +56,6 @@ public class PokerSquares {
 	private Random random = new Random(); // current game random number generator
 	private int minPoints; // minimum possible score for current point system.
 	
-	
-	//added for testing
-	private xMCTSStringGameState bestState;
-	private xMCTSStringGameState worstState;
-	
 	/**
 	 * Create a PokerSquares game with a given player and point system.
 	 * @param player Poker Squares player object
@@ -118,22 +113,6 @@ public class PokerSquares {
 			millisRemaining -= System.currentTimeMillis() - startTime;
 			if (millisRemaining < 0) { // times out
 				System.err.println("Player Out of Time");
-				Card[][] errGrid = new Card[SIZE][SIZE];
-				System.out.println("This game's state at timeout = " + ((xMCTSPPSPruningPlayer) player).currentState.toString());
-				for (int i = 0; i < 5; i++) {//row
-					for (int j = 0; j < 5; j++) {//column
-						int position = i * 10 + j * 2;
-						String temp = ((xMCTSPPSPruningPlayer) player).currentState.toString().substring(position, position + 2);
-						errGrid[i][j] = Card.getCard(temp);
-					}
-				}
-				system.printGrid(errGrid);
-				System.out.println("getPlayCard at timeout = " + ((xMCTSPPSPruningPlayer) player).getPlayCard.toString());
-				System.out.println("numPlays at timeout = " + ((xMCTSPPSPruningPlayer) player).numPlays);
-				System.out.println("millisRemaining (from getPlay Start) at timeout = " + ((xMCTSPPSPruningPlayer) player).millisRemainingFromGetPlayStart);
-				System.out.println("remainingPlays at timeout = " + ((xMCTSPPSPruningPlayer) player).remainingPlays);
-				System.out.println("millisPerPlay at timeout = " + ((xMCTSPPSPruningPlayer) player).millisPerPlay);
-				System.out.println("Is curNode a choice node? " + ((xMCTSPPSPruningPlayer) player).curNode.choiceNode());
 				return minPoints;
 			}
 			if (play.length != 2 || play[0] < 0 || play[0] >= SIZE || play[1] < 0 || play[1] >= SIZE || grid[play[0]][play[1]] != null) { // illegal play
@@ -197,22 +176,6 @@ public class PokerSquares {
 			millisRemaining -= System.currentTimeMillis() - startTime;
 			if (millisRemaining < 0) { // times out
 				System.err.println("Player Out of Time");
-				Card[][] errGrid = new Card[SIZE][SIZE];
-				System.out.println("This game's state at timeout = " + ((xMCTSPPSPruningPlayer) player).currentState.toString());
-				for (int i = 0; i < 5; i++) {//row
-					for (int j = 0; j < 5; j++) {//column
-						int position = i * 10 + j * 2;
-						String temp = ((xMCTSPPSPruningPlayer) player).currentState.toString().substring(position, position + 2);
-						errGrid[i][j] = Card.getCard(temp);
-					}
-				}
-				system.printGrid(errGrid);
-				System.out.println("getPlayCard at timeout = " + ((xMCTSPPSPruningPlayer) player).getPlayCard.toString());
-				System.out.println("numPlays at timeout = " + ((xMCTSPPSPruningPlayer) player).numPlays);
-				System.out.println("millisRemaining (from getPlay Start) at timeout = " + ((xMCTSPPSPruningPlayer) player).millisRemainingFromGetPlayStart);
-				System.out.println("remainingPlays at timeout = " + ((xMCTSPPSPruningPlayer) player).remainingPlays);
-				System.out.println("millisPerPlay at timeout = " + ((xMCTSPPSPruningPlayer) player).millisPerPlay);
-				System.out.println("Is curNode a choice node? " + ((xMCTSPPSPruningPlayer) player).curNode.choiceNode());
 				return minPoints;
 			}
 			if (play.length != 2 || play[0] < 0 || play[0] >= SIZE || play[1] < 0 || play[1] >= SIZE || grid[play[0]][play[1]] != null) { // illegal play
@@ -249,14 +212,8 @@ public class PokerSquares {
 			int score = play();
 			scores[i] = score;
 			scoreMean += score;
-			if (scores[i] < min) {
-				min = scores[i];
-				worstState = ((xMCTSPPSPruningPlayer) player).currentState;
-			}
-			if (scores[i] > max) {
-				max = scores[i];
-				bestState = ((xMCTSPPSPruningPlayer) player).currentState;
-			}
+			if (scores[i] < min) min = scores[i];
+			if (scores[i] > max) max = scores[i];
 			System.out.println(score);
 		}
 		scoreMean /= numGames;
@@ -267,27 +224,6 @@ public class PokerSquares {
 		}
 		scoreStdDev = Math.sqrt(scoreStdDev / numGames);
 		System.out.printf("Score Mean: %f, Standard Deviation: %f, Minimum: %d, Maximum: %d\n", scoreMean, scoreStdDev, min, max);
-		
-		for (int i = 0; i < 5; i++) {//row
-			for (int j = 0; j < 5; j++) {//column
-				int position = i * 10 + j * 2;
-				String temp = bestState.toString().substring(position, position + 2);
-				grid[i][j] = Card.getCard(temp);
-			}
-		}
-		System.out.println("Best scoring state:");
-		system.printGrid(grid);
-		
-		for (int i = 0; i < 5; i++) {//row
-			for (int j = 0; j < 5; j++) {//column
-				int position = i * 10 + j * 2;
-				String temp = worstState.toString().substring(position, position + 2);
-				grid[i][j] = Card.getCard(temp);
-			}
-		}
-		System.out.println("Worst scoring state:");
-		system.printGrid(grid);
-		
 		return scores;
 	}
 	
@@ -364,54 +300,27 @@ public class PokerSquares {
 	 */
 	public static void main(String[] args) {
 		// Demonstration of single game play (30 seconds)
-//		System.out.println("Single game demo:");
-//		PokerSquaresPointSystem.setSeed(0L);
-//		PokerSquaresPointSystem system = PokerSquaresPointSystem.getAmericanPointSystem();
-//		System.out.println(system);
-//		new PokerSquares(new xRandomRolloutPruningPlayer200rt2(), PokerSquaresPointSystem.getAmericanPointSystem()).play();
+		System.out.println("Single game demo:");
+		PokerSquaresPointSystem.setSeed(0L);
+		PokerSquaresPointSystem system = PokerSquaresPointSystem.getAmericanPointSystem();
+		System.out.println(system);
+		new PokerSquares(new xRandomRolloutPruningPlayer200rt2((float) (200)), PokerSquaresPointSystem.getAmericanPointSystem()).play();
 
 		// Demonstration of batch game play (30 seconds per game)
-//		System.out.println("\n\nBatch game demo:");
-//		System.out.println(system);
-//		new PokerSquares(new xRandomRolloutPruningPlayer200rt2(), PokerSquaresPointSystem.getAmeritishPointSystem()).playSequence(3, 0, false);
+		System.out.println("\n\nBatch game demo:");
+		System.out.println(system);
+		new PokerSquares(new GreedyMCPlayer(2), PokerSquaresPointSystem.getAmeritishPointSystem()).playSequence(3, 0, false);
 		
-//		 Demonstration of tournament evaluation (3 players, 2 point systems, 100 x 30s games for each of the 3*2=6 player-system pairs) 
+		// Demonstration of tournament evaluation (3 players, 2 point systems, 100 x 30s games for each of the 3*2=6 player-system pairs) 
 		System.out.println("\n\nTournament evaluation demo:");
 		ArrayList<PokerSquaresPlayer> players = new ArrayList<PokerSquaresPlayer>();
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 6));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 10));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 14));
-//		players.add(new xRandomRolloutPlayer1rt2());
-//		players.add(new xRandomRolloutPlayer200rt2());
-//		players.add(new xRandomRolloutPlayer725rt2());
-//		players.add(new xRandomRolloutPlayer100());
-//		players.add(new xRandomRolloutPlayer1500());
-//		players.add(new xRandomRolloutPlayer3000());
-//    	players.add(new xRandomRolloutPlayer6000());
-//		players.add(new xRandomRolloutPlayer10000());
-//		players.add(new xRandomRolloutSquashPlayer1rt2());
-//		players.add(new xRandomRolloutSquashPlayer200rt2());
-//		players.add(new xRandomRolloutSquashPlayer725rt2());
-//		players.add(new zRandomRolloutPlayer1rt2());
-//		players.add(new zRandomRolloutSquashPlayer1rt2());
-//		players.add(new yRandomRolloutPlayer1rt2());
-//		players.add(new yRandomRolloutSquashPlayer1rt2());
-//		players.add(new vRandomRolloutPlayer1rt2());
-//		players.add(new wRandomRolloutPlayer1rt2());
-//		players.add(new wRandomRolloutSquashPlayer1rt2());
-//		players.add(new vRandomRolloutSquashPlayer1rt2());
-//		players.add(new RandomPlayer());
-//		players.add(new GreedyMCPlayer(0));
-//		players.add(new GreedyMCPlayer(2));
-//		players.add(new RandomPlayer());
-//		players.add(new GreedyMCPlayer(0));
-//		players.add(new GreedyMCPlayer(2));
+		players.add(new RandomPlayer());
+		players.add(new GreedyMCPlayer(0));
+		players.add(new GreedyMCPlayer(2));
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
-		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());
-//		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
-//		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
-		//systems.add(PokerSquaresPointSystem.getNegativePointSystem());
+		systems.add(PokerSquaresPointSystem.getAmeritishPointSystem());
+		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 		PokerSquares.playTournament(players, systems, 100, 0L); // use fewer games per system for faster testing
 	}
 }

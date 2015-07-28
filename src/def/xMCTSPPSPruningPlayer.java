@@ -49,7 +49,6 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   protected xMCTSPruningPPSGame g; //Representation of the game itself
    public xMCTSStringGameState currentState; //the current state of the game board
    public xMCTSPruningNode curNode; //the node that represents the current game board
-   
    private final int SIZE = 5; // number of rows/columns in a Poker Squares grid
    private final int NUM_POS = SIZE * SIZE; // number of positions in a Poker Squares grid
    protected final int NUM_CARDS = Card.NUM_CARDS; // number of cards in a standard deck
