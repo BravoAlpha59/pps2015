@@ -61,14 +61,6 @@ public interface xMCTSGame
     * @return The list of possible moves.
     */
    public ArrayList<xMCTSStringGameState> getPossibleMoves(xMCTSStringGameState state, boolean[] canDraw);
-   
-   /**
-    * Generates all possible moves from the given state.
-    *
-    * @param state The state to be generated from.
-    * @return The list of possible moves.
-    */
-   public ArrayList<xMCTSStringGameState> getPossibleMoves(xMCTSStringGameState state);
 
    /**
     * Gets the status of the game state.

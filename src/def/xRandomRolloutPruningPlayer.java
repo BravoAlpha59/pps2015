@@ -53,13 +53,18 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
    }
 
    /**
-    * Simulates a random play-through from a given state and returns the result.
+    * Performs a simulation or "rollout" for the "simulation" phase of the
+    * runTrial function. This can be written to contain game-specific heuristics
+    * or "finishing move" detection if desired. It is called recursively until the board is filled.
     *
-    * @param state The state to be simulated from.
-    * @return the game status at the end of the simulation.
+    * @param state the state to be simulated from.
+    * @param randomize whether or not to begin simulating by randomly drawing a card
+    * @param simDeck the deck to be used for simulating, determines draw orders without affecting the player or node decks
+    * @param simCanDraw the canDraw boolean array to be used for simulating, determines which cards are still available to be drawn
+    * @return the resulting value of the simulated end game state.
     */
    @Override
-   protected float simulateFrom(xMCTSStringGameState state, boolean randomize, Card[] simDeck,  boolean[] simCanDraw) // simDeck
+   protected float simulateFrom(xMCTSStringGameState state, boolean randomize, Card[] simDeck,  boolean[] simCanDraw)
    {
       xMCTSGame.status s = g.gameStatus(state);
       if (s != xMCTSGame.status.ONGOING) {
@@ -74,7 +79,8 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
     	 float score = pointSystem.getScore(grid);
          return score;
       } else {
-         return simulateFrom(getRandomMoveFrom(state, simDeck, randomize, simCanDraw), true, simDeck, simCanDraw); // simDeck
+    	  //randomize is always true after the first call to simulateFrom. 
+         return simulateFrom(getRandomMoveFrom(state, simDeck, randomize, simCanDraw), true, simDeck, simCanDraw);
       }
    }
 
@@ -82,7 +88,10 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
     * Gets a random move from a given state.
     *
     * @param gameState a game state from which a random child state is desired.
-    * @return a random child state of the passed state.
+    * @param simDeck the deck to be used for simulating, determines draw orders without affecting the player or node decks
+    * @param randomize whether or not to begin simulating by randomly drawing a card
+    * @param simCanDraw the canDraw boolean array to be used for simulating, determines which cards are still available to be drawn
+    * @return a random child state of the given state.
     */
    private xMCTSStringGameState getRandomMoveFrom(xMCTSStringGameState gameState, Card[] simDeck, boolean randomize, boolean[] simCanDraw)
    {
@@ -102,17 +111,26 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
       else
     	  simState = gameState;
       
-      ArrayList<xMCTSStringGameState> moves = g.getBestSimMove(simState, simCanDraw);
-	  int chosenMoveIndex = random.nextInt(moves.size()); //the new board state
-      return moves.get(chosenMoveIndex);
+      //calculate the highest scoring possible move from this state, then return that as the selected move.
+      return g.getBestSimMove(simState, simCanDraw).get(0);
    }
    
+   /**
+    * Complete game setup steps that only need to be done once per point system.
+    * 
+    * @param pointSystem an array of scores for each of the possible hands in poker.
+    * @param millis the time allotted to this method
+    */
    public void setPointSystem(PokerSquaresPointSystem pointSystem, long millis) {
 	   this.pointSystem = pointSystem;
 	   g = new xMCTSPruningPPSGame(pointSystem);
 	   System.gc();
    }
    
+	/**
+	 * getName - gets the uniquely identifying name of this Poker Squares player.
+	 * @return unique player name
+	 */
    public String getName() {
 	   return "xRandomRolloutPruningPlayer" + C;
    }

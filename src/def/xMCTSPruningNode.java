@@ -16,6 +16,14 @@ public abstract class xMCTSPruningNode {
 	protected float constant;
 	protected boolean[] nodeCanDraw;
 	   
+	/**
+	 * instantiates a node
+	 * 
+	 * @param nodeGameState the state this node represents
+	 * @param nodeDeck the order of cards used to create this node
+	 * @param constant the Cp value used for UCT calculation
+	 * @param nodeCanDraw the cards still available to be drawn from this node's state
+	 */
 	public xMCTSPruningNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, float constant, boolean[] nodeCanDraw)
 	   {
 	      this.nodeGameState = nodeGameState;
@@ -28,9 +36,13 @@ public abstract class xMCTSPruningNode {
 	      this.nodeCanDraw = nodeCanDraw;
 	   }
 	
+	/**
+	 * utilizes a formula depending on whether the node is chance or choice to select a child
+	 * @return the child chosen by the formula
+	 */
 	public abstract xMCTSPruningNode bestSelection();
 	
-	/**
+		/**
 	    * Returns the number of times this node has been visited.
 	    *
 	    * @return The number of times this node has been visited.
@@ -40,6 +52,10 @@ public abstract class xMCTSPruningNode {
 	      return timesVisited;
 	   }
 	
+	/**
+	 * return this node's strongest child as determined by MCTS
+	 * @return this node's child with the best Q/N value
+	 */
 	public abstract xMCTSPruningNode bestMove();
 	
 	   /**
@@ -71,6 +87,11 @@ public abstract class xMCTSPruningNode {
 	      timesVisited++;
 	   }
 	   
+	   /**
+	    * Sets this node's score
+	    * 
+	    * @param score the score to adjust this node's score to
+	    */
 	   public void setScore(float score) {
 		   this.score = score;
 	   }
@@ -105,6 +126,8 @@ public abstract class xMCTSPruningNode {
 	    * Creates a child of the current Node that has a given GameState by adding it into nextMoves.
 	    *
 	    * @param s is the state to be created.
+	    * @param deck is the order of cards used to get to this node
+	    * @param canDraw the cards still possible to be drawn from this node's state
 	    */
 	   public abstract void createChildNode(xMCTSStringGameState s, Card[] deck, boolean[] canDraw);
 	   
@@ -117,7 +140,7 @@ public abstract class xMCTSPruningNode {
 	   {
 	      return nextMoves == null || nextMoves.isEmpty();
 	   }
-
+	   
 	   /**
 	    * Returns a random child node of this node.
 	    *

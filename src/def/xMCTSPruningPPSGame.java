@@ -42,58 +42,82 @@ import java.util.ArrayList;
 public class xMCTSPruningPPSGame implements xMCTSGame
 {
 
-	final int SIZE = 5;
+	final int SIZE = 5; //number of rows or columns in a Poker Squares grid
 	//A-priori probabilities of...  hc	  2k	 2p	 	3k	   st	  fl	 fh	    4k	   sf	  rf
 	final double[] aprioriProb = {.4254, .2127, .1064, .0608, .0327, .0709, .0387, .0250, .0137, .0137};
 	protected PokerSquaresPointSystem pointSystem; // point system
-	public long totalChildrenPruned = 0;
+	//Card weights, for use in calculating an estimated board value
 	protected final double ONE_CARD_WEIGHT = (1.0/10.0);
-	protected final double TWO_CARD_WEIGHT = (2.5/10.0);
+	protected final double TWO_CARD_WEIGHT = (3/10.0);
 	protected final double THREE_CARD_WEIGHT = (8.5/10.0);
 	protected final double FOUR_CARD_WEIGHT = 1.0;
 	protected final double FIVE_CARD_WEIGHT = 1.0;
 	protected final double ZERO_CARD;
-	protected final double PRUNE_LIMIT = (3.0/10.0);
-	protected final double DELTA = (1.3);
+	
+	protected final double PRUNE_LIMIT = (3.0/10.0); //minimum percentage of unpruned nodes before nodes above the average are restored
+	protected final double DELTA = (1.3); //multiplied by the parent to create a threshold value for pruning
+	
+	//values to determine the the possibility of completing a particular poker hand in a given hand of 5 cards
 	protected final int COMPLETED = 2;
 	protected final int POSSIBLE = 1;
 	protected final int IMPOSSIBLE = 0;
+	
+	//weights for average calculations to avoid in-program rounding errors without affecting behavior. Positive and negative averages need different weights
 	protected final double POSITIVE_ROUND_ADJ = 0.999999;
 	protected final double NEGATIVE_ROUND_ADJ = 1.000001;
-	Card[][] grid = new Card[SIZE][SIZE];
+	Card[][] grid = new Card[SIZE][SIZE]; // grid with Card objects or null (for empty positions)
+	
+	//tracking values for debugging
+	public long totalChildrenPruned = 0;
 	public double totalPercentPruned;
 	public long timesCalled;
 	public long overAllMoves;
 
-
+	/**
+	 * Instantiate the game
+	 * @param pointSystem determine this game's point system
+	 */
 	public xMCTSPruningPPSGame(PokerSquaresPointSystem pointSystem) {
 		this.pointSystem = pointSystem;
+		//zero card is a value applied to all empty hands, so the game does not overvalue placing cards in unplayed hands.
 		double zeroCard = 0;
+		//for each poker hand type
 		for (int i = 0; i < aprioriProb.length - 1; i++) {
 			zeroCard += (aprioriProb[i] * pointSystem.getHandScore(i));
 		}
+		//add up all the scores weighted by their a-priori probabilities, then weight that value by 82% of the one card weight. 
+		//results in a small, but not insignificant, value that can be assigned to unused hands.
 		ZERO_CARD = (zeroCard * (ONE_CARD_WEIGHT * 0.82));
 	}
 
+	/**
+	 * creates an arraylist of moves possible from the given state. Before return, this list is pruned of nodes below a specified threshold
+	 * 
+	 * @param gameState the state being evaluated for acceptable moves
+	 * @param canDraw what moves are still possible from the given gameState
+	 */
 	public ArrayList<xMCTSStringGameState> getPossibleMoves(xMCTSStringGameState gameState, boolean[] canDraw)
 	{
 		int parentNumPlays = gameState.numPlays; // curNode or Parent node
-		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);
-		ArrayList<xMCTSStringGameState> prunedMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);
+		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays); //moves that will be returned
+		ArrayList<xMCTSStringGameState> prunedMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays); //moves that are possible but do not meet the threshold criteria
 		double boardExpectedValue; //The expected value of each board
-		double scoreMean = 0;
+		double scoreMean = 0; //an average of the value of the moves, to be used should any nodes need restoring
+		int childNumPlays = gameState.numPlays + 1; //numplays for each of these moves is one more than the given state's
+		
+		//tracking variable for debugging
 		double percentPruned;
-		int childNumPlays = gameState.numPlays + 1;
+		
 	
-
+		//if it's a board where there will actually be moves to evaluate
 		if (gameStatus(gameState) == xMCTSGame.status.ONGOING) {
 			String activeCard = gameState.toString().substring(gameState.toString().length() - 2, gameState.toString().length());
 
 			int gridSize = SIZE*2; //Size is the size of the actual game grid... with 2 characters per card, size*2 is the grid size of string representations
-			for (int row = 0; row < gridSize; row += 2) {//for each position in this state being checked
-				for (int col = 0; col < gridSize; col += 2) {
+			for (int row = 0; row < gridSize; row += 2) {//for each row
+				for (int col = 0; col < gridSize; col += 2) {//for each column in the specified row
 					int pos = row * SIZE + col;
-					if (gameState.toString().charAt(pos) == '_') {
+					if (gameState.toString().charAt(pos) == '_') {//if this location is blank, then there is not a card played here
 						String possibleMove = gameState.toString().substring(0, pos)
 								+ activeCard
 								+ gameState.toString().substring(pos + 2,
@@ -101,13 +125,13 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 						if (parentNumPlays < 24 && parentNumPlays > 0) {//ignore triviality of first and last moves; do pruning for all others
 							
-							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw, 5);
+							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw);
 							scoreMean += boardExpectedValue;
 
-							if (boardExpectedValue >= (gameState.expectedValue * DELTA)) { //If this play has a score below the parent's weighted with delta
+							if (boardExpectedValue >= (gameState.expectedValue * DELTA)) { //If this play has a score below the parent's score when weighted with delta
 								posMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
 							}
-							else {
+							else {//if this play was pruned
 								prunedMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
 								totalChildrenPruned++;
 							}
@@ -120,7 +144,9 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			}
 			if (parentNumPlays < 24 && parentNumPlays > 0) {//should only run this when considering pruning
 				double totalMoves = posMoves.size() + prunedMoves.size();
-				if (posMoves.size() < PRUNE_LIMIT * (posMoves.size() + prunedMoves.size())) {//If posMoves' size is below a certain percent of the total number of moves, add all already-pruned moves above the average of the children to posMoves
+				//If posMoves' size is below a certain percent of the total number of moves, add all already-pruned moves above the average of all of the children to posMoves
+				//This allows for the pruning of moves without worrying about overpruning and leaving no moves available
+				if (posMoves.size() < PRUNE_LIMIT * (posMoves.size() + prunedMoves.size())) {
 					scoreMean /= (posMoves.size() + prunedMoves.size());
 					double adjust_rounding = 0.0;
 					for (xMCTSStringGameState move : prunedMoves) {
@@ -134,6 +160,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						}
 					}
 				}
+			//update tracking values
 			timesCalled++; 
 			overAllMoves += totalMoves;
 			percentPruned = (posMoves.size() / totalMoves);
@@ -143,24 +170,33 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		return posMoves;
 	}
 	
-	//A separate version of possibleMoves meant for returning only the best expected child of this node
+	/**
+	 * An alternate version of getPossibleMoves, meant only for the simulation step.
+	 * This method only returns the highest scoring possible move from the given state 
+	 * 
+	 * @param gameState the state being evaluated for acceptable moves
+	 * @param canDraw what moves are still possible from the given gameState
+	 * @return an arrayList of size one containing only the highest scoring possible move
+	 */
 	public ArrayList<xMCTSStringGameState> getBestSimMove(xMCTSStringGameState gameState, boolean[] canDraw)
 	{
 		int parentNumPlays = gameState.numPlays; // curNode or Parent node
-		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>(1);
-		ArrayList<xMCTSStringGameState> prunedMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);
+		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>(1); //the move being returned
+		ArrayList<xMCTSStringGameState> prunedMoves = new ArrayList<xMCTSStringGameState>(25-parentNumPlays);//all other moves
 		double boardExpectedValue; //The expected value of each board
+		int childNumPlays = gameState.numPlays + 1; //numplays for each of these moves is one more than the given state's
+		
+		//tracking value
 		double percentPruned;
-		int childNumPlays = gameState.numPlays + 1;
 
-
+		//if it's a board where there will actually be moves to evaluate
 		if (gameStatus(gameState) == xMCTSGame.status.ONGOING) {
 			String activeCard = gameState.toString().substring(gameState.toString().length() - 2, gameState.toString().length());
 			double maxChildExpectedValue = Double.NEGATIVE_INFINITY;
 
 			int gridSize = SIZE*2; //Size is the size of the actual game grid... with 2 characters per card, size*2 is the grid size of string representations
-			for (int row = 0; row < gridSize; row += 2) {//for each position in this state being checked
-				for (int col = 0; col < gridSize; col += 2) {
+			for (int row = 0; row < gridSize; row += 2) {//for each row
+				for (int col = 0; col < gridSize; col += 2) {//for each column in the specified row
 					int pos = row * SIZE + col;
 					if (gameState.toString().charAt(pos) == '_') {
 						String possibleMove = gameState.toString().substring(0, pos)
@@ -169,7 +205,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 										gameState.toString().length());
 
 						if (parentNumPlays < 24 && parentNumPlays > 0) {//ignore triviality of first and last moves; do pruning for all others
-							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw, 5);
+							boardExpectedValue = getExpectedBoardScore(possibleMove, childNumPlays, canDraw);
 								if (boardExpectedValue > maxChildExpectedValue) {
 									maxChildExpectedValue = boardExpectedValue;
 								}
@@ -199,14 +235,20 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		return posMoves;
 	}
 	
-
-	public double getExpectedBoardScore(String possibleMove, int numPlays, boolean[] canDraw, int numHands) {
+	/**
+	 * Calculate an estimated board score for the given move by calculating each of the 10 hands' estimated scores and adding them together
+	 * 
+	 * @param possibleMove the move whose score is being calculated
+	 * @param numPlays the evaluated move's number of plays
+	 * @param canDraw the canDraw array of the evaluated move
+	 * @return the estimated value of this board
+	 */
+	public double getExpectedBoardScore(String possibleMove, int numPlays, boolean[] canDraw) {
 		double handExpectedValue;
 		double boardExpectedValue = 0;
 
 		// SIZE is 5: the size of one dimension of the board grid (5x5)
-		// when numHands is 5, you check all 5 hands in rows and columns. When numHands is 4, you only check the first 4 hands in rows and columns.
-		for (int childRow = 0; childRow < numHands*SIZE*2; childRow += SIZE*2) {//for each horizontal hand in this potential child state
+		for (int childRow = 0; childRow < SIZE*SIZE*2; childRow += SIZE*2) {//for each horizontal hand in this state
 			handExpectedValue = getExpectedHandScore(new Card[] {Card.getCard(possibleMove.substring(childRow, childRow+2)), 
 																 Card.getCard(possibleMove.substring(childRow+2, childRow+4)),
 																 Card.getCard(possibleMove.substring(childRow+4, childRow+6)), 
@@ -217,7 +259,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		}
 
 
-		for (int childCol = 0; childCol < numHands*2; childCol+= 2) {//for each vertical hand in this potential child state
+		for (int childCol = 0; childCol < SIZE*2; childCol+= 2) {//for each vertical hand in this state
 			handExpectedValue = getExpectedHandScore(new Card[] {Card.getCard(possibleMove.substring(childCol, childCol+2)), 
 																 Card.getCard(possibleMove.substring(childCol+10, childCol+12)),
 																 Card.getCard(possibleMove.substring(childCol+20, childCol+22)), 
@@ -229,16 +271,27 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		return boardExpectedValue;
 	}
 
+	/**
+	 * calculate the estimated value of a specific hand
+	 * 
+	 * @param hand the array of cards representing the hand being looked at. Null indices represent empty spots
+	 * @param numPlays the number of completed plays in the board this hand is a part of
+	 * @param canDraw the canDraw array of the board this hand is a part of
+	 * @return an estimated score for this particular hand
+	 */
 	public double getExpectedHandScore(Card[] hand, int numPlays, boolean[] canDraw) {
 		int numCards = 0;
-		int[] rankCounts = new int[Card.NUM_RANKS];
-		int[] suitCounts = new int[Card.NUM_SUITS];
+		int[] rankCounts = new int[Card.NUM_RANKS];//how many of each card rank exist in this hand
+		int[] suitCounts = new int[Card.NUM_SUITS];//how many of each card suit exist in this hand
 		double[] handProbabilities; //The probability of completing a hand in the next draw
-		int[] isHandPossible;
+		int[] isHandPossible; //keeps track of what poker hand type this hand is currently considered to be, what it no longer could be, and what it could still become
 		double handExpectedValue = 0.0;
 		// Compute counts
 		for (Card card : hand) {
 			if (card != null) {
+				// rankCounts[0] is how many Aces you have...
+				// rankCounts[1] is how many 2's you have...
+				// suitCounts[0] is how many Clubs you have...
 				rankCounts[card.getRank()]++;
 				suitCounts[card.getSuit()]++;
 				numCards++;
@@ -246,6 +299,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		}
 		if (numCards >= 4) {//if this hand is of length 4 or 5, calculate out probabilities
 			handProbabilities = getPossibleHandsCardCounting(hand, numPlays, canDraw, rankCounts, suitCounts, numCards);
+			//for each poker hand type
 			for (int i = 0; i < handProbabilities.length; i++) { //add the expected value of each hand type to this hand's expected value. Hands that are impossible to make result in adding 0
 				double cardCountWeight;
 				if (handProbabilities[i] > 0) {
@@ -253,6 +307,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						cardCountWeight = FOUR_CARD_WEIGHT;
 					else //5 cards
 						cardCountWeight = FIVE_CARD_WEIGHT;
+					//add the score of this particular hand type, weighted by its calculated probability and the weight of this type of hand, to the estimated value of this hand
 					handExpectedValue += handProbabilities[i] * pointSystem.getHandScore(i) * cardCountWeight;
 				}
 
@@ -288,17 +343,14 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		}
 		return handExpectedValue;
 	}
-
-
-
-	public ArrayList<xMCTSStringGameState> getPossibleMoves(xMCTSStringGameState state) {//this method should never be called from pruning code 
-		System.out.println("Calling getPossibleMoves with only one parameter");
-		ArrayList<xMCTSStringGameState> posMoves = new ArrayList<xMCTSStringGameState>();
-		posMoves.add(new xMCTSStringGameState("____________________________________________________", 0.0, 0));
-		return posMoves;
-	}
    
    @Override
+   /**
+    * determine if a given state is a completed or still ongoing game
+    * 
+    * @param state the state being examined for completion
+    * @return the status of this game, either ongoing or ended
+    */
    public status gameStatus(xMCTSGameState state)
    {
       String s = state.toString().substring(0, state.toString().length() - 2);
@@ -310,14 +362,13 @@ public class xMCTSPruningPPSGame implements xMCTSGame
    }
  
    @Override
-   public xMCTSStringGameState getStartingState()//Set the starting state equal to 10 times the minimum hand value for this board
+   /**
+    * Set the starting state, with no cards played. This state's value has no effect on the board
+    * 
+    */
+   public xMCTSStringGameState getStartingState()
    {
-	  int minHandValue = Integer.MAX_VALUE;
-	  for (int i = 0; i < 10; i++) {
-		  if (minHandValue > pointSystem.getHandScore(i))
-		  	minHandValue = pointSystem.getHandScore(i);
-	  }
-      return new xMCTSStringGameState("____________________________________________________", (minHandValue*10), 0);
+      return new xMCTSStringGameState("____________________________________________________", 0.0, 0);
    }
    
    //Reset certain variables without needing to recreate the game class every single time a new game starts
@@ -330,14 +381,14 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	/**
 	 *  getPossibleHands - gets an array of cards representing a poker hand and evaluates the possible hands
 	 *  which could yet be made
-	 *  @return array of the int flags representing the 10 possible poker hands
+	 *  @param hand an array of card objects representing the hand being evaluated
+	 *  @param rankCounts an array of integers representing which ranks are present in the hand being evaluated
+	 *  @param suitCounts an array of integers representing which suits are present in the hand being evaluated
+	 *  @param numCards the number of cards in this hand (non null indices in the hand array)
+	 *  @return array of the integer flags representing the 10 possible poker hands and their ability to still be completed
 	 */
 	public int[] getPossibleHands(Card[] hand, int[] rankCounts, int[] suitCounts, int numCards){
 		int[] posHands;
-		
-		// rankCounts[0] is how many Aces you have...
-		// rankCounts[1] is how many 2's you have...
-		// suitCounts[0] is how many Clubs you have...
 
 		if (numCards == 5) {
 			posHands = new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -494,11 +545,15 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	}
 	
 	/**
-	 *  getPossibleHandsCardCount - Compiles an array of hand probabilities based upon possible hands
-	 *  and cards already dealt
-	 *  @param hand - array of cards in a hand
-	 *  @param numPlays - the number of cards dealt/played thus far
-	 *  @return array of doubles which are the probabilities of the 10 possible poker hands
+	 *  getPossibleHands - gets an array of cards representing a poker hand and evaluates the possible hands
+	 *  which could yet be made
+	 *  @param hand an array of card objects representing the hand being evaluated
+	 *  @param numPlays the number of already completed plays on the board this hand is a part of
+	 *  @param canDraw the array of booleans representing which cards are still available to be drawn from this hand's state
+	 *  @param rankCounts an array of ints representing which ranks are present in the hand being evaluated
+	 *  @param suitCounts an array of ints representing which suits are present in the hand being evaluated
+	 *  @param numCards the number of cards in this hand (non null indices in the hand array)
+	 *  @return array of the int flags representing the 10 possible poker hands and their ability to still be completed
 	 */
 	public double[] getPossibleHandsCardCounting(Card[] hand, int numPlays, boolean[] canDraw, int[] rankCounts, int[] suitCounts, int numCards) {
 		double[] handProbs = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -663,11 +718,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 		possibleHands[PokerHand.HIGH_CARD.id] = hasHigh;
 		possibleHands[PokerHand.ONE_PAIR.id] = hasPair;
-
-
-		
-		
-		
 		
 		//For each hand still possible, check the probability of drawing the cards still needed
 		if (numCards == 4) {
@@ -1131,25 +1181,6 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	}
 	
 	/**
-	 * findMissingCardIndex - find the rank index of the missing card
-	 * 
-	 * @param rankCounts - an array of integers that keeps track of the ranks in hand
-	 * @param lowestRank - the rank to start the search for the missing card 
-	 * @return the index of the card identified as missing
-	 */	
-	public int findMissingCardRankIndex(int[] rankCounts, int lowestRank) {
-		System.out.println("rankCounts = " + java.util.Arrays.toString(rankCounts));
-		for(int i = lowestRank; i < Card.NUM_RANKS; i++) {
-			if (rankCounts[i] == 0) {
-				System.out.println("Found card index: " + i);
-				return i;
-			}
-
-		}
-		throw new NullPointerException("findMissingCardIndex could not find the specified card");
-	}
-	
-	/**
 	 * findSuitIndex - find the suit index of this hand
 	 * 
 	 * @param suitCounts - an array of the number of cards of each suit in hand
@@ -1162,17 +1193,5 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 		}
 		 throw new NullPointerException("findSuitIndex could not find a valid suit");
-	}
-	
-	/**
-	 * isInDeck - returns true if the passed card is found, false if not
-	 * 
-	 * @param gameDeck - the player's current deck
-	 * @param numPlays - number of completed plays in the game so far
-	 * @param toFind - the card the method is searching through the deck for
-	 * @return returns true if the passed card is found, false if not
-	 */	
-	public boolean isInDeck(boolean[] canDraw, Card toFind) {
-		return canDraw[toFind.getRank() + (toFind.getSuit() * 13)];
 	}
 }
