@@ -33,21 +33,38 @@ Greencastle, IN, USA\\
 \maketitle
 \begin{abstract}
 \begin{quote}
-Poker Squares is a single-player card game played on a 5 x 5 grid, in which a player attempts to create as many high-scoring Poker hands as possible. As a stochastic single-player game with an extremely large state space, this game offers an interesting area of application for Monte-Carlo Tree Search (MCTS). This paper describes a variety of enhancements made to the core MCTS algorithm to improve computer play. These enhancements include pruning of choice nodes in the MCTS selection stage, and a greedy MCTS simulation algorithm. These enhancements make extensive use of domain knowledge in the form of a probabilistic state evaluation heuristic. Experimental results demonstrate both the general efficacy of these enhancements and their ideal parameter settings.
+Poker Squares is a single-player card game played on a 5 x 5 grid, in which a player attempts to create as many high-scoring Poker hands as possible. As a stochastic single-player game with an extremely large state space, this game offers an interesting area of application for Monte-Carlo Tree Search (MCTS). This paper describes enhancements made to the MCTS algorithm to improve computer play. These enhancements include pruning in the selection stage, and a greedy simulation algorithm. These enhancements make extensive use of domain knowledge in the form of a state evaluation heuristic. Experimental results demonstrate both the general efficacy of these enhancements and their ideal parameter settings.
 \end{quote}
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
-Poker Squares is a single-player card game played on a 5~x~5 grid, on which the player places one drawn card at a time. Once placed, a card may not be moved. The object of the game is to create as many high-scoring Poker hands as possible in each of the five rows and five columns. Due to the overlapping of rows and columns and the uncertainty of what cards will be drawn in what order, players must balance the risk of pursuing high-scoring types of hands with the safer but less-rewarding pursuit of more easily-attained hand types.
+
+Poker Squares is a single-player card game played on a 5~x~5 grid, on which the player places one drawn card at a time. Once placed, a card may not be moved. The goal is to create as many high-scoring Poker hands as possible in each of the five rows and five columns. Due to the overlapping of rows and columns and the uncertainty of what cards will be drawn in what order, players must balance the risk of pursuing high-scoring hand types with the safer but less-rewarding pursuit of more easily-attained hand types.
+
+In human play, the most common scorting systems are American and British (Table~\ref{tbl:scoring}). {\it Parameterized} Poker Squares (PPS) includes the added challenge that the player is not told the scoring system until the moment the game begins. So the scoring system may be standard American or British, or perhaps a system in which positive points are given for a full house and negative points for all other hand types, or even a random scoring system (Table~\ref{tbl:scoring}). Thus the player must be highly adaptive.
+
+%\begin{figure}[b]
+%\begin{center}
+%\includegraphics[width=.95\linewidth]{images/oneiteration.png}
+%\end{center}
+%\caption{Outline of MCTS~\cite{browne2012survey} }
+%\label{fig:OneIter}
+%\end{figure}
+
+This paper considers the application of Monte-Carlo Tree Search (MCTS) to PPS. Like other game-playing algorithms, at its core MCTS involves the creation of a game tree to decide on a move. MCTS is typically applied to games with extremely large trees, because the algorithm is designed to build the tree selectively rather than exhaustively. This paper begins with a brief introduction to MCTS, followed by a discussion of related work, key enhancements to MCTS to play this game, experiments showing the effectiveness and ideal use of these enhancements, and future work.
 
 \begin{table}
 \caption{Example scoring systems}
 \label{tbl:scoring}
 \centering
-\begin{tabular}{c c c c c}
+\begin{tabular}{c r r r r}
 \hline
-Hand & Am. & Brit. & F.H. & Random \\
+Hand &
+{\centering Am.} &
+{\centering Brit.} &
+{\centering F.H.} &
+{\centering Random} \\
 \hline
 royal flush     & 100 & 30 & -1 & -23 \\
 straight flush & 75 & 30 & -1 & -55 \\
@@ -63,17 +80,6 @@ high card    & 0   & 0   & -1 & -128 \\
 \end{tabular}
 \end{table}
 
-Two scoring systems are most common in human play: American and British. Table~\ref{tbl:scoring} lists the hand values for each. {\it Parameterized} Poker Squares (PPS) includes the added challenge that the player is not told the scoring system until the moment the game begins. So the scoring system may be standard American or British, or perhaps a system in which positive points are given for a full house and negative points for all other types of hands, or even a random scoring system (see Table~\ref{tbl:scoring}). Thus the player must be highly adaptive.
-
-%\begin{figure}[b]
-%\begin{center}
-%\includegraphics[width=.95\linewidth]{images/oneiteration.png}
-%\end{center}
-%\caption{Outline of MCTS~\cite{browne2012survey} }
-%\label{fig:OneIter}
-%\end{figure}
-
-This paper considers the application of Monte-Carlo Tree Search (MCTS) to PPS. Like other game-playing algorithms, at its core MCTS involves the creation of a game tree to decide on a move. MCTS is typically applied to games with extremely large trees, because the algorithm is designed to build the tree selectively rather than exhaustively. This paper begins with a brief introduction to MCTS, followed by a discussion of related work, key enhancements to MCTS to play this game, experiments showing the effectiveness and ideal use of these enhancements, and future work.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Monte-Carlo Tree Search}
@@ -86,19 +92,19 @@ UCT = \overline{X}_j + 2C_p\sqrt{\frac{2\ln{n}}{n_j}}
 
 \noindent where $\overline{X}_j$ is the mean score obtained in games passing through child $j$, $n$ is the number of visits to the parent node during tree construction, $n_j$ the number of visits to child $j$, and $C_p > 0$ is a constant. Thus the $\overline{X}_j$ term is the {\it exploitation} term, through which children with higher average scores will receive higher UCT scores, and therefore be more likely selected for further consideration. Similarly, the second term, $C_p$, is the {\it exploration} term, in which a child that has been visited significantly less frequently than the parent will receive a higher UCT score. Therefore, $C_p$ balances the goals of exploitation and exploration in selecting a child of a given node. Again, UCT can be applied recursively starting at the root to traverse to a not-fully-expanded node in the existing tree, thus completing the {\it selection} stage.
 
-In {\it expansion}, a previosuly unconsidered child $v$ of the selected node is randomly selected. In {\it simulation}, a game is played from $v$ to completion; in standard MCTS, simulation consists entirely of random moves. Finally, in {\it backpropagation}, the results of the simulation are used to update all nodes on the path from $v$ up to the root: each node's visit count $n$ is incremented, and each node's average score $Q$ is updated based on the result of the simulated game. In this way, the tree is gradually and selectively developed, providing an increasingly detailed picture of the expected score from various states in the state space. Upon reaching some limit condition, a child of the root can be selected based on any of a number of criteria, such as highest $Q$ or highest $n$. For a detailed discussion of the MCTS algorithm, see~\cite{browne2012survey}.
+In {\it expansion}, a previously unconsidered child $v$ of the selected node is randomly selected. In {\it simulation}, a game is played from $v$ to completion; in standard MCTS, simulation consists entirely of random moves. Finally, in {\it backpropagation}, results of the simulation are used to update all nodes on the path from $v$ up to the root: each node's visit count $n$ is incremented and average score $Q$ is updated based on the result of the simulated game. In this way, the tree is gradually and selectively developed, providing an increasingly detailed picture of the expected score from various states in the state space. Upon reaching some limit condition, a child of the root can be selected based on any of a number of criteria, such as highest $Q$ or highest $n$. For a detailed discussion of the MCTS algorithm, see~\cite{browne2012survey}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work In MCTS}
 \label{relatedWork}
 
-PPS includes uncertainty in the drawing of cards. One common approach for handling uncertainty in MCTS is through the use of both {\it chance} and {\it choice} nodes, based on the expectimax  algorithm. In this approach, choice nodes can be treated as usual, while chance nodes can be selected randomly rather than using UCT \cite{melko2007optimal,hauk2004search}.
+%PPS includes uncertainty in the drawing of cards. One common approach for handling uncertainty is through the use of both {\it chance} and {\it choice} nodes \cite{melko2007optimal,hauk2004search}. In this approach, choice nodes can be treated as usual, while chance nodes can be selected randomly rather than using UCT.
 
-Much prior work in MCTS, as well as game-playing in general, has applied pruning to remove less-relevant branches from a game tree. In MCTS, two types of pruning are most commonly used. In {\it soft pruning}, a suboptimal node is hidden from consideration, but can be brought back later if warranted by later re-evaluation. In contrast, {\it hard pruning} offers no possibility for bringing a pruned node back~\cite{browne2012survey}. Most commonly, the node's $Q$ value is used in making pruning decisions, but \cite{huang2010pruning} describe alternative soft and hard pruning techniques based on the visit count $n$, called {\it relative} and {\it absolute} pruning, respectively.
+Much prior work in MCTS has applied pruning to the game tree. In {\it soft pruning}, a suboptimal node is hidden from consideration, but can be brought back later if warranted by later re-evaluation. In contrast, {\it hard pruning} offers no possibility for bringing a pruned node back~\cite{browne2012survey}. Most commonly, the node's $Q$ value is used in making pruning decisions, but \cite{huang2010pruning} describe alternative soft (``relative'') and hard (``absolute'') pruning techniques based on the visit count $n$.
 
-Additional pruning strategies using domain knowledge have been applied to the multi-player card game Lords of War~\cite{sephton2014ieee}. In this work, state evaluations based on card counting were used to prune states that were less likely to be useful. This work also considered the additional time required for such evaluations -- time that could be spent further exploring the tree. Despite this tradeoff, significant improvements were obtained with pruning based on these evaluations.
+Additional pruning strategies using domain knowledge have been applied to the multi-player card game Lords of War~\cite{sephton2014ieee}. In this work, state evaluations based on card counting are used to prune states that are less likely to be useful. This work also considers the additional time required for such evaluations -- time that could be spent further exploring the tree. Significant improvements are obtained with pruning despite this tradeoff.
 
-Simulation strategies enhanced with domain knowledge have also been useful in MCTS research. For example, in \cite{winands2010monte} an MCTS player for the strategy game Lines of Action used a simulation that was cut short, backpropagating a heuristic evaluation prior to the end of the game rather than playing to completion. Another approach is to use a heuristic to guide simulation, rather than choosing moves randomly. For example, \cite{schadd2012single} reports a 50\% increase in average score in the game SameGame when an accurate heuristic was added.
+Simulation strategies enhanced with domain knowledge have also been useful in MCTS research. For example, in \cite{winands2010monte} an MCTS player for the strategy game Lines of Action uses a simulation that was cut short, backpropagating a heuristic evaluation prior to the end of the game rather than playing to completion. Another approach is to use a heuristic to guide simulation, rather than choosing moves randomly. For example, \cite{schadd2012single} reports a 50\% increase in average score in the game SameGame when an accurate heuristic was added.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MCTS Application to PPS}
@@ -125,40 +131,39 @@ Simulation strategies enhanced with domain knowledge have also been useful in MC
 %\end{tabular}
 %\end{table}
 
-Our MCTS application to PPS is built on top of the code in~\cite{hughart2012uct}, used under the MIT software license. The MCTS algorithm is run each time a move is needed. Thus the tree begins with a choice node at its root, in which the current card must be placed in the grid. The children are chance nodes, representing the random drawing of the next card to be played, with alternating choice and chance nodes through the remaining levels of the tree. This tree is gradually and selectively developed by repeatedly executing the four stages of MCTS as described above, with UCT in the selection stage. We limit each game to 30 seconds in total, both to make significant experimentation more manageable, and to maintain eligibility for an upcoming PPS computer player contest. 
+Our MCTS application to PPS is built on top of the code in~\cite{hughart2012uct}, used under the MIT software license. The MCTS algorithm is run each time a move is needed. The tree begins with a choice node at its root, in which the current card must be placed in the grid. The children are chance nodes, representing the random drawing of the next card to be played, with alternating choice and chance nodes through the remaining levels of the tree. This tree is gradually and selectively developed by repeatedly executing the four stages of MCTS, with UCT in the selection stage. We limit each game to 30 seconds in total, both to make significant experimentation more manageable, and to maintain eligibility for an upcoming PPS computer player contest. 
 
 For the first, second, next-to-last, and last moves, some simple rules are used rather than the full MCTS process. For the remaining moves, our ``core'' implementation of MCTS uses no domain knowledge in selection nor simulation. The remainder of this section will explain enhancements upon this core application of MCTS, in which domain knowledge is added to both selection and simulation. The next section will discuss experimental results of these enhancements.
-
 
 \subsection{Domain Knowledge}
 
 One benefit of the core MCTS algorithm is that very little domain knowledge is required. Nevertheless, many researchers have found great improvements with the inclusion of additional knowledge. This subsection describes a PPS state-evaluation heuristic, with the following subsections describing its application to simulation and selection.
 
-In short, a state is evaluated by adding the scores of each of its ten Poker hands. Thus a state-evaluation heuristic is the sum of ten applications of a hand-evaluation heuristic. When the hand in question contains five cards, this is simply a matter of determining what type of Poker hand is represented, and looking up the corresponding score for the current scoring system.
+A state is evaluated by adding the scores of each of its ten Poker hands. Thus a state-evaluation heuristic is the sum of ten applications of a hand-evaluation heuristic. When the hand in question contains five cards, the system must simply determine what hand type is represented, and look up the corresponding score for the current scoring system.
 
-For hands containing one to four cards, we first calculate a {\it possibility array}. This array contains one slot for each type of hand, from high card to royal flush. In each slot, a $0$ indicates that the hand is no longer possible, a $1$ indicates the hand is possible, and $2$ indicates the hand is already made. For example, if a hand contains one card only, then high-card is $2$ and all other elements are $1$, except that royal flush may be $0$ if the card is lower than ten and not an ace. If a second card placed in the hand produces a pair, then high-card and any hands involving a straight would become $0$, while pair would become $2$. In turn, as more cards are added, additional hands may become impossible.
+For hands containing one to four cards, we first calculate a {\it possibility array}. This array contains one slot for each hand type, from high card to royal flush. In each slot, $0$ indicates that the hand type is no longer possible, $1$ indicates the hand type is possible, $2$ indicates the hand type is already made. For example, if a hand contains one card only, then high-card is $2$ and all other elements are $1$, except that royal flush may be $0$ if the card is lower than ten and not an ace. If a second card placed in the hand produces a pair, then high-card and any hand types involving a straight would become $0$, while pair would become $2$. In turn, as more cards are added, additional hand types may become impossible.
 
-Four-card hands use the possibility array in a different way than do one-, two-, and three-card hands. For each of the Poker hand types, a {\it weight} in $[0,1]$ is calculated, representing a rough measure of the likelihood of obtaining that hand type with the next card draw. For a hand type with a 0 in the possibility array, the weight is set to 0. For a hand type with a 1 in the possibility array, the cards remaining in the deck are analyzed to determine the weight. For example, if a hand needs a $10\varheartsuit$ or $10\clubsuit$ to complete a full house, and the remaining cards in the deck include a $10\varheartsuit$ and five different $\spadesuit$ cards, then the weight for a full house is calculated as $1 / 6$. 
+Four-card hands use the possibility array in a different way than do one-, two-, and three-card hands. For each of the hand types, a {\it weight} in $[0,1]$ is calculated, representing a rough measure of the likelihood of obtaining that hand type with the next card draw. For a hand type with a 0 in the possibility array, the weight is set to 0. For a hand type with a 1 in the possibility array, the cards remaining in the deck are analyzed to determine the weight. For example, if a hand needs a $10\varheartsuit$ or $10\clubsuit$ to complete a full house, and the remaining cards in the deck include a $10\varheartsuit$ and five different $\spadesuit$ cards, then the weight for a full house is calculated as $1 / 6$. 
 
-For a hand type with a 2 in the possibility array (a hand type that has already been achieved), the weight is not necessarily set to 1. For example, suppose a 4-card hand contains a $6\varheartsuit$, $6\clubsuit$, $6\spadesuit$, and $7\spadesuit$, while the deck contains only a $6\vardiamondsuit$, $7\varheartsuit$, and $8\varheartsuit$. In this case, the weight of three-of-a-kind, four-of-kind, and full house would all be $1/3$, since for each hand type, one of three remaining cards in the deck leads to that hand type.
+For a hand type with a 2 in the possibility array (a hand type that has already been achieved), the weight is not necessarily set to 1. For example, suppose a 4-card hand contains a $6\varheartsuit$, $6\clubsuit$, $6\spadesuit$, and $7\spadesuit$, while the deck contains only a $6\vardiamondsuit$, $7\varheartsuit$, and $8\varheartsuit$. Here, the weight of three-of-a-kind, four-of-kind, and full house would all be $1/3$, since one of the three remaining cards in the deck leads to each hand type.
 
 Once these weights are calculated for every hand type, each weight is multiplied by the hand type value according to the current scoring system, and added together to form a weighted sum. Note that these calculations ignore the fact that the ten hands in the grid are dependent on each other. This dependence is due to overlap of the rows and columns on the grid, and occasional ``competition'' between hands for the same card. Nevertheless, this calculation gives a reasonable heuristic for the evaluation of four-card hands.
 
 This approach gets much more computationally intensive for hands with fewer than four cards, and so in this case we use {\it a-priori} probabilities of hand types as weights. We developed these a-priori probabilities from the British scoring system for Poker Squares, which is based on the difficulty of finishing each of the hands. (Note that Poker Squares probabilities are not the same as Poker probabilities.) These probabilities are then used to compute a weighted sum in the same way as in a four-card hand.
 
-These calculations can readily accommodate any scoring system as a parameter. For example, if three-of-a-kind is valued at -100 points, then a high weight for three-of-a-kind would lead to a significant drop in weighted sum. Thus this heuristic allows the player to be highly adaptive to every scoring system.
+These calculations can readily accommodate any scoring system as a parameter. For example, if three-of-a-kind is valued at -100 points, then a high weight for three-of-a-kind would lead to a significant drop in weighted sum. Thus this heuristic is highly adaptive to any scoring system.
 
-Note, however, that there should be some value distinction between one-, two-, and three-card hands. For example, a one-card hand will have nearly all, if not all, hands listed as ``possible'' in the possibility array. A two-card hand will likely list fewer hands as possible, and a three-card hand fewer still. Yet a three-card hand is closer to completing its possible hand types than is a two- or one-card hand, even if they have the same values in the possibility array. So all else being equal, a three-card hand should be weighted more highly. To account for this, we apply weights $\alpha$, $\beta$, and $\gamma$ for one-, two-, and three-card hands, respectively. While we would expect that $0 < \alpha < \beta < \gamma < 1$, ideal values are the subject of an experiment described later. In an initial implementation, we fix these values at $\alpha = 0.2$, $\beta = 0.4$, and $\gamma = 0.6$.
+Note, however, that there should be some value distinction between one-, two-, and three-card hands. For example, a one-card hand will have nearly all, if not all, hand types listed as ``possible'' in the possibility array. A two-card hand will likely list fewer hand types as possible, and a three-card hand fewer still. Yet a three-card hand is closer to completing its possible hand types than is a two- or one-card hand, even with the same values in the possibility array. So all else being equal, a three-card hand should be weighted more highly. To account for this, we apply weights $\alpha$, $\beta$, and $\gamma$ for one-, two-, and three-card hands, respectively. While we would expect that $0 < \alpha < \beta < \gamma < 1$, ideal values are the subject of an experiment described later. In an initial implementation, we fix these values at $\alpha = 0.2$, $\beta = 0.4$, and $\gamma = 0.6$.
 
 \subsection{Modified Selection Through Pruning}
 
-Recall in our core MCTS implementation that the selection process uses UCT to find a not-fully-expanded node. This means that nodes with low visit counts are favored, to some extent even when observed rewards are low. While some other games do have significantly higher branching factors than PPS, there is still potentially much to gain through pruning. The state heuristic described above can be used for this purpose.
+Recall in our core MCTS implementation that the selection process uses UCT to find a not-fully-expanded node. This means that nodes with low visit counts are favored, to some extent even when observed rewards are low. While some other games do have significantly higher branching factors than PPS, there is still potentially much to gain through pruning. The state heuristic can be used for this purpose.
 
 As discussed in section {\it \nameref{relatedWork}}, there are two typical strategies for pruning: soft pruning, in which pruned nodes may be brought back, and hard pruning, in which pruned nodes are lost forever. While soft pruning may have some benefits, the decision of whether or not to bring a node back leads to extra computation and knowledge requirements, and so we opt for hard pruning in this work.
 
-First we calculate the heuristic score for the parent, and label it $h(p)$. The value $\delta \cdot h(p)$, for some constant $\delta$, is set as the heuristic score threshold for each child. All children below this threshold are pruned, never to be considered for selection via UCT. For example, $\delta = 0.9$ would prune children with less than 90\% of the score of the parent, while any $\delta > 1$ would prune all children that do not improve over the score of the parent.
+First we calculate the heuristic score $h(p)$ for the parent. The value $\delta \cdot h(p)$, for some constant $\delta$, is set as the heuristic score threshold for each child. All children below this threshold are pruned, never to be considered for selection. For example, $\delta = 0.9$ would prune children with $ < 90\%$ of the score of the parent, while any $\delta > 1$ would prune all children that do not improve over the score of the parent.
 
-In practice, this approach occasionally leads to overpruning. For example, if a card is drawn that does not fit well in any open space, all children may have lower heuristic scores than the parent. Thus an additional safeguard is put in place, that no more than 70\% of the children of any given parent may be pruned. If the  $\delta \cdot h(p)$ threshold prunes more than this amount, then only the bottom 50\% of the children are pruned.
+In practice, this approach sometimes leads to overpruning. For example, if a drawn card does not fit well in any open space, all children may have lower heuristic scores than the parent. Thus an additional safeguard is used, that no more than 70\% of the children of any given parent may be pruned. If the  $\delta \cdot h(p)$ threshold prunes more than this amount, then only the bottom 50\% of the children are pruned.
 
 \subsection{Modified Simulation}
 
@@ -173,13 +178,13 @@ The modifications to the core MCTS algorithm described in the previous section a
 \subsection{The Exploration--Exploitation Tradeoff}
 Recall from equation (\ref{eq:UCT}) that MCTS with UCT attempts to balance the exploitation of relatively effective paths with the exploration of lesser-known paths. This balance is controlled via the constant $C_p$, where a higher value means a stronger emphasis on exploration. As discussed previously, ~\cite{kocsis2006improved} suggest that $C_p=1 / \sqrt{2}$ is ideal when rewards range in $[0,1]$. 
 
-In some games, using a reward range in $[0,1]$ is straightforward; for example, 0 could mean a loss, and 1 a win. Alternatively, in games with a clear maximum score, that maximum can be translated to 1, in effect ``squashing'' the scores to fit in this range.
+In some games, a reward range in $[0,1]$ is straightforward. For example, 0 could mean a loss, and 1 a win, or a maximum possible score could be translated to 1, in effect ``squashing'' the scores to fit in this range.
 
 Unfortunately in PPS, squashing to the $[0,1]$ range is not straightforward. To find the maximum score, a first attempt might be to simply take ten times the maximum-scoring hand. For example, with the American scoring system (Table~\ref{tbl:scoring}), this would be 1,000. Of course it is not possible to have ten royal flushes in a $5\times5$ grid, due to the dependence between hands and the use of a single deck of cards. In fact, in the American scoring system, the maximum score is 725, corresponding to four royal flushes, a straight flush, and five four-of-a-kinds. In a more unusual scoring system, a different set of hands might be higher-scoring. So it is not trivial to find the maximum score.
 
-Compounding this problem is the difference between the maximum possible score and the most likely scores. In some scoring systems, scores close to the maximum may be somewhat easy to achieve -- for example, a scoring system in which only high-card is worth positive points. In others, however, typical scores may be far lower than the maximum possible. In the American scoring system, for example, while 725 is the maximum possible, scores in the 100's are much more common. Squashing to the $[0,1]$ range would mean that a score of 100 would become $0.138$, while a score of 150 would become $0.207$. So most scores would be in a tight range, leaving the rest of the range up to 1 rarely used. This may have unintended consequences in the UCT calculation, as nodes would look more similar than they should due to this squashing under an unrealistically high maximum possible score.
+Compounding this problem is the difference between the maximum possible score and the most likely scores. In some scoring systems, scores close to the maximum may be easy to achieve -- for example, a scoring system in which only high-card is worth positive points. In others, however, typical scores may be far lower than the maximum. In the American scoring system, for example, while 725 is the maximum possible, scores in the 100's are much more common. Squashing to the $[0,1]$ range would mean that a score of 100 would become $0.138$, while a score of 150 would become $0.207$. So most scores would be in a tight range, leaving the rest of the range up to 1 rarely used. This may have unintended consequences in the UCT calculation, as nodes would look more similar than they should due to this squashing under an unrealistically high maximum possible score.
 
-Nevertheless, we did create multiple squashing algorithms, in order to test performance with various $C_p$ values with and without squashing. The {\it precise squashing} algorithm calculates a precise minimum and maximum score in order to squash exactly to the $[0,1]$ range. Since this method is somewhat computationally intensive, a faster yet less accurate {\it imprecise squashing} method was also developed, in which the lowest possible {\it hand} score was multiplied by 10 for the minimum, and the highest hand score multiplied by 10 for the maximum. In testing the American scoring system, we also examined a simple hard-coded maximum of 200, and as a test in absurdity, another squashing method using a maximum of 2,000 (2.76 times higher than the actual maximum of 725).
+Nevertheless, we did create multiple squashing algorithms to compare performance of various $C_p$ values with and without squashing. {\it Precise squashing} calculates a precise minimum and maximum score in order to squash exactly to the $[0,1]$ range. Since this method is somewhat computationally intensive, a faster yet less accurate {\it imprecise squashing} method was also developed, in which the lowest possible hand score was multiplied by 10 for the minimum, and the highest hand score multiplied by 10 for the maximum. In testing the American scoring system, we also examined a simple hard-coded maximum of 200, and as a test in absurdity, another squashing method using a maximum of 2,000 (2.76 times higher than the actual maximum of 725).
 
 Each of these squashing mechanisms was tested with core MCTS by playing 700 games using the American scoring system. $C_p$ was set to $1 / \sqrt{2}$ as recommended for scores in the $[0,1]$ range. Results are shown in Table~\ref{tbl:Squashing}. The table demonstrates minimal impact of squashing accuracy; even the absurd maximum of 2,000 achieved fairly comparable results. This suggests that a simple imprecise squashing method is sufficient.
 
@@ -208,8 +213,8 @@ Max 2000 & 0 -- 2000 & 90 \\
 {\bf $C_p$} & {\bf Mean Score} & {\bf $C_p$} & {\bf Mean Score} \\
 \hline
 0 & 15 &                                        50 & 93        \\
-$1 / \sqrt{2}$ & 64 &                      100 & 92                       \\
-5 & 90 &                                        $200 / \sqrt{2}$ & 91       \\
+$1 /\!\sqrt{2}$ & 64 &                      100 & 92                       \\
+5 & 90 &                                        $200 /\!\sqrt{2}$ & 91       \\
 10 & 93 &                                      6000 & 92        \\
 25 & 94 \\
 %1500 & 91 \\
@@ -277,9 +282,9 @@ The goal of these experiments was to fix a $C_p$ value for the experiments that 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Computational Cost of the Heuristic}
 
-As described above, the state-evaluation heuristic can be applied to create alternative selection and simulation strategies. Of course, heuristic calculations come at a computational cost, with more time required per iteration of the MCTS process, and therefore fewer iterations total in a given amount of time. Thus before experimenting on the selection and simulation strategies, we examine the practical cost of the heuristic calculation itself.
+As described above, the state-evaluation heuristic can be applied to create alternative selection and simulation strategies. Of course, heuristic calculations come at a computational cost, with more time required per iteration of the MCTS process, and therefore fewer iterations total in a given amount of time. So we start by examining the practical cost of the heuristic calculation itself.
 
-We do this by considering heuristic {\it calculations} but not {\it applications} to any enhanced selection or simulation strategy. Results for the American scoring system are throughout Table~\ref{tbl:SelSim}, with rows (1) - (4) addressing the issue of heuristic calculation cost. Row (1) reflects standard MCTS, with UCT-based selection and random simulation. Rows (2) - (4) also use these standard strategies, yet include unused heuristic calculations when indicated with ``+ Calc.'' That is, ``+ Calc.'' indicates that the heuristic calculations are performed, but not actually applied to any pruning or simulation enhancements. The drop in scores in rows (2) - (4) compared to row (1) gives a reasonable indication of the cost of spending time on heuristic calculations rather than more iterations of MCTS. This deficit is 13 points (comparing rows (1) and (4)) in the American scoring system when the heuristic is calculated in both selection and simulation.
+We do this by considering heuristic {\it calculations} but not {\it applications} to any enhanced selection or simulation strategy. Results for the American scoring system are throughout Table~\ref{tbl:SelSim}, with rows (1) - (4) addressing the issue of heuristic calculation cost. Row (1) reflects standard MCTS, with UCT-based selection and random simulation. Rows (2) - (4) also use these standard strategies, but with the ``+ Calc.'' notation indicating that the heuristic calculations are performed but not actually applied to any pruning or simulation enhancements. The drop in scores in rows (2) - (4) compared to row (1) gives a reasonable indication of the cost of spending time on heuristic calculations rather than more iterations of MCTS. This deficit is 13 points (comparing rows (1) and (4)) in the American scoring system when the heuristic is calculated in both selection and simulation.
 
 The data also show that the cost of adding calculations to selection is around just 1 or 2 points -- the difference between rows (3) and (4), and between rows (1) and (2), respectively. The cost of adding calculations to simulation, however, is much higher, at around 11 or 12 points -- the difference between rows (2) and (4), and between rows (1) and (3), respectively. This makes sense, as for each time that selection does the calculations, the simulation will do them several times -- once for every move in the remainder of the game. Thus any enhancement to selection or simulation must overcome the deficit of the added calculation cost before being worthwhile, with simulation enhancements having a much greater deficit to overcome than selection enhancements. The following subsections explore the extent to which some enhancements overcome this deficit.
 
@@ -287,9 +292,9 @@ The data also show that the cost of adding calculations to selection is around j
 \captionof{table}{Selection and simulation results over 2,000 games}
 \label{tbl:SelSim}
 \centering
-\begin{tabular}{c c c c}
+\begin{tabular}{r l l r}
 \hline
-{\bf Row} & {\bf Selection} & {\bf Simulation} & {\bf Mean Score} \\
+{\centering\bf Row} & {\centering\bf Selection} & {\centering\bf Simulation} & {\centering\bf Mean Score} \\
 \hline
 \hline
 (1) & UCT & Random & 92 \\
@@ -324,7 +329,7 @@ Rows (1), (3), (5), and (6) of Table~\ref{tbl:SelSim} show the relevant results 
 
 Even more impressive, however, are the gains for best move simulation (row (6)). This approach earned a mean score of 112, significantly higher than the calculation deficit score of 80 (row (3)) and the standard MCTS score of 92 (row (1)). This demonstrates that, despite the added cost of the heuristic calculations, they are quite worthwhile in a best move simulation strategy.
 
-It seems intuitive that best move simulation is more effective than prune + random, since best move gives a simulated game score according to the best choices that the heuristic is capable of suggesting. In contrast, prune + random gives the heuristic less control, in that it only determines a set of higher-scoring moves, from which a random selection is made.
+It seems intuitive that best move simulation is more effective than prune + random, since best move plays a simulated game according to the best choices that the heuristic is capable of suggesting. In contrast, prune + random gives the heuristic less control, only determining a set of higher-scoring moves from which a random selection is made.
 
 %\begin{table}
 %\captionof{table}{Effect of Domain Knowledge on Simulation}
@@ -450,7 +455,7 @@ This set of experiments considers further tuning of the heuristic, while using p
 
 %This can bring new insights into what parameter settings may be more similar than would first appear by considering magnitudes alone, thus leading to hypotheses about what portions of the space should be prioritized for consideration. Having said this, however, recall that four-card hands are evaluated using an entirely different formula. So in fact the magnitudes of $\alpha$, $\beta$, and $\gamma$ do matter as well, rather than just the ratios, because hands with three or fewer cards will be compared not just among themselves but against four- and even five-card hands. So using ratios can be a useful analysis tool, but should not be used to the exclusion of considerations of magnitude.
 
-Results of these experiments are shown in Figures~\ref{fig:123weights} and \ref{fig:123ratios}. For each setting of $\alpha$, $\beta$, and $\gamma$, a mean score is obtained under the American scoring system. For example, with $[0.1, 0.4, 1.6]$, a mean score of 105 was obtained. This corresponds to the left-most area in Figure~\ref{fig:123weights}, where the vertical placement of the symbols indicates the parameter settings, and the horizontal placement indicates the mean score. In Figure~\ref{fig:123ratios}, since $\beta:\alpha = \gamma:\beta = 4.0$ for these parameter settings, the two ratio symbols are both at (105, 4) on the far left of the figure.
+Results of these experiments under the American scoring system are shown in Figures~\ref{fig:123weights} and \ref{fig:123ratios}. For example, with $[0.1, 0.4, 1.6]$, a mean score of 105 was obtained. This corresponds to the left-most area in Figure~\ref{fig:123weights}, where vertical placement of the symbols indicates parameter settings, and horizontal placement indicates mean score. In Figure~\ref{fig:123ratios}, since $\beta:\alpha = \gamma:\beta = 4.0$ for $[0.1, 0.4, 1.6]$, the two ratio symbols are both at (105, 4) on the far left of the figure.
 
 Note in both figures that the results are fairly scattered on the left side where mean scores are lower, yet somewhat more uniform on the right side where mean scores are higher. This demonstrates a preference for certain parameter settings to obtain the highest scores. For example, in Figure~\ref{fig:123weights}, nearly all higher-scoring players tend to converge towards the highest-scoring player's $[0.1, 0.3, 0.85]$, with stronger convergence in the $\alpha$ and $\beta$ values. Some trends are also visible in Figure~\ref{fig:123ratios}, where the highest-scoring players tend to have both ratios around 2 or 3. The highest scoring player attains a mean score of 123 in the American scoring system (row (12) of Table~\ref{tbl:SelSim}). The \mbox{*} next to the score in the table indicates $[0.1, 0.3, 0.85]$ rather than $[0.2, 0.4, 0.6]$. This is a strong improvement over the 113 of row (9).
 
@@ -465,377 +470,9 @@ We now return to prune + UCT selection, which seemed ineffective in the results 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion and Future Work}
 
-This paper has described the application of MCTS to Parameterized Poker Squares. Experiments show that pruning in the selection/expansion step as implemented here is not effective enough to justify the added computation cost, while a best move simulation is far superior to random. Further gains were found through careful tuning of the state-evaluation heuristic.
+This paper has described the application of MCTS to Parameterized Poker Squares. Experiments show that with carefully-tuned domain knowledge, pruning in selection and a best move simulation lead to significant improvements in performance, overcoming the added cost of these strategies.
 
-{\bf minimax? tuning 4-card weight?}
-
-This work generates a number of interesting follow-up questions for further research. It is possible that further experiments on the pruning threshold policy (including the $\delta$ value) could tune the pruning procedure for better gains, or that an alternative heuristic for pruning may be more effective. The experiments on $C_p$ values warrant further exploration and perhaps generalization to other games in the hope of identifying best practices when squashing to $[0,1]$ is challenging. Finally, given the significant time-constraints of the PPS player described here, significant gains may be found in applications of parallelism.
-
-
-
-
-%
-%\section{whatevs}
-%
-%Now we step back and look at bigger picture conclusions from the results, and theorize about why certain things were more effective than others.
-%
-%Size of the game space in Poker Squares - 
-%
-%Conclusion 1 - Continuing the tree search if the most visited root is not also the one with the highest reward has proven effective in some MCTS algorithms like the GO program ERICA (MCTS survey pg 8). However, this approach did nothing for our average score. We believe this to be because continuing to run MCTS on one move would take time away from subsequent moves, and due to our short amount of time with which to play this game reducing the time of later moves counteracted the benefit of continuing the search.
-%
-%Conclusion 2 - Hard coding of moves. Some moves in Poker Squares can boil down to very straightforward decisions, which means you do not need to run MCTS on them, freeing up more time for other moves. This includes moves at the very beginning of a game, and moves close to the very end of one. At the start of a game, when there are only a few (or even no) cards on the board, the board can be simplified into equivalence classes of the effects a certain card placement could have. At the end of the game, the board is developed enough and each card placement location distinct enough that a decision making algorithm (like our pruning method, more on that later) can accurately distinguish between the moves without the need for MCTS.
-%	Very first move - 1 equivalence class (playing the first card has the same effect on the board no matter where it is placed)
-%	2nd move - 2 equivalence classes (either the second card is placed with the first, continuing to build one of those hands, or it is played apart from the first so that they do not interact)
-%	24th move (2nd to last, two spots remaining on the board) - it is very easy to tell what kind of effect a card will have on the board at this stage in the game, so use the decision making algorithm to determine which of the two spots is better
-%	25th (final) move - only one spot remaining, no need to do any decision making or MCTS.
-%We saw slight increases in score with each hard-coded move. Allowing for other moves to have more time to run MCTS lets them make more informed decisions, but due to the large game space the extra time given by the hard coding only allows a small percentage of the possibilities at any individual move to be further explored, so the score increase for each hard coded move remains small.
-%{\bf SAB: Setting aside the issue of occasionally running out of time, is there a score improvement when comparing using hardcoding (and therefore having more time for other moves) versus not using hardcoding? Or did it not seem to make a difference? Why do you think this is?}
-%
-%Conclusion 3 - Multi threading. Having multiple (four) threads all running on/building the same tree gave us more MCTS trials overall, but did not result in a significant increase in score. Having multiple threads building separate trees and then comparing the results also gave more trials, but resulted in a decrease in score.
-%	Multiple threads on the same tree - having more MCTS trials did not help significantly because, although having more trials leads to more information about the game space, the game space of Poker Squares is so large that even a few million more trials does not have much impact. {\bf SAB: How large is the game space? Do we have an idea of what percentage of it can be considered by 1 thread, versus 4 threads? And how are you measuring percentage given that some nodes are visited many times in MCTS, while others are visited even just once?}
-%	Multiple threads with their own tree - running multiple threads seemed to reduce the individual efficiency  (less trials run in the same amount of time, so fewer nodes are visited and simulated from) of any one thread. {/bf SAB: What do you mean? Fewer nodes visited?} This isn't a major deal when running the threads on the same tree, as it does ultimately result in a significant net increase in overall trials. However, when each thread is running on its own tree and at reduced efficiency, each tree has less information on it, so the four best moves found can be less informed than in an individual thread running at higher efficiency. 
-%
-%Conclusion 4 - discussed in conclusion 2 (hard coding)
-%
-%Conclusion 5 - Cp values, balancing exploration and exploitation {\bf SAB: Yep, give some explanation of this. We should explain why it didn't seem to have much effect, perhaps in light of the size of the state space? Or something else too?}
-%
-%Conclusion 6 - Squashing minimum and maximum values for a scoring system in order to keep consistency between them{\bf SAB: May need to discuss this in the MCTS Application to PPS section. What was done... Then if there are any interesting results to discuss about this step specifically here, we can include them.}
-%
-%Ran a test tournament (tourney3) with multiple versions of player (and a depth2 greedy player as a baseline), each with a different C value for the UCT formula. player 1 has a C value of $1 / \sqrt{2}$, player 200 has a C value of $\frac{200}{\sqrt{2}}$, and player 725 has a C value of $\frac{725}{\sqrt{2}}$. At the time of tourney3, the UCT formula code was as follows: 
-%{\bf SAB: These kind of formulas would be earlier in the paper, like in MCTS Application to PPS section. The different cp values used would be described in the results section. In analysis, here, we'd explain *why* the results worked out in the way they did.}
-%
-%{\bf SAB: We should make this a little less code-like. No "get", no "Float.MIN\_VALUE". Also, use $log_{10}$ - note the braces grouping the 1 and 0 together as subscripts, compared to $log_(10)$ which makes only ( a subscript. And the tiny command probably isn't a good idea. We just need shorter variable names, but not so short that their meaning isn't fairly clear.}
-%
-%\tiny
-%\begin{equation}
-%{nodeScore =  \frac{getScore}{getTimesVisited + MIN\_\\VALUE} } \label{eq:sq}
-%\end{equation}  
-%\normalsize
-%
-%\tiny
-%\begin{equation}
-%{bias = 2 * C * \sqrt{\frac{log_(10) curNode.getTimesVisited}{curChild.getTimesVisited  + Float.MIN\_\\VALUE}}} \label{eq2:add}
-%\end{equation}  
-%\normalsize
-%
-%\tiny
-%\begin{equation}
-%{randomizer = MIN\_\\VALUE * Random\left(nextMoves.size^2\right)}        
-%\end{equation}  
-%\normalsize
-%
-%\tiny
-%\begin{equation}
-%{biasedScore = nodeScore + randomizer + (bias)}
-%\end{equation}  
-%\normalsize
-%
-%Evaluated our output at numerous locations in the code, focusing on the selection, expansion, and simulation steps, particularly in regards to how they each handle card decks.
-%In order to modify our UCT code, we could: 
-%Try different formulas, keeping our constants and scoring system the same
-%Try different constants, keeping our formula and scoring system the same
-%Try different scoring systems (squash the scores), keeping our formula and constants the same
-%Then mix and match different options until we find something that we believe works best.
-%{\bf SAB: Yep, this would all go earlier in the paper - maybe we need to add an "experimental setup" section just before Experimental Results. Or put at beginning of experimental results. This is where we explain what experiments we ran, and then what the results are.}
-%
-%Squashing the score:  $\frac{curScore - minScore}{maxScore - minScore}$. Basically, making your score a percentage on the range between the min and the max. For American, this theoretical range is 0-725, though we will run into problems in which all of the values are squished close to one another around wherever 100 lands on that scale, since we are not yet consistently scoring above that. We would also run into problems with squashing down the line when we wanted to reintroduce the random, particularly including negative values. The easiest, but not most accurate, way to do this would be to find the lowest score, multiply it by 10 (as if you had scored it 10 times), and set that to minScore, and do the same with the highest score for maxScore. The accuracy problems arise when the low or high scoring hand is not one that can actually be replicated 10 times on the same board. A more accurate yet more costly squash would have to keep track of how many times each hand could be made and which hands could be made together, then add the 10 top scoring and 10 bottom scoring possible hands together. (For example if you used the first method for the American Scoring System you would get 100 (for a royal flush) * 10 = 1,000 as the max score, but as you cannot get 10 royal flushes the highest theoretical score with the American System is 725, which is 4 royal flushes, 5 4s of a kind, and a straight flush). Though maybe the fact that squashing in this way is computationally taxing is why they’re giving us extra time at the beginning? We could use it to perform this complex math and be ready to have as accurate of a scoring system as possible by the time the game starts. 
-%
-%Tourney5: formulas and scoring system the same as previous, setSeed/tourneySeed value: 0L,  number of games per player: 240, C values:
-%1/rt2 (xRandomRolloutPlayer1rt2), 
-%100 (xRandomRolloutPlayer100),
-%200/rt2 (xRandomRolloutPlayer200rt2), 
-%725/rt2 (xRandomRolloutPlayer725rt2), 
-%1500 (xRandomRolloutPlayer1500), 
-%3000 (xRandomRolloutPlayer3000), 
-%6000 (xRandomRolloutPlayer6000), 
-%10000 (xRandomRolloutPlayer10000).
-%
-%Tourney6: testing squash values. Formula the same as previous, scoring is standard then squashed to ranges of [0, 1] (Done by dividing the getScore result by 725, so the result is a percentage of the maximum score in the American system) for players with “Squash” in the title. setSeed/tourneySeed value: 0L, number of games per player: 320, C values: 
-%1/rt2 (xRandomRolloutPlayer1rt2, xRandomRolloutSquashPlayer1rt2),
-%200/rt2 (xRandomRolloutPlayer200rt2, xRandomRolloutSquashPlayer200rt2),
-%725/rt2 (xRandomRolloutPlayer725rt2, xRandomRolloutSquashPlayer725rt2).
-%
-%Tourney7: testing improvements to the code. Formula the same as previous. Scoring the same as previous, with standard then squashed for those with squashed in the title. setSeed/tourneySeed value: 0L, number of games per player: 372,
-%	xMCTS: what we have currently,
-%	yMCTS: ERICA max-robust return algorithm
-%	zMCTS: skips calculations for the very first move,
-%	vMCTS: SameGame’s multithreading,
-%	wMCTS: kyle’s multithreading,
-%C values: 
-%1/rt2 (vRandomRolloutPlayer1rt2, wRandomRolloutPlayer1rt2, xRandomRolloutPlayer1rt2, yRandomRolloutPlayer1rt2, zRandomRolloutPlayer1rt2)
-%
-%Tourney8: testing improvements to the squashed code. Formula the same as previous. Scoring the same as previous, with standard then squashed for those with squashed in the title. setSeed/tourneySeed value: 0L, number of games per player: 360,
-%	xMCTS: what we have currently,
-%	yMCTS: ERICA max-robust return algorithm
-%	zMCTS: skips calculations for the very first move,
-%	vMCTS: SameGame’s multithreading,
-%	wMCTS: kyle’s multithreading,
-%C values: 
-%1/rt2 (vRandomRolloutSquashPlayer1rt2, wRandomRolloutSquashPlayer1rt2, xRandomRolloutSquashPlayer1rt2, yRandomRolloutSquashPlayer1rt2, zRandomRolloutSquashPlayer1rt2) (5 players,
-%
-%Tourney9: formulas and scoring system the same as previous, setSeed/tourneySeed value: 0L,  number of games per player: 240, C values:
-%1/rt2 (xRandomRolloutPlayer1rt2), 
-%100 (xRandomRolloutPlayer100),
-%725/rt2 (xRandomRolloutPlayer725rt2), 
-%3000 (xRandomRolloutPlayer3000), 
-%6000 (xRandomRolloutPlayer6000), 
-%10000 (xRandomRolloutPlayer10000).
-%
-%Tourney10: formulas and scoring system the same as previous, setSeed/tourneySeed value: 0L,  number of games per player: 475, C values:
-%1/rt2 (xRandomRolloutPlayer1rt2), 
-%100 (xRandomRolloutPlayer100),
-%200/rt2 (xRandomRolloutPlayer200rt2), 
-%725/rt2 (xRandomRolloutPlayer725rt2), 
-%1500 (xRandomRolloutPlayer1500), 
-%3000 (xRandomRolloutPlayer3000), 
-%6000 (xRandomRolloutPlayer6000), 
-%10000 (xRandomRolloutPlayer10000).  (8 players, 31.5 hours total, try to start by 12:30am)
-%
-%Note: the rt2 players are functionally the same as the players from tourney4, just with an updated name for accuracy.
-%
-%Tourney11: formulas and scoring system the same as previous, setSeed/tourneySeed value: 0L,  number of games per player: 945, C values:
-%1/rt2 (xRandomRolloutPlayer1rt2), 
-%1500 (xRandomRolloutPlayer1500), 
-%100 (xRandomRolloutPlayer100),
-%6000 (xRandomRolloutPlayer6000), (4 players, 31.5 hours total, try to start by 12:30am)
-%
-%
-%Tourney12: formulas and scoring system the same as previous, setSeed/tourneySeed value: 0L,  number of games per player: 945, C values:
-%200/rt2 (xRandomRolloutPlayer200rt2), 
-%3000 (xRandomRolloutPlayer3000), 
-%725/rt2 (xRandomRolloutPlayer725rt2), 
-%10000 (xRandomRolloutPlayer10000).  (4, players, 31.5 hours total, try to start by 12:30am)
-%
-%Tourney 5, 9, 10, 11, and 12 are all testing the same information in order to get a larger amount of trials while maintaining reliability between the results. If setting the seed the same really does keep the draws consistent, then theoretically these results should be comparable to one another.
-%
-%Tourney13: testing squash values. Formula the same as previous, scoring is standard then squashed to ranges of [0, 1] (Done by dividing the getScore result by 725, so the result is a percentage of the maximum score in the American system) for players with “Squash” in the title. setSeed/tourneySeed value: 0L, number of games per player: 630, C values: 
-%1/rt2 (xRandomRolloutPlayer1rt2, xRandomRolloutSquashPlayer1rt2),
-%200/rt2 (xRandomRolloutPlayer200rt2, xRandomRolloutSquashPlayer200rt2),
-%725/rt2 (xRandomRolloutPlayer725rt2, xRandomRolloutSquashPlayer725rt2). (6 players, 31.5 hours total, try to start by 12:30 am)
-%
-%Tourneys 6 and 12 are testing the same information just like 5 7 8 and 9 are. 
-%
-%Tourney14: testing improvements to the code. Formula the same as previous. Scoring the same as previous, with standard then squashed for those with squashed in the title. setSeed/tourneySeed value: 0L, number of games per player: 630,
-%	xMCTS: what we have currently,
-%	yMCTS: ERICA max-robust return algorithm
-%	zMCTS: skips calculations for the very first move,
-%C values: 
-%1/rt2 (xRandomRolloutPlayer1rt2, xRandomRolloutSquashPlayer1rt2, yRandomRolloutPlayer1rt2, yRandomRolloutSquashPlayer1rt2, 
-%zRandomRolloutPlayer1rt2, zRandomRolloutSquashPlayer1rt2) (6 players, 31.5 hours, try to start by 12:30 am)
-%
-%Tourney15: testing improvements to the code. Formula the same as previous. Scoring the same as previous, with standard then squashed for those with squashed in the title. setSeed/tourneySeed value: 0L, number of games per player: 630,
-%	xMCTS: what we have currently,
-%	vMCTS: SameGame’s multithreading
-%	wMCTS: kyle’s multithreading 
-%C values: 
-%1/rt2 (xRandomRolloutPlayer1rt2, xRandomRolloutSquashPlayer1rt2, yRandomRolloutPlayer1rt2, yRandomRolloutSquashPlayer1rt2, 
-%zRandomRolloutPlayer1rt2, zRandomRolloutSquashPlayer1rt2) (6 players, 31.5 hours, try to start by 12:30 am)	
-%Tourneys 7, 8, 14, and 15 are testing similar information
-%
-%MCTS Survey Paper:
-%Each node v has four pieces of data associated with it: the associated state s(v), the incoming action a(v), the total simulation reward Q(v) (a vector of real values), and the visit count N(v) (a nonnegative integer). Instead of storing s(v) for each node, it is often more efficient in terms of memory usage to recalculate it as TREEPOLICY descends the tree.
-%
-%Conclusions made after yesterday’s tests:
-%(Tourney8) y (keep going a bit if max child != robust child) vs. x (standard) - doesn’t seem to make a difference. Is this worth the effort/risk of spending more time? Probably not. Presumably because an earlier getPlay that used extra time was just taking time away from a later getPlay.
-%
-%
-%Tourney8 - z (skip first move) vs. x (“standard”) - probably about the same score, but z just a little faster and a little bit better (Tourney8). z means that the first move is fast, so there’s a little more time for later moves. So use z! (random first move)
-%
-%These results can be verified by the tests finishing tomorrow morning, 
-%
-%Additionally, we noticed a large inconsistency in some of our players in different tournaments. Theoretically, given similar conditions each time, the same player should score at least relatively consistently. However some of our players (namely xRandomRolloutPlayer1rt2) has had 2 games with a score in the 60s, and 2 with a score in the 90s!
-%	We are running three more tests (Test12, 13, and 14) of just this player playing 320 games, to see if we can isolate some kind of issue. 
-%
-%	Result: Tests 12 and 13 returned the typical 90ish, while 14 (ran on the same machine as tourney7’s results) returned 60
-%
-%Squashing did not give overly improved results, though the squashed values did not seem to suffer from whatever caused the scoring problem in some of the other players.
-%
-%w and v didn’t give the most promising competitive results, but they were interesting. We will be experimenting with hash maps in order to keep track of how many times each of the threads in v visits the same node, so we can empirically say whether or not it is worth it to multithread with different trees (if they end up frequently visiting the same nodes anyway, splitting the effort is not worthwhile). These hashmaps could also be applied functionally to a transposition table experiment.
-%
-%Test 15: a C = 0 player vs. a C = 1/rt2 player, just to ensure that our C value really is accomplishing something.
-%
-%Tournament 20: Compare more Cp values, this time in the range 1-100
-%	C values: 5, 10, 25, and 50
-%
-%Tournament 21: Try different squashing ranges using the 1/rt2 Cp value. Some closer to more realistic scores (200-400 as the max for american) with others closer to what we’d expect from a simple squash (1000 as the max for american) and others with large ranges squashed to test if very close squashed scores negatively affects performance
-%	Squash ranges: 0-200, 0-725, 0-1000, 0-2000
-%
-%Tournament 22: Try a basic squashing algorithm (min * 10 and max * 10) vs. our more standard players with random point systems
-%
-%Tournament 23: A retest of vPlayer, wPlayer, and xPlayer now that vPlayer has been improved and trial counts have been added in. 
-%
-%We want to track how much overlap there is between states visited by different threads. We’ll set up a hashmap that maps state to an array of 4 integers. When game is finished, iterate through tree for thread i, and set integer i for each state to the visit count for that state (the n value).
-%We’ll need some way for the child threads to pass their trees back to the parent when done.
-%Each state will return the percentage of the total visits to that state that were performed by whichever child visited it the most. If this percentage is high, then only one child frequently visited that state. If it is lower, however, that means that the thread visiting that state the most didn’t do so an overwhelmingly large amount of times, meaning there was overlap (and thus wasted effort) between the different threads. The lowest this percentage should ever be is 25%.
-%We will start by discounting states visited less than 10 times, as each thread is bound to visit many nodes at least once, so we do not want to skew our percentages
-%
-%Test 18 and tournaments 19 and 20 are fixing a bug in vMCTS Player in which sometimes a thread wasn’t fully expanded on the 25th move of getPlay (when you skip MCTS, and therefore additional expanding)
-%
-%The tests begun on wednesday were all created with code that pointed to the original git, from clay’s computer. So refreshing any of those would cause it to update to the most recent changes. Could this have caused the performance errors we’ve been seeing, if eclipse was talking to the network and refreshing itself as a tournament ran?
-%
-%It is not likely a network issue now that it is so consistent. Additionally, newer tests that have been recorded with trial counts show that a similar number of trials are being performed between 60 and 90 scoring players, despite the discrepancy in scores.
-%
-%It could really be a problem with using 1/rt2 as the C value. The long-term tournaments started on wednesday seem to corroborate that the higher C values really are better than 1/rt2 unsquashed, though any changes after 100 seem to have little effect. Perhaps we should try some smaller (but larger than 1) C values to see if there is a more optimal balancing value?
-%
-%Further tests: More Cp values, this time in the 1 - 200/rt2 range. Maybe also do an outlier test of immensely biasing exploration? 
-%	A test of Float.MAX\_\\VALUE functionally creates a random player, just like 0 does. But whereas 0 simply repeats the same randomly chosen move over and over, Float.MAX\_\\VALUE explores so much that it seems to be unable to distinguish between any of the nodes at all.
-%	Retest vPlayer with its improvements, using either squashed values or non-1/rt2 C values.
-%	Test a general squash’s (max * 10, min * 10) performance with some C values and maybe with a random point system
-%	Do more generalized tests with x w and v updated with z’s 1st-move-skip code.
-%
-%Does our simulation strategy need to be altered as well in order to continue to be representative of our expansion strategy? Simulation doesn’t rely on nodes to function (which is good I believe, as it means we can maintain consistent expanding and do full playouts without creating all those nodes), so it needs some other way of keeping track of available moves. The current simulation and expansion strategies both use the getPossibleMoves method when creating children/selecting moves, so maybe make the pruning changes there? You run into some computational overlap when the node already has its nextMoves filled, but when simulation runs into nodeless territory it becomes necessary for simulate to run getPossibleMoves itself.
-%
-%Pruning - Others have had success with prioritizing moves - removing those that are clearly suboptimal.
-%If we have a hand that’s much worse than the average possible, could prune that branch. But only if it’s the only completed hand in that state.
-%Early in the game, there’s no point pursuing a state that has a likely bad hand in it. Late in the game we may be forced to do something like that, so don’t do this pruning late in the game, but early in the game we could greatly reduce the size of the tree.
-%Early in the game, if two cards in a single row/col, they better be working together to make a good hand. If not, prune that node.
-%The definition of “good hand” can change between point systems
-%Early in the game, what are we looking for? For first 5 cards, don’t bother with any state where some hand has multiple cards that doesn’t follow one of these rules.
-%pairs
-%same suit
-%maybe cards within 5 of each other (ace is high/low)
-%
-%Any kind of heuristic or domain knowledge we use will need to be flexible to fit a variety of scoring systems. It needs to be able to identify which hands are “optimal” or “suboptimal” for that specific scoring system before doing anything else. 
-%This is particularly significant as multiple papers (Move Pruning Techniques for Monte-Carlo Go) have said that pruning techniques must be carefully balanced between effectiveness and time taken from simulations or else they will end up not being worthwhile. 
-%Once you have your list of optimal and suboptimal moves, you can do one of two things:
-%look for particularly optimal moves (moves that somehow take you towards an optimal hand), and remove all other possible moves if such an optimal move is found, or
-%look for particularly suboptimal moves, and remove them specifically
-%
-%MCTS Survey section 5.5: Move Pruning
-%	alpha-beta algorithm
-%	Two general types of pruning- soft pruning, in which you remove the node from most considerations but do not entirely get rid of it in order to reduce the risk of prematurely removing what would ultimately be the optimal move.
-%	Hard pruning, in which you remove a node you are sure you will never need, so it will never be visited or considered again.
-%
-%5.5.1 - Progressive Unpruning/Widening: exploits heuristic knowledge to immediately reduce the size of the tree, but all moves will eventually still be considered, given enough time. This idea forces earlier exploitation.
-%
-%5.5.2 - Absolute and Relative Pruning:
-%	Absolute pruning - prunes all actions from a position except the most visited one, once it become clear that no other action could become more visited (the average score heavily outweighs the exploration bias)
-%	Relative pruning - uses an upper bound on the number of visits an action has received, to detect when the most visited choice will remain the most visited 
-%	J. Huang, Z. Liu, B. Lu, and F. Xiao, “Pruning in UCT Algorithm”
-%
-%
-%5.5.3 - Pruning with Domain Knowledge: Domain knowledge can be used to significantly increase performance over pure random UCT. They risk becoming computationally expensive, however.
-%There are two seemingly competing requirements in this challenge: creating a good scoring player and maximizing traversal of the game tree. Each game of Poker Squares must be complete within 30 seconds or be penalized with a significantly adverse score for the game. Twenty-five moves, or draws of a card, occur to fill a game grid. Dividing the allotted 30 seconds over 25 moves evenly allows 1.2 seconds per move. A significant processing element of MCTS is running simulations. Early test results indicate approximately 68,000 trials were executed per move. Evaluating the randomness of card selection, especially within the first two moves, hard-coding them as well as the last, not executing MCTS, we expected to increase trials per move. Instead, we same a diminishing to about 56,000 trials per move.
-%
-%Pruning - removing decidedly suboptimal moves to allow more time for exploitation of the remaining.
-%We need:
-%	some way to determine “good” vs. “bad” hands
-%	some way to determine how a specific card placement affects a hand’s current state and possible future states
-%	
-%Move equivalence, especially in the first 5 moves - maybe getPossibleMoves or somewhere splits the board into currently used and unused hands?
-%Pruning by expected value (from the next meeting doc):
-%Compute a score for a board. For a row/col that has 5 cards, that’s easy. For a row/col with 4 cards, it’s an expected value: the sum of the prob of each hand times the value of that hand. (This ignores the fact that hands are not independent.) Prune any board with a value that is less than some threshold.
-%For a row/col with <= 3 cards placed: we have the T/F boolean array. We can compute a less-precise expected value by just taking the a-priori probabilities (reverse-engineer from British scoring system) for all true hands times the values of those hands. Again, prune any board with a value that is less than a threshold.
-%Threshold: compute a-priori expected value across all hands. All probabilities * all values. “Average”.  Any score < sel*average is pruned.  sel is between 0 and 1.
-%In expand, make all child states (playing the card in all possible moves), compute scores as above, don’t make nodes for children below a threshold score.
-%On selection, pruning is based on a threshold sel. For simulation, pruning is based on a threshold sim. Maybe sim is higher?
-%
-%NOTE: our calcProbability method only calculates the probability of drawing one of the possible cards in the very next draw. It does not account for the fact that there will typically be more than one turn remaining.
-%
-%Cumulative probability - the probability of drawing either a certain hand or any hand that’s traditionally considered better
-%
-%Tourney 26 - an initial tournament meant to test the effects of limiting trials on our player’s performance. It did not show any significant effect with even a difference of half a million games. 
-%	250k, 500k, 750k, 1M
-%Note - the limiting had an odd effect, in which the players wouldn’t run up to their actual limit, they would instead run up to something closeby. The higher the limit was, the further from the actual limit the player stopped. An unlimited player gets about 1.6 million trials, and a player intended to be limited to a million only played ~750K. 
-%
-%Tourney 27 - a new tournament meant to follow up tourney26, with an unlimited player and with even further limited players.
-%	50K, 100K, 250Km 500K, 750K, 1M, 2M, Int.MAX\_\\VALUE
-%Got the players to run closer to their limit for this tourney 
-%
-%NOTE: in our calcProbability method, numPlays is used to see how many turns and cards are left. If calcProbability is called in the middle of a play, when a card is already drawn but the play has not yet been completed, it will account for a draw that has already occurred.
-%
-%We want to keep track of how many cards could fulfill each hand. Example: 30 cards left, so 3 moves left in the game. Suppose 4 cards could fulfill a hand. So prob (as we compute it now) is 4/30. That’s the prob of getting the card we need in the next draw.
-%
-%We’re going to draw three cards. What’s the prob that at least one of them is a card we want?
-%P(at least one is what we want) = P(exactly one) + P(exactly two) + P(exactly three)
-%P(exactly 1) = (4, 1) * (30-4, 3-1) / (30, 3)
-%P(exactly 2) = (4, 2) * (30-4, 3-2) / (30, 3)
-%P(exactly 3) = (4, 3) * (30-4, 3-3) / (30, 3)
-%
-%
-%
-%numPossibleCards (the 4)
-%remainingPlays = 25 - numPlays   (3)
-%numCardsAvail = 52 - numPlays   (30)
-%
-%P(at least one) = 
-%1 - p(none)
-%p(none) = ((numCardsAvail - numPossibleCards, remainingPlays)/(numCardsAvail, remainingPlays))
-%
-%Implemented initial pruning method, working on bugfixing. We have a computational error in which one of the calculations is occasionally going out of bounds. We also have a theoretical error in that we’re removing too many nodes with our current threshold (3/4ths of the parent’s board’s expected value) the overpruning is happening in the simulation step.
-%
-%
-%	Our probabilities are based on the chance that we don’t draw the cards we specify to the calculator. Because of that, it seems to make sense that we’re getting such low p(none) possibilities (leading to such high probabilities when subtracted from 1). Additionally, our probabilities are now independent from one another. When you look at 1 draw, our calculator can determine which hand that draw creates, as each individual draw can only create one type of hand. However, once you begin drawing multiple cards, you could draw the cards to make multiple types of hands possible, so we can no longer say with certainty that the chances will add up to 1. In fact, we can say with almost certainty that they won’t. Which could explain why we have not found literature on why the British Point System is scored the way it is. It is another heuristic, as precisely calculating these possibilities in such a way that they add up to 1 would be incredibly difficult. 
-%Could we change our probability to calculate the chance of drawing this specific hand, and not one that is better with the current point system? (Keeping in mind that, no matter the point system, certain hands overrule one another) This would allow us to go back to an XOR kind of scenario, with only one hand type being true per set of draws, so that our probabilities would again add up to 1.
-%So we would want to keep some kind subtracting to use to rule out draws that force us into a specific hand (If you have TC, JC, QC, KC and straight flush is the best, you want to rule out AC still as it could not turn this hand into a straight flush, but instead into a royal. Though if you draw both the 9C and the AC, using our “best choice” assumption, you would be able to play the 9C still, so ruling out all hands in which the AC is drawn, which is what we do currently, will lead to miscalculations)
-%
-%We decided to go back to only calculating the chance of drawing one of the specified cards on the next draw, as the draw-all-choose-optimal was too computationally complex and taxing to justify any foreseen gains in precision over one-draw-at-a-time (draw-all is incredibly optimistic and does not take into account having to make a decision with each card as each is drawn)
-%
-%Removed draw-all code: (calcProbability)
-%int remainingPlays = 25 - numPlays;
-%		
-%double numerator = 1; //The top part of our simplified p(none) equation
-%for (int i = (numAvailableCards - remainingPlays); i >= (numAvailableCards - numPossibleCards - remainingPlays + 1); i--) {//essentially a factorial
-%//System.out.println("i = " + i);
-%numerator *= i;
-%}
-%//System.out.println("numerator = " + numerator);	
-%
-%double denominator = 1; //The bottom part of our simplified p(none) equation
-%for (int i = numAvailableCards; i >= (numAvailableCards - numPossibleCards + 1); i--) {
-%//System.out.println("i = " + i);
-%denominator *= i;
-%}
-%//System.out.println("denominator = " + denominator);
-%		
-%double probability = 1 - (numerator / denominator); //1 - p(none) should give the chance of drawing at least one of the possible cards within the remaining number of plays
-%
-%//System.out.println("probability of completing this hand before the end of the game = " + probability );
-%return  probability;
-%
-%
-%Pseudocode used to begin creating the pruning additions to getPossibleMoves
-%
-%	                  // A class level array of british system derived a-priori probabilities
-%	                  // An array of booleans representing possible draws - does everything need its own canDraw array, like they have their own decks?
-%	                  //
-%	                  //Before a card is added to possibleMoves, calculate our expected value and compare it to our threshold
-%	                  	//How do we set our threshold, and to what?
-%	                  	//How do we calculate our expected value?
-%	                  		//Go through the temp string and build our 10 hands (5 rows, 5 columns) and send them all to getPossibleMoves that way?
-%	                  		//Use the returned array of doubles (for numCards >= 4) and multiply the proper indices by the score value of each of those possible hands (so that probabilities of 0, equivalent to an
-%	                  			//impossible hand to make, would return a 0 score, and in numCards = 5, where only 1 value is turned on, only that score gets returned)
-%	                  		//Use the returned array of booleans for numCards < 4, then run through that array, and for each true value multiply the score value of that hand by our a-priori possibility
-%	                  		//Add all those scores together to form the total expected score for the entire board
-%	                  	//How do we ensure we are either not cutting off all children, or are not trying to reexpand a childless node?
-%
-%	Encountered an off-by-one where we were looking in the wrong index in our boolean array for the card we needed. We may want to run more tests with certain cards off in order to be sure the rest of the code is checking the array properly (straights with the outsides/insides off, flushes with the rest of the suit off)
-%
-%
-%With the pruning - we seem to run into problems very late in a simulated game in which it does not like the card it randomly drew, so none of the children have very high scores compared to the expected value.
-%	Going to allow getPossibleMoves to skip pruning if only one move remains
-%
-%We are seeing a massive drop in our total trial count while testing pruning. We used to see around 1.5 million trials, and have now seen trial counts below 100,000. Funnily enough, those scores (with about 10% of the trials) have about half of the average we’re used to seeing
-%
-%We decided a global pruning threshold was too rigid and inflexible, but it seems even a local threshold using the parent as a benchmark is too inconsistent - we either set our delta too low and prune too few nodes to make the computation worthwhile, or we set it too high and end up pruning all the children. 
-%
-%
-%We have been using getPossibleMoves to reverse-calculate a given numPlays, which is particularly useful in nodes created through simulation (and in simulation itself) because they don’t necessarily match up with the game’s actual numPlays. However this now causes problems when getPossibleMoves returns a pruned list, as it will no longer correctly reflect how many moves have actually been made in a game.
-%	Could we still calculate total available moves while in getPossibleMoves, and pass it as another field to that parent state? So when the parent is expanded (calling getPossibleMoves) it can see the number of plays remaining by looking at its blank spaces, but then only return the moves it actually deems to be valid.
-%	Does chance expand need to call getPossibleMoves at all? Could we get it numPlays some other way? If all it is using getPossibleMoves for is to check its number of plays made, the new getPossibleMoves method is incredibly inefficient. We already have a boolean flag in runTrial that calls simulate differently depending on if we’re in a choice or chance node, maybe we can do the same thing for a call to expand
-%	curNode expands can always use they player’s numPlays and be accurate I believe
-%	Could our runTrial expand and simulate calls get a representation of their numPlays a different way? We already have a “level” counter in there we use to determine tabbing for output, could we also use it to represent the difference between the trial’s node and the root node?
-%
-%
-%isLeaf vs. expanded
-%	Used to be true together, any time the game wasn’t over an expanded node had children. But now that is not necessarily true, because pruning can theoretically remove all children. So you may want a 3rd condition where you check if expanded is true while isLeaf is also true, because that would mean you have already tried to expand but did not create any children. This would be good because with the current runTrial, if an already expanded but fully pruned node is called through runTrial it will simply be expanded again, creating redundant work. However you cannot just discount any random node that is fully pruned, because you don’t want to remove any unfavorable chance nodes as you cannot simply remove the chance of drawing that card from the deck
-%
-%Game board full
-%	We have noticed that when having used DELTA of 98% and significant pruning was occurring, that the trials are still being run when the board is full (fully expanded). Progressively rolled DELTA down to near zero (no pruning) to discover that this is likely to have been occuring all along. The runtrial loop is controlled by a while loop on millisRemaining so trials are attempted on the full board until time is exhausted.
-%
-%check our chosen row/column calculator for accuracy, check our calls to num/simPlays to ensure everything’s calling the right thing
-%
-
+This work generates a number of interesting follow-up questions for further research. Further experiments on the pruning threshold policy (including the $\delta$ value) may tune the pruning procedure for even more gains. The heuristic could also be explored further in comparing 3-card and 4-card hand evaluations. The experiments on $C_p$ values warrant further exploration and perhaps generalization to other games in the hope of identifying best practices when squashing to $[0,1]$ is challenging. Finally, given the significant time-constraints of the PPS player described here, significant gains may be found in applications of parallelism.
 
 \bibliographystyle{aaai}
 \bibliography{PPS-Paper}
