@@ -6,7 +6,10 @@ import def.Card;
 import def.PokerSquares;
 import def.PokerSquaresPlayer;
 import def.PokerSquaresPointSystem;
+<<<<<<< HEAD
 import def.RandomPlayer;
+=======
+>>>>>>> refs/heads/ClayDevelop
 
 /**
  * RandomPlayer - a simple example implementation of the player interface for PokerSquares that 

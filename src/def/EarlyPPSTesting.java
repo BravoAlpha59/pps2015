@@ -6,7 +6,8 @@ public class EarlyPPSTesting {
 
 	public static void main(String[] args) {
 		System.out.println("\n\nEarly Parameterized Poker Squares Testing:");
-		PokerSquaresPlayer player = new xRandomRolloutPruningPlayer200rt2(); // TODO - replace the RandomPlayer with your best player
+		PokerSquaresPlayer player = new xRandomRolloutPruningPlayer((float) (30), (float) (100), (float) (100), (float) (50), (float) (10), (float) (50), (float) (50),
+				(float) (50), (float) (50), (float) (50), (float) (50), (float) (50), (float) (50), (float) (50), (float) (300)); // TODO - replace the RandomPlayer with your best player
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
 		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());
@@ -21,6 +22,9 @@ public class EarlyPPSTesting {
 		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.STRAIGHT.id));
 		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.FLUSH.id));
 		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.FULL_HOUSE.id));
+		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.FOUR_OF_A_KIND.id));
+		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.STRAIGHT_FLUSH.id));
+		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.ROYAL_FLUSH.id));
 		// Note: Not all Poker hands are tested here to try to keep testing within 11 hours.
 		// In the final tournament, we will likely use just one or two single-hand point systems.
 		ArrayList<String> totals = new ArrayList<String>();

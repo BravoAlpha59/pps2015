@@ -1,5 +1,4 @@
 package def;
-import xCard;
 
 import java.util.Arrays;
 import java.util.HashMap;

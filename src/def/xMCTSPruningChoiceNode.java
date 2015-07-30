@@ -48,16 +48,9 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
     *
     * @param nodeGameState The GameState this node will keep score for.
     */
-   public xMCTSPruningChoiceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant, boolean[] nodeCanDraw)
+   public xMCTSPruningChoiceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, float constant, boolean[] nodeCanDraw)
    {
-	   super(nodeGameState, nodeDeck, verbosity, constant, nodeCanDraw);
-//	   if (nodeGameState.numPlays == 24) {
-//		   xMCTSPruningPPSGame g = new xMCTSPruningPPSGame(PokerSquaresPointSystem.getNegativePointSystem());
-//		   System.out.println("Creating node for final move");
-//		   System.out.println("This node's gamestate = " + nodeGameState.toString());
-//		   ArrayList<xMCTSStringGameState> possibleMoves = g.getPossibleMoves(nodeGameState, nodeGameState.numPlays, nodeCanDraw);
-//		   System.out.println("num moves from this position: " + possibleMoves.size());
-//	   }
+	   super(nodeGameState, nodeDeck, constant, nodeCanDraw);
    }
 
    /**
@@ -66,20 +59,17 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
     * @param possibleMoves The list of move to be added as child nodes to this
     * node.
     */
-   public synchronized void choiceExpand(ArrayList<xMCTSStringGameState> possibleMoves, String tab, boolean print)
+   public synchronized void choiceExpand(ArrayList<xMCTSStringGameState> possibleMoves)
    {
-	//   if (verbosity > 0)
-//		   System.out.println(tab + "Choice expanding");
 	   
       if (!expanded)
       {
          expanded = true;
-         //nextMoves = new ArrayList<xMCTSChanceNode>();
-         Card[] deckCopy = java.util.Arrays.copyOf(nodeDeck, nodeDeck.length);
-         boolean[] canDrawCopy = java.util.Arrays.copyOf(nodeCanDraw, nodeCanDraw.length);
          nextMoves = new ArrayList<xMCTSPruningNode>();
          for (xMCTSStringGameState s : possibleMoves) {
-            nextMoves.add(new xMCTSPruningChanceNode(s, deckCopy, verbosity, constant, canDrawCopy));
+            Card[] deckCopy = java.util.Arrays.copyOf(nodeDeck, nodeDeck.length);
+            boolean[] canDrawCopy = java.util.Arrays.copyOf(nodeCanDraw, nodeCanDraw.length);
+            nextMoves.add(new xMCTSPruningChanceNode(s, deckCopy, constant, canDrawCopy));
          }
       }
    }
@@ -96,40 +86,26 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
     * contains this node.
     * @return The best selection from this node.
     */
-   public xMCTSPruningNode bestSelection(boolean myTurn, String tab)
+   public xMCTSPruningNode bestSelection()
    {
       //the randomizer is a tiny random number added for tie-breaking
-	  if (verbosity > 2)
-		  System.out.println(tab + "Choice bestSelection");
 	  
       float bias, randomizer;
       float max = Float.NEGATIVE_INFINITY;
       int maxIndex = 0;
       float C = constant;
-      if (verbosity > 2)
-    	  System.out.println(tab + "Current's times visited: " + this.getTimesVisited() +  " Current's score: " + this.getScore());
       
       for (int i = 0; i < nextMoves.size(); i++) {
          xMCTSPruningNode curChild = nextMoves.get(i);
-         if (verbosity > 2)
-        	 System.out.println(tab + "This child is node " + curChild.toString() + 
-       		  "\n" + tab + "This child's times visited: " + curChild.getTimesVisited() + " This child's score: " + curChild.getScore());
-         
          float nodeScore = (float) curChild.getScore() / ((float) (curChild.getTimesVisited() + Float.MIN_VALUE));
          bias = 2 * C * (float) (Math.sqrt(Math.log((float) this.getTimesVisited()) / ((float) curChild.getTimesVisited() + Float.MIN_VALUE)));
          randomizer = Float.MIN_VALUE * r.nextInt(nextMoves.size() * nextMoves.size());
          float biasedScore = nodeScore + randomizer + (bias);
-         if (verbosity > 2)
-        	 System.out.println(tab + "This child has a UCT value of " + biasedScore + "\n");
          
          if (biasedScore > max) {
             max = biasedScore;
             maxIndex = i;
          }
-      }
-      if (verbosity > 2) {
-    	System.out.println(tab + "Choice selected node: " + nextMoves.get(maxIndex));
-      	System.out.println(tab + "Node " + nextMoves.get(maxIndex).toString() + " was selected from bestSelection");
       }
       
       if (!nextMoves.get(maxIndex).choiceNode()) //if the child is a chance node...
@@ -152,7 +128,6 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
       float randomizer;
       for (int i = 0; i < nextMoves.size(); i++) {
          xMCTSPruningNode node = nextMoves.get(i);
-         //System.out.println("child node = " + node.getState().toString());
          float nodeScore = (float) node.getScore() / ((float) (node.getTimesVisited() + Float.MIN_VALUE));
          randomizer = Float.MIN_VALUE * r.nextInt(nextMoves.size() * nextMoves.size());
          if (nodeScore + randomizer > max) {
@@ -170,10 +145,7 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
    public void createChildNode(xMCTSStringGameState s, Card[] deck, boolean[] canDraw) { 
 	   Card[] deckCopy = java.util.Arrays.copyOf(deck, deck.length);
        boolean[] canDrawCopy = java.util.Arrays.copyOf(canDraw, canDraw.length);
-	   nextMoves.add(new xMCTSPruningChanceNode(s, deckCopy, verbosity, constant, canDrawCopy));
-	  //System.out.println("This choice node created a chance node");
-	  // System.out.println(java.util.Arrays.toString(deckCopy));
-	  // System.out.println(java.util.Arrays.toString(canDrawCopy));
+	   nextMoves.add(new xMCTSPruningChanceNode(s, deckCopy, constant, canDrawCopy));
    }
    
    /**

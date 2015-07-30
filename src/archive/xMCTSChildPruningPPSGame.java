@@ -38,6 +38,8 @@
  */
 import java.util.ArrayList;
 
+import def.xCard;
+
 public class xMCTSChildPruningPPSGame implements xMCTSGame
 {
 

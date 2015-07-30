@@ -3,7 +3,10 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import def.Card;
+<<<<<<< HEAD
 import def.GreedyMCPlayer;
+=======
+>>>>>>> refs/heads/ClayDevelop
 import def.PokerSquares;
 import def.PokerSquaresPlayer;
 import def.PokerSquaresPointSystem;

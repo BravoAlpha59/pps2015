@@ -5,6 +5,7 @@ import def.Card;
 import def.PokerSquaresPointSystem;
 import def.xMCTSPruningPPSGame;
 import def.xMCTSStringGameState;
+<<<<<<< HEAD
 import def.xRandomRolloutPruningPlayer200rt2;
 
 
@@ -19,6 +20,22 @@ public class test {
 	static boolean[] canDraw;
 	static ArrayList<xMCTSStringGameState> possibleMoves;
 	static xRandomRolloutPruningPlayer200rt2 testPlayer = new xRandomRolloutPruningPlayer200rt2();
+=======
+import def.xRandomRolloutPruningPlayer;
+
+
+public class test {
+	public static Card[][] hands ;
+	public static int SIZE = 5;
+	public static Card[] alreadyPlayed;
+	static Card[][] grid;
+	static xMCTSPruningPPSGame player;
+	static int numPlays;
+	static xMCTSStringGameState testState;
+	static boolean[] canDraw;
+	static ArrayList<xMCTSStringGameState> possibleMoves;
+	static xRandomRolloutPruningPlayer testPlayer = new xRandomRolloutPruningPlayer();
+>>>>>>> refs/heads/ClayDevelop
 	static int[] posHands;
 
 	public static void main (String[] args) {
