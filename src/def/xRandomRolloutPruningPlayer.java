@@ -46,7 +46,7 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 {
 
    public xRandomRolloutPruningPlayer(float AMERICANC, float AMERITISHC, float BRITISHC, float HIGHCARDC, float ONEPAIRC, float TWOPAIRC, 
-		  float THREEKINDC, float STRAIGHTC, float FLUSHC, float FULLHOUSEC, float FOURKINDC, float STRAIGHTFLUSHC, float ROYALC, float OTHERC)
+		  float THREEKINDC, float STRAIGHTC, float FLUSHC, float FULLHOUSEC, float FOURKINDC, float STRAIGHTFLUSHC, float ROYALC, float HYPERCORNERC, float OTHERC)
    {
       super();
       //The constants used for UCT calculating. SetPointSystem will determine which C best suits the provided scoring system
@@ -63,6 +63,7 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
       this.FOURKINDC = FOURKINDC;
       this.STRAIGHTFLUSHC = STRAIGHTFLUSHC;
       this.ROYALC = ROYALC;
+      this.HYPERCORNERC = HYPERCORNERC;
       this.OTHERC = OTHERC;
    }
 
