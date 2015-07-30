@@ -40,16 +40,20 @@ package def;
  * @author Kyle
  */
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 {
 
-   public xRandomRolloutPruningPlayer(float C)
+   public xRandomRolloutPruningPlayer(float AMERICANC, float AMERITISHC, float BRITISHC, float OTHERC)
    {
       super();
       //The constant used for UCT calculating
-      this.C = C;
+      this.AMERICANC = AMERICANC;
+      this.AMERITISHC = AMERITISHC;
+      this.BRITISHC = BRITISHC;
+      this.OTHERC = OTHERC;
    }
 
    /**
@@ -124,7 +128,20 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
    public void setPointSystem(PokerSquaresPointSystem pointSystem, long millis) {
 	   this.pointSystem = pointSystem;
 	   g = new xMCTSPruningPPSGame(pointSystem);
-	   System.gc();
+	   //if this is the american point system
+	   if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 2, 5, 10, 15, 20, 25, 50, 75, 100})) {
+		   C = AMERICANC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 1, 4, 6, 8, 9, 13, 24, 47, 47})) {
+		   C = AMERITISHC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 1, 3, 6, 12, 5, 10, 16, 30, 30})) {
+		   C = BRITISHC;
+	   }
+	   else {
+		   C = OTHERC;
+	   }
+	   System.out.println("C value = " + C);
    }
    
 	/**
@@ -132,6 +149,6 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 	 * @return unique player name
 	 */
    public String getName() {
-	   return "xRandomRolloutPruningPlayer" + C;
+	   return "xRandomRolloutPruningPlayer";
    }
 }

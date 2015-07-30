@@ -48,7 +48,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	protected PokerSquaresPointSystem pointSystem; // point system
 	//Card weights, for use in calculating an estimated board value
 	protected final double ONE_CARD_WEIGHT = (1.0/10.0);
-	protected final double TWO_CARD_WEIGHT = (3/10.0);
+	protected final double TWO_CARD_WEIGHT = (3.0/10.0);
 	protected final double THREE_CARD_WEIGHT = (8.5/10.0);
 	protected final double FOUR_CARD_WEIGHT = 1.0;
 	protected final double FIVE_CARD_WEIGHT = 1.0;

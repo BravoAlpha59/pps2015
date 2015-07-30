@@ -58,9 +58,16 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
    protected Card[] gameDeck = Card.getAllCards(); // a list of all Cards. As we learn the index of cards in the play deck,
 	                                             // we swap each dealt card to its correct index.  Thus, from index numPlays 
 												 // onward, we maintain a list of undealt cards for MC simulation.
-   protected float C; //constant used in the UCT formula
    protected boolean[] gameCanDraw; //an array of booleans meant to make it easier to check which cards can still be drawn or not. 
    //Using this array allows you to not have to iterate through the deck whenever determining whether or not a specific card is still available
+   
+   //Cps for various scoring systems
+   protected float C; //constant currently being used in the UCT formula
+   protected float AMERICANC; //Cp for the American system
+   protected float AMERITISHC; //Cp for the Ameritish system
+   protected float BRITISHC; //Cp for the British system
+   protected float OTHERC; //Cp for randomized systems
+   
    
    //tracking variables for debugging
    protected long totalTrials = 0; 
@@ -251,8 +258,8 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   	 else if (numPlays == 24) {
   		 //Chance to choice node
   		 updateGameState(new xMCTSStringGameState(activeState, currentState.expectedValue, numPlays));
-  		 //ArrayList<xMCTSStringGameState> possibleMoves = g.getPossibleMoves(curNode.getState(), curNode.nodeCanDraw);
-  		 //((xMCTSPruningChoiceNode) curNode).choiceExpand(possibleMoves);
+  		 ArrayList<xMCTSStringGameState> possibleMoves = g.getPossibleMoves(curNode.getState(), curNode.nodeCanDraw);
+  		 ((xMCTSPruningChoiceNode) curNode).choiceExpand(possibleMoves);
   		 //There should only be one possible move remaining. Determine that move and update to its state
   		 xMCTSPruningNode best = curNode.bestMove();
   		 currentState = best.getState();

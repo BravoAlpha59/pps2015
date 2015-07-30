@@ -317,11 +317,13 @@ public class PokerSquares {
 		//players.add(new RandomPlayer());
 		//players.add(new GreedyMCPlayer(0));
 		//players.add(new GreedyMCPlayer(2));
-		players.add(new xRandomRolloutPruningPlayer((float) (200/Math.sqrt(2))));
-		players.add(new xRandomRolloutPruningPlayer((float) (25)));
+		players.add(new xRandomRolloutPruningPlayer((float) (25), (float) (20), (float) (15), (float) (200/Math.sqrt(2))));
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
 		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());
-		PokerSquares.playTournament(players, systems, 900, 0L); // use fewer games per system for faster testing
+		systems.add(PokerSquaresPointSystem.getAmeritishPointSystem());
+		systems.add(PokerSquaresPointSystem.getBritishPointSystem());
+		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
+		PokerSquares.playTournament(players, systems, 5, 0L); // use fewer games per system for faster testing
 	}
 }
