@@ -33,7 +33,7 @@ Greencastle, IN, USA\\
 \maketitle
 \begin{abstract}
 \begin{quote}
-Poker Squares is a single-player card game played on a 5 x 5 grid, in which a player attempts to create as many high-scoring Poker hands as possible. As a stochastic single-player game with an extremely large state space, this game offers an interesting area of application for Monte-Carlo Tree Search (MCTS). This paper describes enhancements made to the MCTS algorithm to improve computer play. These enhancements include pruning in the selection stage, and a greedy simulation algorithm. These enhancements make extensive use of domain knowledge in the form of a state evaluation heuristic. Experimental results demonstrate both the general efficacy of these enhancements and their ideal parameter settings.
+Poker Squares is a single-player card game played on a 5~x~5 grid, in which a player attempts to create as many high-scoring Poker hands as possible. As a stochastic single-player game with an extremely large state space, this game offers an interesting area of application for Monte-Carlo Tree Search (MCTS). This paper describes enhancements made to the MCTS algorithm to improve computer play. These enhancements include pruning in the selection stage, and a greedy simulation algorithm. These enhancements make extensive use of domain knowledge in the form of a state evaluation heuristic. Experimental results demonstrate both the general efficacy of these enhancements and their ideal parameter settings.
 \end{quote}
 \end{abstract}
 
@@ -42,7 +42,7 @@ Poker Squares is a single-player card game played on a 5 x 5 grid, in which a pl
 
 Poker Squares is a single-player card game played on a 5~x~5 grid, on which the player places one drawn card at a time. Once placed, a card may not be moved. The goal is to create as many high-scoring Poker hands as possible in each of the five rows and five columns. Due to the overlapping of rows and columns and the uncertainty of what cards will be drawn in what order, players must balance the risk of pursuing high-scoring hand types with the safer but less-rewarding pursuit of more easily-attained hand types.
 
-In human play, the most common scorting systems are American and British (Table~\ref{tbl:scoring}). {\it Parameterized} Poker Squares (PPS) includes the added challenge that the player is not told the scoring system until the moment the game begins. So the scoring system may be standard American or British, or perhaps a system in which positive points are given for a full house and negative points for all other hand types, or even a random scoring system (Table~\ref{tbl:scoring}). Thus the player must be highly adaptive.
+In human play, the most common scoring systems are American and British (Table~\ref{tbl:scoring}). {\it Parameterized} Poker Squares (PPS) includes the added challenge that the player is not told the scoring system until the moment the game begins. So the scoring system may be standard American or British, or perhaps a system in which positive points are given for a full house and negative points for all other hand types, or even a random scoring system (Table~\ref{tbl:scoring}). Thus the player must be highly adaptive.
 
 %\begin{figure}[b]
 %\begin{center}
@@ -102,7 +102,7 @@ In {\it expansion}, a previously unconsidered child $v$ of the selected node is 
 
 Much prior work in MCTS has applied pruning to the game tree. In {\it soft pruning}, a suboptimal node is hidden from consideration, but can be brought back later if warranted by later re-evaluation. In contrast, {\it hard pruning} offers no possibility for bringing a pruned node back~\cite{browne2012survey}. Most commonly, the node's $Q$ value is used in making pruning decisions, but \cite{huang2010pruning} describe alternative soft (``relative'') and hard (``absolute'') pruning techniques based on the visit count $n$.
 
-Additional pruning strategies using domain knowledge have been applied to the multi-player card game Lords of War~\cite{sephton2014ieee}. In this work, state evaluations based on card counting are used to prune states that are less likely to be useful. This work also considers the additional time required for such evaluations -- time that could be spent further exploring the tree. Significant improvements are obtained with pruning despite this tradeoff.
+Additional pruning strategies using domain knowledge have been applied to the multi-player card game Lords of War~\cite{sephton2014ieee}. In this work, state evaluations based on card counting are used to prune states that are less likely to be useful. This work also considers the additional time required for such evaluations -- time that could be spent further exploring the tree. Significant improvements are obtained with pruning despite this trade-off.
 
 Simulation strategies enhanced with domain knowledge have also been useful in MCTS research. For example, in \cite{winands2010monte} an MCTS player for the strategy game Lines of Action uses a simulation that was cut short, backpropagating a heuristic evaluation prior to the end of the game rather than playing to completion. Another approach is to use a heuristic to guide simulation, rather than choosing moves randomly. For example, \cite{schadd2012single} reports a 50\% increase in average score in the game SameGame when an accurate heuristic was added.
 
@@ -163,19 +163,19 @@ As discussed in section {\it \nameref{relatedWork}}, there are two typical strat
 
 First we calculate the heuristic score $h(p)$ for the parent. The value $\delta \cdot h(p)$, for some constant $\delta$, is set as the heuristic score threshold for each child. All children below this threshold are pruned, never to be considered for selection. For example, $\delta = 0.9$ would prune children with $ < 90\%$ of the score of the parent, while any $\delta > 1$ would prune all children that do not improve over the score of the parent.
 
-In practice, this approach sometimes leads to overpruning. For example, if a drawn card does not fit well in any open space, all children may have lower heuristic scores than the parent. Thus an additional safeguard is used, that no more than 70\% of the children of any given parent may be pruned. If the  $\delta \cdot h(p)$ threshold prunes more than this amount, then only the bottom 50\% of the children are pruned.
+In practice, this approach sometimes leads to over-pruning. For example, if a drawn card does not fit well in any open space, all children may have lower heuristic scores than the parent. Thus an additional safeguard is used, that no more than 70\% of the children of any given parent may be pruned. If the  $\delta \cdot h(p)$ threshold prunes more than this amount, then only the bottom 50\% of the children are pruned.
 
 \subsection{Modified Simulation}
 
-While the core MCTS implementation uses a completely random game in the simulation step, the state heuristic can also be applied to alternative simulation strategies. A {\it pruning simulation} strategy can apply the same pruning described above to simulation, such that a move is randomly chosen from among the non-pruned children. Alternatively, a {\it best move simulation} can be applied, in which all children are evaluated with the state heuristic, and the highest-scoring child is taken as the choice in simulation. The tradeoff of these approaches, of course, is that they are more computationally-intensive, and thus fewer iterations of the MCTS process can be completed in a given time period. 
+While the core MCTS implementation uses a completely random game in the simulation step, the state heuristic can also be applied to alternative simulation strategies. A {\it pruning simulation} strategy can apply the same pruning described above to simulation, such that a move is randomly chosen from among the non-pruned children. Alternatively, a {\it best move simulation} can be applied, in which all children are evaluated with the state heuristic, and the highest-scoring child is taken as the choice in simulation. The trade-off of these approaches, of course, is that they are more computationally-intensive, and thus fewer iterations of the MCTS process can be completed in a given time period. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments and Analysis}
 
-The modifications to the core MCTS algorithm described in the previous section are evaluated experimentally here. We begin with a discussion of the exploration-exploitation tradeoff, followed by the use of domain knowledge in both simulation and selection.
+The modifications to the core MCTS algorithm described in the previous section are evaluated experimentally here. We begin with a discussion of the exploration-exploitation trade-off, followed by the use of domain knowledge in both simulation and selection.
 
 %-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-\subsection{The Exploration--Exploitation Tradeoff}
+\subsection{The Exploration--Exploitation Trade-off}
 Recall from equation (\ref{eq:UCT}) that MCTS with UCT attempts to balance the exploitation of relatively effective paths with the exploration of lesser-known paths. This balance is controlled via the constant $C_p$, where a higher value means a stronger emphasis on exploration. As discussed previously, ~\cite{kocsis2006improved} suggest that $C_p=1 / \sqrt{2}$ is ideal when rewards range in $[0,1]$. 
 
 In some games, a reward range in $[0,1]$ is straightforward. For example, 0 could mean a loss, and 1 a win, or maximum and minimum possible scores could be translated to 0 and 1, respectively, in effect ``squashing'' the scores to $[0,1]$.
@@ -325,7 +325,7 @@ The data also show that the cost of adding calculations to selection is around j
 
 The state-evaluation heuristic can be used to create alternatives to random simulation. One such alternative, {\it prune + random} simulation, randomly selects each move not from the complete set of possible moves, but rather from a smaller set of nodes after pruning those scored beneath a threshold. The pruning technique used is the same as that previously described for selection. Another option is {\it best move} simulation, in which the highest-scoring move is always chosen.
 
-Rows (1), (3), (5), and (6) of Table~\ref{tbl:SelSim} show the relevant results for these simulation experiments. Note prune + random simulation's mean score of 95 (row (5)) shows some improvement over the 92 of standard MCTS (row (1)). This is more striking when considering that prune + random's 95 actually overcame the drop down to 80 of the added heuristic calculation cost (row (3)).
+Rows (1), (3), (5), and (6) of Table~\ref{tbl:SelSim} show the relevant results for these simulation experiments. Note prune + random simulation's mean score of 95 (row (5)) shows some improvement over the 92 of standard MCTS (row (1)). This is more striking when considering that Prune + Random's 95 actually overcame the drop down to 80 of the added heuristic calculation cost (row (3)).
 
 Even more impressive, however, are the gains for best move simulation (row (6)). This approach earned a mean score of 112, significantly higher than the calculation deficit score of 80 (row (3)) and the standard MCTS score of 92 (row (1)). This demonstrates that, despite the added cost of the heuristic calculations, they are quite worthwhile in a best move simulation strategy.
 
@@ -358,7 +358,7 @@ This next set of experiments considers the application of the state heuristic to
 
 Consider again Table~\ref{tbl:SelSim}. Row (7) shows that with a score of 72, best move selection is highly ineffective, scoring even worse than row (2) in which the calculations are performed but not applied. This is not surprising, since such a drastic approach severely limits the number of nodes available for exploration. While best move {\it simulation} is a useful limitation in contrast to {\it random} simulation, the more principled exploration of {\it selection} with {\it UCT} should not be so severely restricted by a best move approach.
 
-With a mean score of 91 (row (8)), prune + UCT selection shows little improvement over the non-application of the calculations (90 in row (2)) and a slight loss compared to standard MCTS (92 in row (1)). However, it is also interesting to consider rows (6) and (9). Using best move simulation instead of random simulation, there is a 1 point increase, rather than descrease, in using prune + UCT selection. Taken together, these results lead us to conclude that the application of prune + UCT as defined here is a wash -- the benefit is approximately equivalent to the cost. We will return to this issue and show slight improvement with a more tuned prune + UCT in the final set of experiments.
+With a mean score of 91 (row (8)), prune + UCT selection shows little improvement over the non-application of the calculations (90 in row (2)) and a slight loss compared to standard MCTS (92 in row (1)). However, it is also interesting to consider rows (6) and (9). Using best move simulation instead of random simulation, there is a 1 point increase, rather than decrease, in using prune + UCT selection. Taken together, these results lead us to conclude that the application of prune + UCT as defined here is a wash -- the benefit is approximately equivalent to the cost. We will return to this issue and show slight improvement with a more tuned prune + UCT in the final set of experiments.
 
 %\begin{table}
 %\captionof{table}{Effect of Domain Knowledge on Selection}
