@@ -39,7 +39,7 @@ package def;
  * might be X_X_O____O where the first 9 chars indicate values for
  * spaces and the 10th indicates whose turn it is.
  */
-public class xMCTSStringGameState implements xMCTSGameState
+public class xMCTSStringGameState
 {
 
    private String state;

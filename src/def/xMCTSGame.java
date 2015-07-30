@@ -68,7 +68,7 @@ public interface xMCTSGame
     * @param state The state to check the status of.
     * @return The status of the game.
     */
-   public status gameStatus(xMCTSGameState state);
+   public status gameStatus(xMCTSStringGameState state);
 
    /**
     * Gets the starting state of the game

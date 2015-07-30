@@ -112,7 +112,7 @@ public abstract class xMCTSPruningNode {
 	    * @param s is the state to be searched for.
 	    * @return matching node if found, null otherwise.
 	    */
-	   public xMCTSPruningNode findChildNode(xMCTSGameState s)
+	   public xMCTSPruningNode findChildNode(xMCTSStringGameState s)
 	   {
 	      for (xMCTSPruningNode x : nextMoves) {
 	         if (x.getState().equals(s)) {

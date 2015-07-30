@@ -351,7 +351,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
     * @param state the state being examined for completion
     * @return the status of this game, either ongoing or ended
     */
-   public status gameStatus(xMCTSGameState state)
+   public status gameStatus(xMCTSStringGameState state)
    {
       String s = state.toString().substring(0, state.toString().length() - 2);
       if (!s.contains("_")) {
