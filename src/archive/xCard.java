@@ -1,8 +1,8 @@
-package def;
-import xCard;
 
 import java.util.Arrays;
 import java.util.HashMap;
+
+import def.xCard;
 
 /**
  * Card - Playing card class representing all 52 cards of a French deck.

@@ -1,7 +1,4 @@
-package def;
 
-import xMCTSChanceNode;
-import xMCTSNode;
 
 /**
  * Copyright (c) 2012 Kyle Hughart
@@ -43,7 +40,12 @@ import xMCTSNode;
  */
 import java.util.ArrayList;
 
-public class xMCTSChoiceNode extends xMCTSNode
+import def.Card;
+import def.wMCTSChanceNode;
+import def.wMCTSNode;
+import def.xMCTSStringGameState;
+
+public class wMCTSChoiceNode extends wMCTSNode
 {
 
    /**
@@ -51,7 +53,7 @@ public class xMCTSChoiceNode extends xMCTSNode
     *
     * @param nodeGameState The GameState this node will keep score for.
     */
-   public xMCTSChoiceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant)
+   public wMCTSChoiceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant)
    {
 	   super(nodeGameState, nodeDeck, verbosity, constant);
    }
@@ -70,11 +72,11 @@ public class xMCTSChoiceNode extends xMCTSNode
       if (!expanded)
       {
          expanded = true;
-         //nextMoves = new ArrayList<xMCTSChanceNode>();
+         //nextMoves = new ArrayList<wMCTSChanceNode>();
          Card[] deckCopy = java.util.Arrays.copyOf(nodeDeck, nodeDeck.length);
-         nextMoves = new ArrayList<xMCTSNode>();
+         nextMoves = new ArrayList<wMCTSNode>();
          for (xMCTSStringGameState s : possibleMoves) {
-            nextMoves.add(new xMCTSChanceNode(s, deckCopy, verbosity, constant));
+            nextMoves.add(new wMCTSChanceNode(s, deckCopy, verbosity, constant));
          }
       }
    }
@@ -91,42 +93,44 @@ public class xMCTSChoiceNode extends xMCTSNode
     * contains this node.
     * @return The best selection from this node.
     */
-   public xMCTSNode bestSelection(boolean myTurn, String tab)
+   public wMCTSNode bestSelection(boolean myTurn, String tab)
    {
       //the randomizer is a tiny random number added for tie-breaking
 	  if (verbosity > 2)
 		  System.out.println(tab + "Choice bestSelection");
 	  
-      float bias, randomizer;
+      float bias;
       float max = -Float.MAX_VALUE;
-      int maxIndex = 0;
       float C = constant;
       if (verbosity > 2)
     	  System.out.println(tab + "Current's times visited: " + this.getTimesVisited() +  " Current's score: " + this.getScore());
       
+      ArrayList<wMCTSNode> bestPlays = new ArrayList<wMCTSNode>();
       for (int i = 0; i < nextMoves.size(); i++) {
-         xMCTSNode curChild = nextMoves.get(i);
+         wMCTSNode curChild = nextMoves.get(i);
          if (verbosity > 2)
         	 System.out.println(tab + "This child is node " + curChild.toString() + 
        		  "\n" + tab + "This child's times visited: " + curChild.getTimesVisited() + " This child's score: " + curChild.getScore());
          
          float nodeScore = (float) curChild.getScore() / ((float) (curChild.getTimesVisited() + Float.MIN_VALUE));
          bias = 2 * C * (float) (Math.sqrt(Math.log((float) this.getTimesVisited()) / ((float) curChild.getTimesVisited() + Float.MIN_VALUE)));
-         randomizer = Float.MIN_VALUE * r.nextInt(nextMoves.size() * nextMoves.size());
-         float biasedScore = nodeScore + randomizer + (bias);
+         float biasedScore = nodeScore + (bias);
          if (verbosity > 2)
         	 System.out.println(tab + "This child has a UCT value of " + biasedScore + "\n");
-         
-         if (biasedScore > max) {
-            max = biasedScore;
-            maxIndex = i;
+         if (biasedScore >= max) {
+        	 if (biasedScore > max) {
+        		 bestPlays.clear();
+        		 max = biasedScore;
+        	 }
+        	 bestPlays.add(nextMoves.get(i));
          }
       }
+      wMCTSNode chosenPlay = bestPlays.get(r.nextInt(bestPlays.size()));
       if (verbosity > 2) {
-    	System.out.println(tab + "Choice selected node: " + nextMoves.get(maxIndex));
-      	System.out.println(tab + "Node " + nextMoves.get(maxIndex).toString() + " was selected from bestSelection");
+    	System.out.println(tab + "Choice selected node: " + chosenPlay);
+      	System.out.println(tab + "Node " + chosenPlay.toString() + " was selected from bestSelection");
       }
-      return nextMoves.get(maxIndex);
+      return chosenPlay;
    }
    
 
@@ -135,13 +139,13 @@ public class xMCTSChoiceNode extends xMCTSNode
     *
     * @return the best available move (node) following this node.
     */
-   public xMCTSNode bestMove()
+   public wMCTSNode bestMove()
    {
       float max = -Float.MAX_VALUE;
       int maxIndex = r.nextInt(nextMoves.size());
       float randomizer;
       for (int i = 0; i < nextMoves.size(); i++) {
-         xMCTSNode node = nextMoves.get(i);
+         wMCTSNode node = nextMoves.get(i);
          float nodeScore = (float) node.getScore() / ((float) (node.getTimesVisited() + Float.MIN_VALUE));
          randomizer = Float.MIN_VALUE * r.nextInt(nextMoves.size() * nextMoves.size());
          if (nodeScore + randomizer > max) {

@@ -1,5 +1,8 @@
 package def;
 
+import wMCTSChoiceNode;
+import wMCTSNode;
+
 /**
  * Copyright (c) 2012 Kyle Hughart
  *

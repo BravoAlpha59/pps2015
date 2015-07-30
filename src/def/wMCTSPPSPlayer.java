@@ -1,4 +1,8 @@
 package def;
+import wMCTSChanceNode;
+import wMCTSNode;
+import xMCTSPPSGame;
+
 import java.util.Random;
 import java.util.concurrent.atomic.*;
 

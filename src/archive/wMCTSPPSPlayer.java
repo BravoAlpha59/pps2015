@@ -1,10 +1,16 @@
-package def;
-import xMCTSChanceNode;
-import xMCTSNode;
-import xMCTSPPSGame;
 
 import java.util.Random;
+import java.util.concurrent.atomic.*;
 
+import def.Card;
+import def.PokerSquaresPlayer;
+import def.PokerSquaresPointSystem;
+import def.wMCTSChanceNode;
+import def.wMCTSNode;
+import def.xMCTSGame;
+import def.xMCTSPPSGame;
+import def.xMCTSStringGameState;
+import def.xMCTSGame.status;
 
 /**
  * Copyright (c) 2012 Kyle Hughart
@@ -39,18 +45,18 @@ import java.util.Random;
  * The Netherlands.
  */
 /**
- * MCTSPlayer is an implementation of Player that makes moves using UCT (A Monte
- * Carlo Tree Search that uses an Upper Confidence Bounds formula).
+ * wMCTS player is almost identical to xMCTS player, however it holds theoretical improvements to 
+ * functionality that we can use to test against the code as it currently stands
  *
- * @author Kyle
+ *Currently testing: multithreading with each thread running on the same root node
  */
-public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
+public abstract class wMCTSPPSPlayer implements PokerSquaresPlayer
 {
 
   protected xMCTSGame g;
   protected boolean player1;
    protected xMCTSStringGameState currentState;
-   private xMCTSNode curNode;
+   private wMCTSNode curNode;
    
    //fields added from GreedyMCPlayer
    private final int SIZE = 5; // number of rows/columns in square grid
@@ -69,8 +75,8 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
    protected int verbosity; //Verbosity level of output. 0 is no output, 1 is select/expand/simulate/backpropogate, 2 is decision and trial statistics,
    								//3 is node statistics, 4 is simulation, 5 looks at card decks and draws
    protected float C; //constant used in the UCT formula
-   protected long totalTrials = 0;
    protected long totalSingleGameTrials;
+   protected long totalTrials = 0;
    
    
    /**
@@ -78,7 +84,7 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
     *
     * @return the current state of the game.
     */
-   public xMCTSGameState getCurrentState()
+   public xMCTSStringGameState getCurrentState()
    {
       return currentState;
    }
@@ -91,7 +97,7 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
     * @param thinkTime How many milliseconds this player is allowed to think per
     * turn (Longer think time yields better simulations.
     */
-   public xMCTSPPSPlayer()
+   public wMCTSPPSPlayer()
    {
 	  this.verbosity = 0;
       init();
@@ -102,6 +108,8 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
    {
       if (curNode.isLeaf()) {
          curNode.expand(g.getPossibleMoves(curNode.getState()), "", true);
+      }
+      for (int i = 0; i < curNode.nextMoves.size(); i++) {
       }
       try {
     	  curNode = curNode.findChildNode(s);
@@ -125,14 +133,14 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
 	   //     That ChoiceNode has a cardDeck which is java.util.copyOf(simDeck, simDeck.length) 
 	   // Then we do MCTS with that ChoiceNode at the root.
 	   // Return the desired move.
-	 int getPlayTrials = 0;
 	 if (verbosity > 1) {
 		 System.out.println("Starting getPlay with card: " + card.toString());
 	 	 System.out.println("numPlays = " + numPlays);
-	 	 System.out.println("curNode at the beginning of getPlay = " + curNode.toString());
-	 	 System.out.println("time remaining = " + millisRemaining);
      }
-	 
+	 int parentTrials = 0;
+	 AtomicInteger aTrials = new AtomicInteger(0);
+     AtomicInteger bTrials = new AtomicInteger(0);
+     AtomicInteger cTrials = new AtomicInteger(0); 
 	// match simDeck to actual play event; in this way, all indices forward from the card contain a list of
 	  	int cardIndex = numPlays;
 		 while (!card.equals(gameDeck[cardIndex]))
@@ -144,111 +152,81 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
 	 String activeState = currentState.toString().substring(0, currentState.toString().length() - 2);
 	 activeState += card.toString();
 	 //Change from chance node to choice node
-  	 updateGameState(new xMCTSStringGameState(activeState, 0.0, 0));
+  	 updateGameState(new xMCTSStringGameState(activeState, 0.0, numPlays));
 	
   	if (numPlays == 0)
 		curNode.expand(g.getPossibleMoves(curNode.getState()), "", false);
-  	
-  	else if (numPlays < 24) {
+  	 
+	if (numPlays < 24) {
 		int remainingPlays = NUM_POS - numPlays; // ignores triviality of last play to keep a conservative margin for game completion
 		long millisPerPlay = millisRemaining / remainingPlays; // dividing time evenly with future getPlay() calls
 		final long startTime = System.currentTimeMillis();
 		long endTime = startTime + millisPerPlay;
-//      Thread a = new Thread(){
-//         @Override
-//        public void run()
-//        {
-//           int extraTrials = 0;
-//            while (System.currentTimeMillis() < endTime) //(trials < 4000)
-//            {
-//               runTrial(curNode, true);
-//               extraTrials++;
-//            }           
-//            System.out.println("Thread a Ran " + extraTrials + " trials in " + (System.currentTimeMillis() - startTime)  + "ms.");
-//        }
-//      };
-//      a.start();
-//      
-//      
-//      Thread b = new Thread(){
-//         @Override
-//        public void run()
-//        {
-//           int extraTrials = 0;
-//            while (System.currentTimeMillis() < endTime) //(trials < 4000)
-//            {
-//               runTrial(curNode, true);
-//               extraTrials++;
-//            }           
-//            System.out.println("Thread b Ran " + extraTrials + " trials in " + (System.currentTimeMillis() - startTime)  + "ms.");
-//        }
-//      };
-//      b.start();
-//      
-//      Thread c = new Thread(){
-//         @Override
-//        public void run()
-//        {
-//           int extraTrials = 0;
-//            while (System.currentTimeMilstatelis() < endTime) //(trials < 4000)
-//            {
-//               runTrial(curNode, true);
-//               extraTrials++;
-//            }           
-//            System.out.println("Thread c Ran " + extraTrials + " trials in " + (System.currentTimeMillis() - startTime)  + "ms.");
-//        }
-//      };
-//      c.start();    
-      
-      
-		while (System.currentTimeMillis() < endTime) //|| a.isAlive() || b.isAlive() || c.isAlive()) //(trials < 4000)
-		{
-			if (verbosity > 1) 
-				System.out.println("Running trial with node " + curNode.toString());
+		
+      Thread a = new Thread(){
+         @Override
+        public void run()
+        {
 
-			runTrial(curNode, true, 0);
-			getPlayTrials++;
-		} 
-  	} 
-//  	else if (numPlays == 23 ){//so late in the game that the tree is almost fully expanded already, fully expand it
-//  		float grandChildScoreMean;
-////  		float childScoreMean = 0;
-//  		System.out.println("curNode at the beginning of the full-expand = " + curNode.toString());
-//		curNode.expand(g.getPossibleMoves(curNode.getState()), "", false); //start by ensuring curNode is expanded
-//		for (xMCTSNode child : curNode.nextMoves) {//for each child of curNode (curNode should be a choice node, so its children should be chance nodes)
-//			System.out.println("This child = " + child.toString());
-//			child.expand(g.getPossibleMoves(child.getState()), "", false);//ensure all children of curNode are expanded
-//			grandChildScoreMean = 0;
-//			xMCTSNode greatGrandChild;
-//			for (xMCTSNode grandChild : child.nextMoves) {//for each grandChild of curNode (should once again be choice nodes)
-//				grandChild.expand(g.getPossibleMoves(grandChild.getState()), "", false);
-//				System.out.println("This grandChild = " + grandChild.toString());
-//				greatGrandChild = grandChild.nextMoves.get(0); //There should only be one child for each grandChild of curNode - the last remaining possible move
-//				for (int i = 0; i < 5; i++) {
-//		            for (int j = 0; j < 5; j++) {
-//		            	int pos = i * 10 + j * 2;
-//		            	String temp = greatGrandChild.toString().substring(pos, pos + 2);
-//		            	grid[i][j] = Card.getCard(temp);
-//		            }
-//	    	  }
-//	        	 
-//	    	 float score = pointSystem.getScore(grid); //set up a grid based on this string representation of a game board
-//	    	 greatGrandChild.setScore(score);//set the score of this greatGrandChild equal to its actual game score
-//			 grandChild.setScore(score); //set the score of this grandChild equal to its only child's game score
-//			 grandChildScoreMean += score; //collect all the scores of the children of this child of curNode so they can be averaged
-//			}
-//			grandChildScoreMean /= child.nextMoves.size(); //average the scores of all of the children of this child of curNode
-//			child.setScore(grandChildScoreMean); //this child of curNode's score is the average of all of its grandchildren's scores
-////			childScoreMean += grandChildScoreMean;
-//		}
-////		childScoreMean /= curNode.nextMoves.size(); //could set curNode's score equal to the average of all of its children, but may not need to as you're no longer looking at its score to make decisions
-////		curNode.setScore(childScoreMean);
-//  	}
-   
+            while (System.currentTimeMillis() < endTime) //(trials < 4000)
+            {
+               runTrial(curNode, true, 0);
+               aTrials.getAndIncrement();
+            }           
+            if (verbosity > 1)
+            	System.out.println("Thread a Ran " + aTrials + " trials in " + (System.currentTimeMillis() - startTime)  + "ms.");
+            
+        }
+      };
+      a.start();
+      
+      Thread b = new Thread(){
+         @Override
+        public void run()
+        {
+            while (System.currentTimeMillis() < endTime) //(trials < 4000)
+            {
+               runTrial(curNode, true, 0);
+                 bTrials.getAndIncrement();
+            }           
+            if (verbosity > 1)
+            	System.out.println("Thread b Ran " + bTrials + " trials in " + (System.currentTimeMillis() - startTime)  + "ms.");
+            
+        }
+      };
+      b.start();
+      
+      Thread c = new Thread(){
+         @Override
+        public void run()
+        {
+            while (System.currentTimeMillis() < endTime) //(trials < 4000)
+            {
+               runTrial(curNode, true, 0);
+               cTrials.getAndIncrement();
+            }  
+            if (verbosity > 1)
+            	System.out.println("Thread c Ran " + cTrials + " trials in " + (System.currentTimeMillis() - startTime)  + "ms.");
+            
+        }
+      };
+      c.start();    
+      
+      
+      while (System.currentTimeMillis() < endTime || a.isAlive() || b.isAlive() || c.isAlive()) //(trials < 4000)
+      {
+    	 if (verbosity > 1) 
+    		 System.out.println("Running trial with node " + curNode.toString());
+    	 
+         runTrial(curNode, true, 0);
+         parentTrials++;
+      }
+      if (verbosity > 1)
+    	  System.out.println("Parent ran " + parentTrials + " trials in " + (System.currentTimeMillis() - startTime) + "ms.");
+	  }
 	  
       if (g.gameStatus(currentState) == xMCTSGame.status.ONGOING) {
-    	 //System.out.println("Looking for curNode's best move");
-         xMCTSNode best = curNode.bestMove();
+         wMCTSNode best = curNode.bestMove();
          currentState = best.getState();
          curNode = best;
       }
@@ -260,8 +238,10 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
     	  System.out.println("Done thinking. Chosen Row: " + temp[0] + " Column: " + temp[1]);
       }
       
-      //System.out.println("trials for this call to getPlay = " + getPlayTrials);
-      totalSingleGameTrials += getPlayTrials;
+      totalSingleGameTrials += parentTrials;
+      totalSingleGameTrials += aTrials.intValue();
+      totalSingleGameTrials += bTrials.intValue();
+      totalSingleGameTrials += cTrials.intValue();
       if (numPlays == 25) {
     	  System.out.println("Total trials this game: " + totalSingleGameTrials);
       	  totalTrials += totalSingleGameTrials;
@@ -284,7 +264,7 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
     * @param myTurn Whether it is this players turn or not.
     * @return The status of the trial.
     */
-   private float runTrial(xMCTSNode node, boolean myTurn, int level)
+   private float runTrial(wMCTSNode node, boolean myTurn, int level)
    {
 	  String tab = "";
 	  for (int i = 0; i < level; i++) {
@@ -360,8 +340,8 @@ public abstract class xMCTSPPSPlayer implements PokerSquaresPlayer
 	      currentState = g.getStartingState();
 	      //gameTree = new MCTSNode(curState);
 	      //curNode = gameTree;
-	      curNode = new xMCTSChanceNode(currentState, java.util.Arrays.copyOf(gameDeck, gameDeck.length), verbosity, C);
-	    totalSingleGameTrials = 0;
+	      curNode = new wMCTSChanceNode(currentState, java.util.Arrays.copyOf(gameDeck, gameDeck.length), verbosity, C);
+	      totalSingleGameTrials = 0;
 	}
 	
 	/**

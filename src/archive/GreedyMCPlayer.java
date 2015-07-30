@@ -1,8 +1,12 @@
-package def;
-import GreedyMCPlayer;
 
 import java.util.ArrayList;
 import java.util.Random;
+
+import def.Card;
+import def.GreedyMCPlayer;
+import def.PokerSquares;
+import def.PokerSquaresPlayer;
+import def.PokerSquaresPointSystem;
 
 /**
  * GreedyMCPlayer - a simple, greedy Monte Carlo implementation of the player interface for PokerSquares.

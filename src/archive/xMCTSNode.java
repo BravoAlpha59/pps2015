@@ -1,16 +1,19 @@
-package def;
-import wMCTSNode;
-import xMCTSPPSGame;
 
 import java.util.ArrayList;
 import java.util.Random;
 
+import def.Card;
+import def.xMCTSGameState;
+import def.xMCTSNode;
+import def.xMCTSStringGameState;
 
-public abstract class wMCTSNode {
 
+public abstract class xMCTSNode {
+
+	
 	//public ArrayList<? extends xMCTSNode> nextMoves;
-	public ArrayList<wMCTSNode> nextMoves;
-	public xMCTSStringGameState nodeGameState;
+	public ArrayList<xMCTSNode> nextMoves;
+	protected xMCTSStringGameState nodeGameState;
 	protected int timesVisited;
 	protected float score;
 	protected final Random r;
@@ -19,7 +22,7 @@ public abstract class wMCTSNode {
 	protected int verbosity;
 	protected float constant;
 	   
-	public wMCTSNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant)
+	public xMCTSNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, int verbosity, float constant)
 	   {
 	      this.nodeGameState = nodeGameState;
 	      this.nodeDeck = nodeDeck;
@@ -34,7 +37,7 @@ public abstract class wMCTSNode {
 	public abstract void expand(ArrayList<xMCTSStringGameState> possibleMoves, String tab, boolean print); //Have expand take a game instead? then it can create its own arrayList using the game
 	
 	
-	public abstract wMCTSNode bestSelection(boolean myTurn, String tab);
+	public abstract xMCTSNode bestSelection(boolean myTurn, String tab);
 	
 	/**
 	    * Returns the number of times this node has been visited.
@@ -46,7 +49,7 @@ public abstract class wMCTSNode {
 	      return timesVisited;
 	   }
 	
-	public abstract wMCTSNode bestMove();
+	public abstract xMCTSNode bestMove();
 	
 	   /**
 	    * Gets the GameState for this node.
@@ -97,14 +100,9 @@ public abstract class wMCTSNode {
 	    * @param s is the state to be searched for.
 	    * @return matching node if found, null otherwise.
 	    */
-	   public wMCTSNode findChildNode(xMCTSStringGameState s)
+	   public xMCTSNode findChildNode(xMCTSGameState s)
 	   {
-		  if (!expanded) {
-			  xMCTSGame g = new xMCTSPPSGame();
-			  expand(g.getPossibleMoves(s), "", false);
-		  }
-		  
-	      for (wMCTSNode x : nextMoves) {
+	      for (xMCTSNode x : nextMoves) {
 	         if (x.getState().equals(s)) {
 	            return x;
 	         }
@@ -127,7 +125,7 @@ public abstract class wMCTSNode {
 	    *
 	    * @return a random child node of this node.
 	    */
-	   public wMCTSNode getRandomChild()
+	   public xMCTSNode getRandomChild()
 	   {
 	      int rand = r.nextInt(nextMoves.size());
 	      return nextMoves.get(rand);

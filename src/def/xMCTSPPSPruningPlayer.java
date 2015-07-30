@@ -1,4 +1,6 @@
 package def;
+import xCard;
+
 import java.util.ArrayList;
 import java.util.Random;
 

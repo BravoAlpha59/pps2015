@@ -1,9 +1,12 @@
-package def;
-import wMCTSNode;
-import xMCTSPPSGame;
 
 import java.util.ArrayList;
 import java.util.Random;
+
+import def.Card;
+import def.wMCTSNode;
+import def.xMCTSGame;
+import def.xMCTSPPSGame;
+import def.xMCTSStringGameState;
 
 
 public abstract class wMCTSNode {

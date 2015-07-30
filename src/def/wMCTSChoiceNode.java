@@ -1,5 +1,8 @@
 package def;
 
+import wMCTSChanceNode;
+import wMCTSNode;
+
 /**
  * Copyright (c) 2012 Kyle Hughart
  *

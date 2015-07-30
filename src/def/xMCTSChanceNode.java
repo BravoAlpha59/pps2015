@@ -1,5 +1,8 @@
 package def;
 
+import xMCTSChoiceNode;
+import xMCTSNode;
+
 /**
  * Copyright (c) 2012 Kyle Hughart
  *

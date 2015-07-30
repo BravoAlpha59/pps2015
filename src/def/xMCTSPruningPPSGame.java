@@ -1,5 +1,7 @@
 package def;
 
+import xCard;
+
 /**
  * Copyright (c) 2012 Kyle Hughart
  *

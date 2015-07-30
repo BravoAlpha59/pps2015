@@ -1,7 +1,4 @@
-package def;
 
-import xMCTSChanceNode;
-import xMCTSNode;
 
 /**
  * Copyright (c) 2012 Kyle Hughart
@@ -42,6 +39,11 @@ import xMCTSNode;
  * @author Kyle
  */
 import java.util.ArrayList;
+
+import def.Card;
+import def.xMCTSChanceNode;
+import def.xMCTSNode;
+import def.xMCTSStringGameState;
 
 public class xMCTSChoiceNode extends xMCTSNode
 {

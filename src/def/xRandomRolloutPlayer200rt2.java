@@ -39,6 +39,8 @@ package def;
  *
  * @author Kyle
  */
+import xMCTSPPSPlayer;
+
 import java.util.ArrayList;
 import java.util.Random;
 
