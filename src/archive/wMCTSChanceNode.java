@@ -1,4 +1,4 @@
-package def;
+
 
 /**
  * Copyright (c) 2012 Kyle Hughart
@@ -39,6 +39,9 @@ package def;
  * @author Kyle
  */
 import java.util.ArrayList;
+
+import def.Card;
+import def.xMCTSStringGameState;
 
 public class wMCTSChanceNode extends wMCTSNode
 {

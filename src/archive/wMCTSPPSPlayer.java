@@ -1,6 +1,13 @@
-package def;
+
 import java.util.Random;
 import java.util.concurrent.atomic.*;
+
+import def.Card;
+import def.PokerSquaresPlayer;
+import def.PokerSquaresPointSystem;
+import def.xMCTSGame;
+import def.xMCTSStringGameState;
+import def.xMCTSGame.status;
 
 /**
  * Copyright (c) 2012 Kyle Hughart

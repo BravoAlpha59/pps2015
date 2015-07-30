@@ -1,6 +1,10 @@
-package def;
+
 import java.util.ArrayList;
 import java.util.Random;
+
+import def.Card;
+import def.xMCTSGame;
+import def.xMCTSStringGameState;
 
 
 public abstract class wMCTSNode {

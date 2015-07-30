@@ -1,6 +1,11 @@
-package def;
+
 import java.util.Collections;
 import java.util.Stack;
+
+import def.Card;
+import def.PokerSquares;
+import def.PokerSquaresPlayer;
+import def.PokerSquaresPointSystem;
 
 /**
  * RandomPlayer - a simple example implementation of the player interface for PokerSquares that 

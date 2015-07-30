@@ -1,5 +1,6 @@
 package def;
 
+
 /**
  * Copyright (c) 2012 Kyle Hughart
  *
@@ -614,8 +615,8 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 			// cards within 5 ranks and handling ace as low card	
 			// face cards
-			if (rank > xCard.NUM_RANKS - 5) {
-				for(int i = rank; i < xCard.NUM_RANKS ; i++){
+			if (rank > Card.NUM_RANKS - 5) {
+				for(int i = rank; i < Card.NUM_RANKS ; i++){
 					if (rankCounts[i] > 1){
 						hasStraight = false;
 						break;
@@ -624,7 +625,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			}
 
 			else { // check beginning 5 higher than rank for any card
-				for(int i = rank + 5; i < xCard.NUM_RANKS ; i++){
+				for(int i = rank + 5; i < Card.NUM_RANKS ; i++){
 					if (rankCounts[i] > 0){
 						hasStraight = false;
 						break;
@@ -728,14 +729,14 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			// Royal flush with or without already having ace but since the required
 			// it limits the search space since only only one card is needed to make hand
 			if (possibleHands[PokerHand.ROYAL_FLUSH.id]) {
-				for (int i = 9; i < xCard.NUM_RANKS; i++) {
+				for (int i = 9; i < Card.NUM_RANKS; i++) {
 					if (rankCounts[i] == 0) { 
 						rankIndex = i;
 						break;
 					}
 				}
 				suitIndex = findSuitIndex(suitCounts);
-				if (canDraw[rankIndex + (suitIndex * xCard.NUM_RANKS)])
+				if (canDraw[rankIndex + (suitIndex * Card.NUM_RANKS)])
 					handProbs[PokerHand.ROYAL_FLUSH.id] = calcProbability(numPlays, 1);
 
 			}
@@ -754,9 +755,9 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					// Ace high
 					if (rankCounts[xCard.ACE] > 0 && maxRank > xCard.NINE) { //have an ACE and maxRank is greater than 9: ace-high straight
 						//Search through indexes 9-12. Search through all the suits of the rank of the card you're missing. Any that can still be drawn are added
-						for (int i = xCard.TEN; i < xCard.NUM_RANKS; i++) {
+						for (int i = xCard.TEN; i < Card.NUM_RANKS; i++) {
 							if (rankCounts[i] == 0) {
-								if (canDraw[i + (suitIndex * xCard.NUM_RANKS)])
+								if (canDraw[i + (suitIndex * Card.NUM_RANKS)])
 									numPossibleCards++;
 								break;
 							}
@@ -767,7 +768,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						// calculate probability of the one missing card
 						for (int i = rank; i < rank + 4; i++) { // not <= because we know we have the last card (this is an inside straight)
 							if (rankCounts[i] == 0) { 
-								if (canDraw[i + (suitIndex * xCard.NUM_RANKS)])
+								if (canDraw[i + (suitIndex * Card.NUM_RANKS)])
 									numPossibleCards++;
 								break;
 							}
@@ -777,21 +778,21 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					else { // outside straight 
 						// if have a King high straight look for Ace and 9
 						if (maxRank == xCard.KING){
-							if (canDraw[xCard.ACE + (suitIndex* xCard.NUM_RANKS)])
+							if (canDraw[xCard.ACE + (suitIndex* Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[xCard.NINE + (suitIndex * xCard.NUM_RANKS)])
+							if (canDraw[xCard.NINE + (suitIndex * Card.NUM_RANKS)])
 								numPossibleCards++;
 						}
 						else if (rank == xCard.ACE) {
-							if (canDraw[xCard.FIVE + (suitIndex * xCard.NUM_RANKS)])
+							if (canDraw[xCard.FIVE + (suitIndex * Card.NUM_RANKS)])
 								numPossibleCards++;
 						}
 						else {	// find the cards needed for outside straight
-							if (canDraw[rank - 1 + (suitIndex * xCard.NUM_RANKS)])
+							if (canDraw[rank - 1 + (suitIndex * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rank + 4 + (suitIndex * xCard.NUM_RANKS)])
+							if (canDraw[rank + 4 + (suitIndex * Card.NUM_RANKS)])
 								numPossibleCards++;
 						}
 					}
@@ -826,22 +827,22 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					for (Card toFind : hand) {
 						if (toFind != null) {
 							if (toFind.getRank() == rankIndex) {
-								if (canDraw[rankIndex + (xCard.HEART * xCard.NUM_RANKS)]) {
+								if (canDraw[rankIndex + (xCard.HEART * Card.NUM_RANKS)]) {
 									numPossibleCards++;
 									break;
 								}
 								
-								else if (canDraw[rankIndex + (xCard.SPADE * xCard.NUM_RANKS)]) {
+								else if (canDraw[rankIndex + (xCard.SPADE * Card.NUM_RANKS)]) {
 									numPossibleCards++;
 									break;
 								}
 								
-								else if (canDraw[rankIndex + (xCard.CLUB * xCard.NUM_RANKS)]) {
+								else if (canDraw[rankIndex + (xCard.CLUB * Card.NUM_RANKS)]) {
 									numPossibleCards++;
 									break;
 								}
 								
-								else if (canDraw[rankIndex + (xCard.DIAMOND * xCard.NUM_RANKS)]) {
+								else if (canDraw[rankIndex + (xCard.DIAMOND * Card.NUM_RANKS)]) {
 									numPossibleCards++;
 									break;
 								}
@@ -873,16 +874,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 					//Search through the hand for the suit of your single card. When you find it, check if you can draw any 
 					//of them and if you can then add their probabilities, then break.
-					if (canDraw[rankIndex + (xCard.DIAMOND * xCard.NUM_RANKS)])
+					if (canDraw[rankIndex + (xCard.DIAMOND * Card.NUM_RANKS)])
 						numPossibleCards++;
 
-					if (canDraw[rankIndex + (xCard.HEART * xCard.NUM_RANKS)])
+					if (canDraw[rankIndex + (xCard.HEART * Card.NUM_RANKS)])
 						numPossibleCards++;
 
-					if (canDraw[rankIndex + (xCard.SPADE * xCard.NUM_RANKS)])
+					if (canDraw[rankIndex + (xCard.SPADE * Card.NUM_RANKS)])
 						numPossibleCards++;
 
-					if (canDraw[rankIndex + (xCard.CLUB * xCard.NUM_RANKS)])
+					if (canDraw[rankIndex + (xCard.CLUB * Card.NUM_RANKS)])
 						numPossibleCards++;
 				}
 				// numPossibleCards will be as high as 3, if all the other cards of the needed rank are still available.
@@ -898,16 +899,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						if (rankCounts[i] == xCard.TWO_KIND) {
 							rankIndex = i;
 
-										if (canDraw[rankIndex + (xCard.DIAMOND * xCard.NUM_RANKS)])
+										if (canDraw[rankIndex + (xCard.DIAMOND * Card.NUM_RANKS)])
 											numPossibleCards++;
 										
-										if (canDraw[rankIndex + (xCard.HEART * xCard.NUM_RANKS)])
+										if (canDraw[rankIndex + (xCard.HEART * Card.NUM_RANKS)])
 											numPossibleCards++;
 										
-										if (canDraw[rankIndex + (xCard.SPADE * xCard.NUM_RANKS)])
+										if (canDraw[rankIndex + (xCard.SPADE * Card.NUM_RANKS)])
 											numPossibleCards++;
 										
-										if (canDraw[rankIndex + (xCard.CLUB * xCard.NUM_RANKS)])
+										if (canDraw[rankIndex + (xCard.CLUB * Card.NUM_RANKS)])
 											numPossibleCards++;
 									}
 								}
@@ -925,7 +926,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						rankIndex = i;
 
 						//If the card of this rank and suit is still in the deck, add the probability of drawing it
-						if (canDraw[rankIndex + (suitIndex * xCard.NUM_RANKS)])
+						if (canDraw[rankIndex + (suitIndex * Card.NUM_RANKS)])
 							numPossibleCards++;
 					}
 				}
@@ -949,18 +950,18 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				// Ace high
 				if (rankCounts[xCard.ACE] > 0 && maxRank > xCard.NINE) { //have an ACE and maxRank is greater than 9: ace-high straight
 					//Search through indexes 9-12. Search through all the suits of the rank of the card you're missing. Any that can still be drawn are added
-					for (int i = xCard.TEN; i < xCard.NUM_RANKS; i++) {
+					for (int i = xCard.TEN; i < Card.NUM_RANKS; i++) {
 						if (rankCounts[i] == 0) {
-							if (canDraw[i + (xCard.DIAMOND * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.DIAMOND * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[i + (xCard.HEART * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.HEART * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[i + (xCard.SPADE * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.SPADE * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[i + (xCard.CLUB * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.CLUB * Card.NUM_RANKS)])
 								numPossibleCards++;
 							break;
 						}
@@ -971,16 +972,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 					// calculate probability of the one missing card
 					for (int i = rank; i < rank + 4; i++) { // not <= because we know we have the last card (this is an inside straight)
 						if (rankCounts[i] == 0) { 
-							if (canDraw[i + (xCard.DIAMOND * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.DIAMOND * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[i + (xCard.HEART * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.HEART * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[i + (xCard.SPADE * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.SPADE * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[i + (xCard.CLUB * xCard.NUM_RANKS)])
+							if (canDraw[i + (xCard.CLUB * Card.NUM_RANKS)])
 								numPossibleCards++;
 							break;
 						}
@@ -989,66 +990,66 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 				else { // outside straight 
 					// if have a King high straight look for Ace and 9
 					if (maxRank == xCard.KING){
-						if (canDraw[xCard.ACE + (xCard.DIAMOND * xCard.NUM_RANKS)])
+						if (canDraw[xCard.ACE + (xCard.DIAMOND * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.ACE + (xCard.HEART * xCard.NUM_RANKS)])
+						if (canDraw[xCard.ACE + (xCard.HEART * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.ACE + (xCard.SPADE * xCard.NUM_RANKS)])
+						if (canDraw[xCard.ACE + (xCard.SPADE * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.ACE + (xCard.CLUB * xCard.NUM_RANKS)])
+						if (canDraw[xCard.ACE + (xCard.CLUB * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.NINE + (xCard.DIAMOND * xCard.NUM_RANKS)])
+						if (canDraw[xCard.NINE + (xCard.DIAMOND * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.NINE + (xCard.HEART * xCard.NUM_RANKS)])
+						if (canDraw[xCard.NINE + (xCard.HEART * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.NINE + (xCard.SPADE * xCard.NUM_RANKS)])
+						if (canDraw[xCard.NINE + (xCard.SPADE * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.NINE + (xCard.CLUB * xCard.NUM_RANKS)])
+						if (canDraw[xCard.NINE + (xCard.CLUB * Card.NUM_RANKS)])
 							numPossibleCards++;
 					}
 					else if (rank == xCard.ACE) {
-						if (canDraw[xCard.FIVE + (xCard.DIAMOND * xCard.NUM_RANKS)])
+						if (canDraw[xCard.FIVE + (xCard.DIAMOND * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.FIVE + (xCard.HEART * xCard.NUM_RANKS)])
+						if (canDraw[xCard.FIVE + (xCard.HEART * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.FIVE + (xCard.SPADE * xCard.NUM_RANKS)])
+						if (canDraw[xCard.FIVE + (xCard.SPADE * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[xCard.FIVE + (xCard.CLUB * xCard.NUM_RANKS)])
+						if (canDraw[xCard.FIVE + (xCard.CLUB * Card.NUM_RANKS)])
 							numPossibleCards++;
 					}
 					else {	// find the cards needed for outside straight
-						if (canDraw[rank - 1 + (xCard.DIAMOND * xCard.NUM_RANKS)])
+						if (canDraw[rank - 1 + (xCard.DIAMOND * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank - 1 + (xCard.HEART * xCard.NUM_RANKS)])
+						if (canDraw[rank - 1 + (xCard.HEART * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank - 1 + (xCard.SPADE * xCard.NUM_RANKS)])
+						if (canDraw[rank - 1 + (xCard.SPADE * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank - 1 + (xCard.CLUB * xCard.NUM_RANKS)])
+						if (canDraw[rank - 1 + (xCard.CLUB * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank + 4 + (xCard.DIAMOND * xCard.NUM_RANKS)])
+						if (canDraw[rank + 4 + (xCard.DIAMOND * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank + 4 + (xCard.HEART * xCard.NUM_RANKS)])
+						if (canDraw[rank + 4 + (xCard.HEART * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank + 4 + (xCard.SPADE * xCard.NUM_RANKS)])
+						if (canDraw[rank + 4 + (xCard.SPADE * Card.NUM_RANKS)])
 							numPossibleCards++;
 
-						if (canDraw[rank + 4 + (xCard.CLUB * xCard.NUM_RANKS)])
+						if (canDraw[rank + 4 + (xCard.CLUB * Card.NUM_RANKS)])
 							numPossibleCards++;
 					}
 				}
@@ -1073,16 +1074,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						//find your pair, return that rank's index
 						if (rankCounts[i] == xCard.TWO_KIND) {
 							rankIndex = i;
-							if (canDraw[rankIndex + (xCard.DIAMOND * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.DIAMOND * Card.NUM_RANKS)])
 								numPossibleCards++;
 							
-							if (canDraw[rankIndex + (xCard.HEART * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.HEART * Card.NUM_RANKS)])
 								numPossibleCards++;
 							
-							if (canDraw[rankIndex + (xCard.SPADE * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.SPADE * Card.NUM_RANKS)])
 								numPossibleCards++;
 							
-							if (canDraw[rankIndex + (xCard.CLUB * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.CLUB * Card.NUM_RANKS)])
 								numPossibleCards++;
 							break;
 						}
@@ -1106,16 +1107,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 						if (rankCounts[i] == 1) {
 							rankIndex = i;
 							//Search through the hand for the suit of your single card
-							if (canDraw[rankIndex + (xCard.DIAMOND * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.DIAMOND * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rankIndex + (xCard.HEART * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.HEART * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rankIndex + (xCard.SPADE * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.SPADE * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rankIndex + (xCard.CLUB * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.CLUB * Card.NUM_RANKS)])
 								numPossibleCards++;
 						}
 					}
@@ -1140,16 +1141,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 							//Search through the hand for the suit of your single card. When you find it, check if you can draw any 
 							//of the other three and if you can then add their probabilities, then break.
-							if (canDraw[rankIndex + (xCard.DIAMOND * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.DIAMOND * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rankIndex + (xCard.HEART * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.HEART * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rankIndex + (xCard.SPADE * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.SPADE * Card.NUM_RANKS)])
 								numPossibleCards++;
 
-							if (canDraw[rankIndex + (xCard.CLUB * xCard.NUM_RANKS)])
+							if (canDraw[rankIndex + (xCard.CLUB * Card.NUM_RANKS)])
 								numPossibleCards++;
 						}
 					}

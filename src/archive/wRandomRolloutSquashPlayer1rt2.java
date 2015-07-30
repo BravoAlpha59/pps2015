@@ -1,4 +1,4 @@
-package def;
+
 
 /**
  * Copyright (c) 2012 Kyle Hughart
@@ -41,6 +41,12 @@ package def;
  */
 import java.util.ArrayList;
 import java.util.Random;
+
+import def.Card;
+import def.PokerSquaresPointSystem;
+import def.xMCTSGame;
+import def.xMCTSStringGameState;
+import def.xMCTSGame.status;
 
 public class wRandomRolloutSquashPlayer1rt2 extends wMCTSPPSPlayer
 {

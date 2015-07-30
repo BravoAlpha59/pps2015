@@ -39,6 +39,7 @@ package def;
  *
  * @author Kyle
  */
+
 import java.util.Arrays;
 import java.util.Random;
 
@@ -119,7 +120,7 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 	      simDeck[simCard] = simDeck[totalSimPlays];
 		  simDeck[totalSimPlays] = card;
 		  
-		  simCanDraw[card.getRank() + (card.getSuit() * xCard.NUM_RANKS)] = false; //match canDraw to event
+		  simCanDraw[card.getRank() + (card.getSuit() * Card.NUM_RANKS)] = false; //match canDraw to event
 		  
 		  simState = new xMCTSStringGameState(gameState.toString().substring(0, gameState.toString().length() -2) + card.toString(), gameState.expectedValue, totalSimPlays);
       }

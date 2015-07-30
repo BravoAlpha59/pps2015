@@ -1,4 +1,4 @@
-package def;
+
 
 /**
  * Copyright (c) 2012 Kyle Hughart
@@ -38,6 +38,10 @@ package def;
  * @author Kyle
  */
 import java.util.ArrayList;
+
+import def.xMCTSGame;
+import def.xMCTSStringGameState;
+import def.xMCTSGame.status;
 
 public class xMCTSPPSGame implements xMCTSGame
 {
