@@ -39,20 +39,30 @@ package def;
  *
  * @author Kyle
  */
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
 public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 {
 
-   public xRandomRolloutPruningPlayer(float AMERICANC, float AMERITISHC, float BRITISHC, float OTHERC)
+   public xRandomRolloutPruningPlayer(float AMERICANC, float AMERITISHC, float BRITISHC, float HIGHCARDC, float ONEPAIRC, float TWOPAIRC, 
+		  float THREEKINDC, float STRAIGHTC, float FLUSHC, float FULLHOUSEC, float FOURKINDC, float STRAIGHTFLUSHC, float ROYALC, float OTHERC)
    {
       super();
-      //The constant used for UCT calculating
+      //The constants used for UCT calculating. SetPointSystem will determine which C best suits the provided scoring system
       this.AMERICANC = AMERICANC;
       this.AMERITISHC = AMERITISHC;
       this.BRITISHC = BRITISHC;
+      this.HIGHCARDC = HIGHCARDC;
+      this.ONEPAIRC = ONEPAIRC;
+      this.TWOPAIRC = TWOPAIRC;
+      this.THREEKINDC = THREEKINDC;
+      this.STRAIGHTC = STRAIGHTC;
+      this.FLUSHC = FLUSHC;
+      this.FULLHOUSEC = FULLHOUSEC;
+      this.FOURKINDC = FOURKINDC;
+      this.STRAIGHTFLUSHC = STRAIGHTFLUSHC;
+      this.ROYALC = ROYALC;
       this.OTHERC = OTHERC;
    }
 
@@ -128,7 +138,7 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
    public void setPointSystem(PokerSquaresPointSystem pointSystem, long millis) {
 	   this.pointSystem = pointSystem;
 	   g = new xMCTSPruningPPSGame(pointSystem);
-	   //if this is the american point system
+	   //Set the exploration weight depending on the scoring system in use
 	   if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 2, 5, 10, 15, 20, 25, 50, 75, 100})) {
 		   C = AMERICANC;
 	   }
@@ -138,11 +148,69 @@ public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
 	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 1, 3, 6, 12, 5, 10, 16, 30, 30})) {
 		   C = BRITISHC;
 	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {1, 0, 0, 0, 0, 0, 0, 0, 0, 0})) {
+		   C = HIGHCARDC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 1, 0, 0, 0, 0, 0, 0, 0, 0})) {
+		   C = ONEPAIRC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 1, 0, 0, 0, 0, 0, 0, 0})) {
+		   C = TWOPAIRC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 1, 0, 0, 0, 0, 0, 0})) {
+		   C = THREEKINDC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 0, 1, 0, 0, 0, 0, 0})) {
+		   C = STRAIGHTC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 0, 0, 1, 0, 0, 0, 0})) {
+		   C = FLUSHC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 0, 0, 0, 1, 0, 0, 0})) {
+		   C = FULLHOUSEC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 0, 0, 0, 0, 1, 0, 0})) {
+		   C = FOURKINDC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 0, 0, 0, 0, 0, 1, 0})) {
+		   C = STRAIGHTFLUSHC;
+	   }
+	   else if (Arrays.equals(pointSystem.getScoreTable(), new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 1})) {
+		   C = ROYALC;
+	   }
+	   else if (allInRange(pointSystem.getScoreTable())) {
+		   C = HYPERCORNERC;
+	   }
 	   else {
-		   C = OTHERC;
+		   float scoreSum = 0;
+		   for (int i = 0; i < pointSystem.getScoreTable().length; i++) {
+			   scoreSum += (pointSystem.getScoreTable()[i] * g.aprioriProb[i]);
+		   }
+		   C = scoreSum + OTHERC;
 	   }
 	   System.out.println("C value = " + C);
    }
+   
+   /**
+    * checks if a given value is in the range -1 to 1
+    * @param i the value being checked
+    * @return true if i is between -1 and 1, false otherwise
+    */
+   private boolean isInRange(int i) {
+	    return i >= -1 && i <= 1;
+	}
+   
+   /**
+    * check if all values in an array are between -1 and 1
+    * @param arr the array of values being checked
+    * @return true if all values in arr are between -1 and 1, false if any are
+    */
+   private boolean allInRange(int[] arr) {
+	    for (int i = 0; i < arr.length; i ++) {
+	        if (!isInRange(arr[i])) return false;
+	    }
+	    return true;
+	}
    
 	/**
 	 * getName - gets the uniquely identifying name of this Poker Squares player.

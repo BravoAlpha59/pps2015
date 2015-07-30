@@ -66,6 +66,17 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
    protected float AMERICANC; //Cp for the American system
    protected float AMERITISHC; //Cp for the Ameritish system
    protected float BRITISHC; //Cp for the British system
+   protected float HIGHCARDC; //Cp for High Card Single Hand system
+   protected float ONEPAIRC; //Cp for One Pair Single Hand system
+   protected float TWOPAIRC; //Cp for Two Pair Single Hand system
+   protected float THREEKINDC; //Cp for Three Kind Single Hand system
+   protected float STRAIGHTC; //Cp for Straight Single Hand system
+   protected float FLUSHC; //Cp for Flush Single Hand system
+   protected float FULLHOUSEC; //Cp for Full House Single Hand system
+   protected float FOURKINDC; //Cp for Four Kind Single Hand system
+   protected float STRAIGHTFLUSHC; //Cp for Straight Flush Single Hand system
+   protected float ROYALC; //Cp for Royal Flush Single Hand system
+   protected float HYPERCORNERC; //Cp for Hyper Corner systems 
    protected float OTHERC; //Cp for randomized systems
    
    

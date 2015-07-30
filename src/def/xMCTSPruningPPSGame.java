@@ -44,7 +44,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 	final int SIZE = 5; //number of rows or columns in a Poker Squares grid
 	//A-priori probabilities of...  hc	  2k	 2p	 	3k	   st	  fl	 fh	    4k	   sf	  rf
-	final double[] aprioriProb = {.4254, .2127, .1064, .0608, .0327, .0709, .0387, .0250, .0137, .0137};
+	public final double[] aprioriProb = {.4254, .2127, .1064, .0608, .0327, .0709, .0387, .0250, .0137, .0137};
 	protected PokerSquaresPointSystem pointSystem; // point system
 	//Card weights, for use in calculating an estimated board value
 	protected final double ONE_CARD_WEIGHT = (1.0/10.0);
