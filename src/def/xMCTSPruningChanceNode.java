@@ -34,19 +34,25 @@ package def;
  * The Netherlands.
  */
 /**
- * MCTSNode contains tracks scoring information for each gamestate in a link
- * tree for a Monte Carlo Tree Search
+ * A version of Node meant to emulate the uncertainty of drawing cards. Creates children
+ * based on cards left in the deck and does not use UCT for selection.
  *
- * @author Kyle
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 
 public class xMCTSPruningChanceNode extends xMCTSPruningNode
 {
 
    /**
-    * Instantiates an MCTSNode and initializes ranking variables.
+    * Instantiates an MCTSChanceNode and initializes ranking variables.
     *
-    * @param nodeGameState The GameState this node will keep score for.
+    *  @param nodeGameState the state this node represents
+	 * @param nodeDeck the order of cards used to create this node
+	 * @param constant the Cp value used for UCT calculation
+	 * @param nodeCanDraw the cards still available to be drawn from this node's state
+    * 
     */
    public xMCTSPruningChanceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, float constant, boolean[] nodeCanDraw)
    {
@@ -54,9 +60,7 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
    }
 
    /**
-    * Expands the tree by adding a set of child nodes to this node based on the possible draws left in the deck
-    *
-    * @param possibleMoves The list of moves available, used to determine number of plays
+    * Expands the tree by adding a set of child nodes to this node based on the possible draws left in the deck.
     */
    public synchronized void chanceExpand()
    {
@@ -106,9 +110,11 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
 		  throw new NullPointerException("chance bestSelect has a chance child");
 	  }
    }
-
+   
    /**
-    * Chooses the best available move (node) following this node.
+    * This method should never be called from a chance node, as you cannot decide which card you
+    * will draw next. The method was kept as a means of testing to ensure that nothing ever
+    * attempts to call it.
     *
     * @return the best available move (node) following this node.
     */
@@ -118,6 +124,15 @@ public class xMCTSPruningChanceNode extends xMCTSPruningNode
       return getRandomChild();
    }
    
+   /**
+    * Create an individual node based on the provided information. This is meant
+    * to be used with hard coded moves only, as MCTS uses the expand method to
+    * create multiple nodes at once instead.
+    * 
+    * @param s the state of the node to be created
+    * @param deck the ordering of the cards for the node being created
+    * @param canDraw the cards still possible to draw in the node being created
+    */
    public void createChildNode(xMCTSStringGameState s, Card[] deck, boolean[] canDraw) { 
 	   Card[] deckCopy = java.util.Arrays.copyOf(deck, deck.length);
        boolean[] canDrawCopy = java.util.Arrays.copyOf(canDraw, canDraw.length);

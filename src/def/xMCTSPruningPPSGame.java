@@ -34,9 +34,13 @@ package def;
  * The Netherlands.
  */
 /**
- * A Tic Tac Toe implementation of Game.
+ * An implementation of the original 2012 UCT code for the game Parameterized
+ * Poker Squares. It also includes algorithms for calculating estimated scores for
+ * making pruning decisions during MCTS.
  *
- * @author Kyle
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 import java.util.ArrayList;
 
@@ -118,8 +122,8 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			for (int row = 0; row < gridSize; row += 2) {//for each row
 				for (int col = 0; col < gridSize; col += 2) {//for each column in the specified row
 					int pos = row * SIZE + col;
-					if (gameState.toString().charAt(pos) == '_') {//if this location is blank, then there is not a card played here
-						String possibleMove = gameState.toString().substring(0, pos)
+					if (gameState.toString().charAt(pos) == '_') {//if this location is blank, then there is not a card played here...
+						String possibleMove = gameState.toString().substring(0, pos)//So create a string in which that location and the next position are filled with the active card
 								+ activeCard
 								+ gameState.toString().substring(pos + 2,
 										gameState.toString().length());
@@ -593,6 +597,14 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		// can possibly eliminate Straight, Flush, Straight flush and/or Royal flush
 		if (numCards >= 2){
 			//Pair check, once you have a pair you can no longer have a high card
+			
+			/**
+			 * Note - the use of xCard is meant to avoid numbering mistakes that could arise by hard coding numbers.
+			 * To keep consistency with the rest of the code, when an object is actually created it is done so through
+			 * the original Card class. xCard is meant to be used for comparisons
+			 * 
+			 */
+			
 			if (maxOfAKind == xCard.TWO_KIND)
 				hasHigh = false;
 

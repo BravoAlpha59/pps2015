@@ -6,14 +6,16 @@ public class EarlyPPSTesting {
 
 	public static void main(String[] args) {
 		System.out.println("\n\nEarly Parameterized Poker Squares Testing:");
-		PokerSquaresPlayer player = new xRandomRolloutPruningPlayer((float) (30), (float) (100), (float) (100), (float) (50), (float) (10), (float) (50), (float) (50),
-				(float) (50), (float) (50), (float) (50), (float) (50), (float) (50), (float) (50), (float) (50), (float) (300)); // TODO - replace the RandomPlayer with your best player
+		PokerSquaresPlayer player = new xBestMoveRolloutPlayer(); // TODO - replace the RandomPlayer with your best player
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
 		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());
 		systems.add(PokerSquaresPointSystem.getAmeritishPointSystem());
 		systems.add(PokerSquaresPointSystem.getBritishPointSystem());
 		systems.add(PokerSquaresPointSystem.getHypercornerPointSystem());
+		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
+		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
+		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 		systems.add(PokerSquaresPointSystem.getRandomPointSystem());
 		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.HIGH_CARD.id));
 		systems.add(PokerSquaresPointSystem.getSingleHandPointSystem(PokerHand.ONE_PAIR.id));
@@ -30,7 +32,7 @@ public class EarlyPPSTesting {
 		ArrayList<String> totals = new ArrayList<String>();
 		for (PokerSquaresPointSystem system : systems) {
 			System.out.println(system);
-			int[] scores = new PokerSquares(player, system).playSequence(100, 0L, false); // TODO - set verbose "true" to "false" to omit play-by-play details
+			int[] scores = new PokerSquares(player, system).playSequence(12, 0L, false); // TODO - set verbose "true" to "false" to omit play-by-play details
 			int total = 0;
 			for (int score : scores)
 				total += score;

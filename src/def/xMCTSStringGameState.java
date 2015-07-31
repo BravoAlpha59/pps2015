@@ -33,18 +33,29 @@ package def;
  * The Netherlands.
  */
 
-/*
+/**
  * String game states can be used if you want to encode all gamestate
  * information into a single string. For example, a tic-tac-toe state
  * might be X_X_O____O where the first 9 chars indicate values for
  * spaces and the 10th indicates whose turn it is.
+ * 
+ * For Poker Squares, the string is 52 chars long. The first 50 represent
+ * the 5x5 game board, with 2 chars per position. When a position is filled
+ * with a card, those two chars can go from blank to a representation of card
+ * (e.g. a King of hearts becomes KH, a two of clubs becomes 2C, etc). The 
+ * final two chars are for the "active" card, or the card that the player
+ * has to make a play with.
+ * 
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 public class xMCTSStringGameState
 {
 
-   private String state;
-   public double expectedValue;
-   public int numPlays;
+   private String state;//String representation of the game state
+   public double expectedValue;//The estimated value of this game state based on the pruning calculation
+   public int numPlays;//Number of cards played on this board
    
 
    /**
@@ -58,22 +69,9 @@ public class xMCTSStringGameState
       this.expectedValue = expectedValue;
       this.numPlays = numPlays;
    }
-
-   @Override
-   public boolean equals(Object g)
-   {
-      if (g instanceof xMCTSStringGameState) {
-         return state.equals(((xMCTSStringGameState) g).state);
-      }
-      return false;
-   }
    
-   @Override
-   public int hashCode() {
-	   return state.hashCode();
-   }
    
-
+   
    /**
     * Returns the state as a string.
     *

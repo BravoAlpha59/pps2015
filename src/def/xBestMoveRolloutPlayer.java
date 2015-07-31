@@ -33,39 +33,39 @@ package def;
  * The Netherlands.
  */
 /**
- * An MCTSPlayer with a purely random rollout for hte simulation phase. This
- * player employs no game-specific heuritics, nor does it take special action
- * for moves that are garaunteed to win or lose.
+ * An MCTSPlayer with a simulation strategy based on taking the best estimated move from a state
+ * based on the pruning calculation, and only making that move.
  *
- * @author Kyle
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 
 import java.util.Arrays;
 import java.util.Random;
 
-public class xRandomRolloutPruningPlayer extends xMCTSPPSPruningPlayer
+public class xBestMoveRolloutPlayer extends xMCTSPPSPruningPlayer
 {
 
-   public xRandomRolloutPruningPlayer(float AMERICANC, float AMERITISHC, float BRITISHC, float HIGHCARDC, float ONEPAIRC, float TWOPAIRC, 
-		  float THREEKINDC, float STRAIGHTC, float FLUSHC, float FULLHOUSEC, float FOURKINDC, float STRAIGHTFLUSHC, float ROYALC, float HYPERCORNERC, float OTHERC)
+   public xBestMoveRolloutPlayer()
    {
       super();
       //The constants used for UCT calculating. SetPointSystem will determine which C best suits the provided scoring system
-      this.AMERICANC = AMERICANC;
-      this.AMERITISHC = AMERITISHC;
-      this.BRITISHC = BRITISHC;
-      this.HIGHCARDC = HIGHCARDC;
-      this.ONEPAIRC = ONEPAIRC;
-      this.TWOPAIRC = TWOPAIRC;
-      this.THREEKINDC = THREEKINDC;
-      this.STRAIGHTC = STRAIGHTC;
-      this.FLUSHC = FLUSHC;
-      this.FULLHOUSEC = FULLHOUSEC;
-      this.FOURKINDC = FOURKINDC;
-      this.STRAIGHTFLUSHC = STRAIGHTFLUSHC;
-      this.ROYALC = ROYALC;
-      this.HYPERCORNERC = HYPERCORNERC;
-      this.OTHERC = OTHERC;
+      this.AMERICANC = 20;
+      this.AMERITISHC = 10;
+      this.BRITISHC = 10;
+      this.HIGHCARDC = 10;
+      this.ONEPAIRC = 8;
+      this.TWOPAIRC = 50;
+      this.THREEKINDC = 50;
+      this.STRAIGHTC = 50;
+      this.FLUSHC = 50;
+      this.FULLHOUSEC = 50;
+      this.FOURKINDC = 50;
+      this.STRAIGHTFLUSHC = 50;
+      this.ROYALC = 50;
+      this.HYPERCORNERC = 7;
+      this.OTHERC = 165;
    }
 
    /**

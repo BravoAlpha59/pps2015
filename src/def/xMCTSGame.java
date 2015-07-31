@@ -37,7 +37,8 @@ import java.util.ArrayList;
 /**
  * A class that implements this interface will encapsulate the rules of a given
  * game, including the calculation of available legal moves, and evaluating
- * gamestates for end game conditions.
+ * gamestates for end game conditions. Not a necessary inclusion for the Poker Squares
+ * contest, but kept anyway in case this code is ever revisited for a different game.
  *
  * @author Robert Arrington
  * @author Steven Bogaerts

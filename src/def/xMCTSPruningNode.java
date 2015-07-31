@@ -2,7 +2,16 @@ package def;
 import java.util.ArrayList;
 import java.util.Random;
 
-
+/**
+ * Nodes make up the tree of possible states in a game. Moving down the tree is equivalent to progressing further
+ * in a game, in this case Poker Squares. There are chance nodes, which represent events the player has no control
+ * over, like drawing a card, and choice nodes, which represent a player's potential decisions. General node contains
+ * information common to both chance and choice nodes
+ * 
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
+ */
 public abstract class xMCTSPruningNode {
 
 	

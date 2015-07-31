@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * The Netherlands.
  */
 /**
- * MCTSPPSPruningPlayer is an implementation of a Parameterized Poker Squares player
+ * An implementation of a Parameterized Poker Squares player
  * that focuses on using an MCTS algorithm for decision making in the game. It also
  * uses domain knowledge to evaluate possible nodes and prune undesireable moves.
  *
@@ -116,9 +116,9 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
     	  curNode = curNode.findChildNode(s);
       }
       catch (Exception e) {
-    	  System.out.println("GameCanDraw = " + java.util.Arrays.toString(gameCanDraw));
+    	  System.out.println("GameCanDraw    = " + java.util.Arrays.toString(gameCanDraw));
     	  System.out.println("curNodeCanDraw = " + java.util.Arrays.toString(curNode.nodeCanDraw));
-    	  System.out.println("GameDeck = " + java.util.Arrays.toString(gameDeck));
+    	  System.out.println("GameDeck    = " + java.util.Arrays.toString(gameDeck));
     	  System.out.println("curNodeDeck = " + java.util.Arrays.toString(curNode.nodeDeck));
     	  System.out.println("curNode = " + curNode.getState().toString());
     	  System.out.println("curNode's children:");

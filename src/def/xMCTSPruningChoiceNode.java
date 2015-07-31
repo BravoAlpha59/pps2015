@@ -33,10 +33,13 @@ package def;
  * The Netherlands.
  */
 /**
- * MCTSNode contains tracks scoring information for each gamestate in a link
- * tree for a Monte Carlo Tree Search
+ * A version of node representing the standard MCTS decision tree. Creates 
+ * children based on possible moves left in the board, and uses the UCT formula
+ * to make selection decisions.
  *
- * @author Kyle
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 import java.util.ArrayList;
 
@@ -46,7 +49,10 @@ public class xMCTSPruningChoiceNode extends xMCTSPruningNode
    /**
     * Instantiates an MCTSNode and initializes ranking variables.
     *
-    * @param nodeGameState The GameState this node will keep score for.
+    * @param nodeGameState the state this node represents
+	* @param nodeDeck the order of cards used to create this node
+	* @param constant the Cp value used for UCT calculation
+	* @param nodeCanDraw the cards still available to be drawn from this node's state
     */
    public xMCTSPruningChoiceNode(xMCTSStringGameState nodeGameState, Card[] nodeDeck, float constant, boolean[] nodeCanDraw)
    {

@@ -4,8 +4,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 /**
- * Card - Playing card class representing all 52 cards of a French deck.
+ * xCard - a version of the tournament-provided Card class that we made additions to, namely the inclusion of constants
+ * that we could reference elsewhere to avoid numbering mistakes.
  * @author Todd W. Neller
+ * 
+ * @author Robert Arrington
+ * @author Steven Bogaerts
+ * @author Clay Langley
  */
 public class xCard {
 
@@ -24,6 +29,7 @@ public class xCard {
 	 */
 	public static final int NUM_CARDS = NUM_RANKS * NUM_SUITS;
 	
+	//Variables for each of the ranks, suits, and -of-a-kinds you can have from a single deck
 	public static final int ACE = 0;
 	
 	public static final int TWO = 1;

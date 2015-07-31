@@ -314,13 +314,6 @@ public class PokerSquares {
 		// Demonstration of tournament evaluation (3 players, 2 point systems, 100 x 30s games for each of the 3*2=6 player-system pairs) 
 		System.out.println("\n\nTournament evaluation demo:");
 		ArrayList<PokerSquaresPlayer> players = new ArrayList<PokerSquaresPlayer>();
-<<<<<<< HEAD
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 5));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 7));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 8));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 9));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) 10));
-		players.add(new xRandomRolloutPruningPlayer200rt2((float) (200/Math.sqrt(2))));
 //		players.add(new xRandomRolloutPlayer1rt2());
 //		players.add(new xRandomRolloutPlayer200rt2());
 //		players.add(new xRandomRolloutPlayer725rt2());
@@ -349,7 +342,6 @@ public class PokerSquares {
 		//players.add(new RandomPlayer());
 		//players.add(new GreedyMCPlayer(0));
 		//players.add(new GreedyMCPlayer(2));
-		players.add(new xRandomRolloutPruningPlayer((float) (25), (float) (20), (float) (15), (float) (200/Math.sqrt(2))));
 		ArrayList<PokerSquaresPointSystem> systems = new ArrayList<PokerSquaresPointSystem>();
 		PokerSquaresPointSystem.setSeed(0L);
 		systems.add(PokerSquaresPointSystem.getAmericanPointSystem());
