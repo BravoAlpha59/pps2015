@@ -1,4 +1,4 @@
-package def;
+
 
 /**
  * PokerSquaresPlayer - a simple player interface for PokerSquares.

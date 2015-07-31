@@ -1,18 +1,12 @@
-package def;
 
 import java.util.Arrays;
 import java.util.HashMap;
 
 /**
- * xCard - a version of the tournament-provided Card class that we made additions to, namely the inclusion of constants
- * that we could reference elsewhere to avoid numbering mistakes.
+ * Card - Playing card class representing all 52 cards of a French deck.
  * @author Todd W. Neller
- * 
- * @author Robert Arrington
- * @author Steven Bogaerts
- * @author Clay Langley
  */
-public class xCard {
+public class Card {
 
 	// Static definitions
 	
@@ -28,65 +22,24 @@ public class xCard {
 	 * the number of cards in the 52-card French deck
 	 */
 	public static final int NUM_CARDS = NUM_RANKS * NUM_SUITS;
-	
-	//Variables for each of the ranks, suits, and -of-a-kinds you can have from a single deck
-	public static final int ACE = 0;
-	
-	public static final int TWO = 1;
-	
-	public static final int THREE = 2;
-	
-	public static final int FOUR = 3;
-	
-	public static final int FIVE = 4;
-	
-	public static final int SIX = 5;
-	
-	public static final int SEVEN = 6;
-	
-	public static final int EIGHT = 7;
-	
-	public static final int NINE = 8;
-	
-	public static final int TEN = 9;
-	
-	public static final int JACK = 10;
-	
-	public static final int QUEEN = 11;
-	
-	public static final int KING = 12;
-	
-	public static final int CLUB = 0;
-	
-	public static final int DIAMOND = 1;
-	
-	public static final int HEART = 2;
-	
-	public static final int SPADE = 3;
-	
-	public static final int TWO_KIND = 2;
-	
-	public static final int THREE_KIND = 3;
-	
-	public static final int FOUR_KIND = 4;
 
-	private static xCard[] allCards; // an array of all cards in the deck
+	private static Card[] allCards; // an array of all cards in the deck
 	private static String[] rankNames = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"}; // all single-character rank names
 	private static String[] suitNames = {"C", "D", "H", "S"}; // all single-character suit names
-	private static HashMap<String, xCard> cardMap = new HashMap<String, xCard>(); // mapping from String representations of cards to Card objects
+	private static HashMap<String, Card> cardMap = new HashMap<String, Card>(); // mapping from String representations of cards to Card objects
 
 	static {
 		// upon loading the Card class, initialize 52-card French deck cards
 		
 		// create all card objects
-		allCards = new xCard[rankNames.length * suitNames.length];
+		allCards = new Card[rankNames.length * suitNames.length];
 		int i = 0;
 		for (int suit = 0; suit < suitNames.length; suit++) 
 			for (int rank = 0; rank < rankNames.length; rank++)
-				allCards[i++] = new xCard(rank, suit);
+				allCards[i++] = new Card(rank, suit);
 		
 		// create mapping from String representations to Card objects
-		for (xCard card : allCards)
+		for (Card card : allCards)
 			cardMap.put(card.toString(), card);
 	}
 	
@@ -111,7 +64,7 @@ public class xCard {
 	 * @param cardString card String representation
 	 * @return Card associated with given Card String representation
 	 */
-	public static xCard getCard(String cardString) {
+	public static Card getCard(String cardString) {
 		return cardMap.get(cardString);
 	}
 
@@ -120,7 +73,7 @@ public class xCard {
 	 * @param cardId the unique integer identification number for the desired card
 	 * @return the Card object associated with the given card identification integer
 	 */
-	public static xCard getCard(int cardId) {
+	public static Card getCard(int cardId) {
 		return allCards[cardId];
 	}
 
@@ -128,7 +81,7 @@ public class xCard {
 	 * Get an array containing all cards.
 	 * @return an array containing all cards
 	 */
-	public static xCard[] getAllCards() {
+	public static Card[] getAllCards() {
 		return allCards.clone();
 	}
 
@@ -142,7 +95,7 @@ public class xCard {
 	 * @param rank Card rank. Should be in range [0, NUM_RANKS - 1].
 	 * @param suit Card suit. Should be in range [0, NUM_SUITS - 1].
 	 */
-	public xCard(int rank, int suit) {
+	private Card(int rank, int suit) {
 		this.rank = rank;
 		this.suit = suit;
 	}
@@ -193,7 +146,7 @@ public class xCard {
 	 * @param other the other Card object being tested for equality.
 	 * @return whether or not this card equals another Card object
 	 */
-	public boolean equals(xCard other) {
+	public boolean equals(Card other) {
 		return other != null && this.rank == other.rank && this.suit == other.suit;		
 	}
 	
