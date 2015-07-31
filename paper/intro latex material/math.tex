@@ -1,0 +1,184 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb} 
+\newcommand{\norm}[1]{\lVert#1\rVert} 
+\newcommand{\ud}{\mathrm{d}} \parindent=0pt 
+\input{epsf} 
+
+\begin{document} 
+
+\section{Examples of math in Latex} 
+
+\textbf{Sets}
+
+% $ start and end math mode
+% use {} to group stuff, use \{ to actually display a {
+
+$F=\{F_1,\ldots,F_m\}$
+
+$L=\{\text{edge, non-edge}\}$.
+
+$$f:S \rightarrow L$$
+
+$$f=\{f_1,\ldots,f_m\}$$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{A numbered equation on a separate line}
+
+Equation~\ref{eq:sq} is shown below:
+\begin{equation}
+\mathbf{y^{2}=z_{i}^2} \label{eq:sq}
+\end{equation}
+
+Here's another equation, equation~\ref{eq2:add}:
+\begin{equation}
+\mathbf{y=z_{i}+x_{i}} \label{eq2:add}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Elements of sets}
+
+N sub i:
+$N_i$ 
+
+element of:
+$i \in S$
+
+arrow
+$i \in N_j \Leftrightarrow j \in N_i$
+
+$N= \{ N_i \quad | \quad \forall i \in S\}$. The pair $(S,N)$ 
+
+superscript:
+$x^{2}$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Probability}
+
+Probability  $P(F_i=f_i)$ is abbreviated $P(f_i)$.
+
+The joint event $(F_1=f_1,\ldots,F_m=f_m)$
+
+$F$ is a random Markov field iff:
+
+1) $P(f) > 0, \forall f$
+
+2) $P(f_i | f_{S-\{i\}}) = P(f_i | f_{N_i})$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Sum, Prod}
+
+$$Z=\sum_{\text{all }f} \exp \left( {-\frac{U(f)}{T}} \right)$$ 
+
+$$U(f) = \sum_{c\in C} V_c(f)$$ 
+
+$$U(f) = \sum_{i \in S}V_1(f_i) + \sum_{i \in S}\sum_{j \in N_i} V_2(f_i,
+f_j)$$.
+
+$$U(F)  = \sum_{i \in S} f_i G_i(f_i) + \sum_{i \in S}\sum_{j \in N_i}
+\beta_{ij} f_i f_j$$
+
+$$U(f) = \sum_i (f_i - f_{i-1})^2$$ 
+
+$$U(f) = \sum_{i,j\in N_i} V_2(f_i,f_j)$$
+
+$$U(d|f) = \sum_{i=1}^m (f_i - d_i)^2 / 2 \sigma^2$$
+
+$$
+U(f) = \sum_{i\in S, j \in N_i}\lambda(1-\delta(f_i-f_j))
+$$
+
+$$p(d|f)=\prod_i p(d_i | f_i)$$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fractions}
+
+$$P(f) = \frac{\exp \left( -\frac{U(f)}{T}\right)}{Z}$$
+
+$$
+P(f_i | f_{Ni}) =
+\frac
+{\exp \left[  -\left(V_1(f_i)+ \sum_{j \in N_i} V_2(f_i, f_j) \right)
+\right] }
+{\sum_{f_i \in L }\exp \left[ - \left(V_1(f_i)+ \sum_{j \in N_i} V_2(f_i, f_j)
+\right) \right]}
+$$
+
+Conditional probability for $f_i=0,1$
+$$
+P(f_i | f_{Ni}) = 
+\frac
+{\exp \left(  \alpha f_i + \sum_{j \in N_i}  \beta f_i f_j  \right) }
+{ \sum f_{i \in \{0,1\}} \exp \left(  \alpha f_i + \sum_{j
+\in N_i}  \beta f_i f_j  \right)}
+$$
+
+$$p(d|f) = \frac{1}{\prod_{i=1}^{m} \sqrt{2 \pi \sigma_i^2}} \exp(-U(d|f))$$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Argmin, Argmax}
+
+$$
+f^* = \arg \min_f U(f|d)
+$$
+
+$$
+f^* =  \arg \max_f \{ P(f|d) \} = \arg \max_f \{ p(d|f) P(f) \}
+$$
+
+$$
+f_i^{(k+1)}=\arg \min_{f_i} V(f_i | d_i, f_{N_i}^{(k)})
+$$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Misc}
+
+$d_i = f_i + e_i$, with $e_i \sim N(\mu, \sigma^2)$.
+
+$a \leq x_i \leq b$
+
+$$
+V_c(f)=
+\begin{cases}
+0 & \text{all sites in $c$ have same label}\\
+\lambda_c > 0 & \text{otherwise}
+\end{cases}
+$$
+
+\textit{A special case:}
+Only 2-cliques
+$$V_2(f_i, f_j) = \lambda (1-\delta(f_i-f_j))$$
+
+$g(x) = \min(x^2, \theta)$.
+
+$g(\cdot)$ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Metropolis sampler (algorithm)}
+For a given 'temperature' $T$:
+
+\begin{itemize}
+\item initialize $f$
+\item Repeat
+  \begin{enumerate}
+    \item generate $f' \in N(f)$.\\ $N(f)$ denotes the vicinity of $f$:
+      the new configuration $f'$ is obtained by perturbing $f$. Example:
+      change the label at site $i$: $f_i \rightarrow f'_i$.
+    \item $\Delta U = U(f')-U(f)$
+    \item $P=\min\{1,\exp(-\Delta/T)\}$
+    \item if random$[0,1) < P$ then $f:=f'$.\\
+      The new configuration $f'$ is always accepted if $\Delta U \leq
+      0$ and accepted with probability $P=\exp(-\Delta U / T)\}$ if
+      $\Delta U > 0$. This is the occasional 'uphill' move,
+      facilitated by high $T$.
+  \end{enumerate}
+  \item until equilibrium
+  \item return $f$
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
+
+

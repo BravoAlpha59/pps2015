@@ -1,0 +1,34 @@
+These are all the files related to an example paper.
+
+I'd recommend looking at the pdf a bit and noting things like citations, figures, etc. When you find something you want to do in your own paper, find the corresponding code in the .tex file, here, copy it into your own paper, and modify as needed.
+
+-------------------------------------------------
+
+The main file is parallelNNGA.tex.
+
+-------------------------------------------------
+
+The dat files are used to make graphs in the paper. Search the .tex file for ".dat" to see examples.
+
+-------------------------------------------------
+
+The .png file is an image file that's loaded in as a figure in the paper. Do a search on ".png" to see.
+
+
+-------------------------------------------------
+
+The .bib file contains the BibTex entries. You can get these things from Google Scholar. For example:
+
+https://scholar.google.com/scholar?hl=en&q=kaastra+designing+a+neural+network+forecasting&btnG=&as_sdt=1%2C15&as_sdtp=
+
+Note the first result has a small link under the summary labeled "cite". Click on that, then click on "BibTeX" and copy that thar thang.
+
+Then in your paper, you'd need to write ~\cite{kaastra1996designing} or whatever the citation name is.
+
+-------------------------------------------------
+
+The .bst and .sty files are "style files". Often, each conference will have their own, to automatically set up the need look for the papers. Don't change those at all.
+
+-------------------------------------------------
+
+The remaining files are generated automatically when you "compile" your .tex file. The .pdf is the final version, of course.

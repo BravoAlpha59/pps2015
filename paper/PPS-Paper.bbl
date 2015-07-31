@@ -1,0 +1,59 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Browne \bgroup et al\mbox.\egroup
+  }{2012}]{browne2012survey}
+Browne, C.~B.; Powley, E.; Whitehouse, D.; Lucas, S.~M.; Cowling, P.;
+  Rohlfshagen, P.; Tavener, S.; Perez, D.; Samothrakis, S.; Colton, S.; et~al.
+\newblock 2012.
+\newblock A survey of monte carlo tree search methods.
+\newblock {\em Computational Intelligence and AI in Games, IEEE Transactions
+  on} 4(1):1--43.
+
+\bibitem[\protect\citeauthoryear{Huang \bgroup et al\mbox.\egroup
+  }{2010}]{huang2010pruning}
+Huang, J.; Liu, Z.; Lu, B.; and Xiao, F.
+\newblock 2010.
+\newblock Pruning in uct algorithm.
+\newblock In {\em Technologies and Applications of Artificial Intelligence
+  (TAAI), 2010 International Conference on},  177--181.
+\newblock IEEE.
+
+\bibitem[\protect\citeauthoryear{Hughart}{2012}]{hughart2012uct}
+Hughart, K.
+\newblock 2012.
+\newblock Uct for games.
+\newblock https://code.google.com /p/uct-for-games/.
+\newblock Accessed: 2015-06-05.
+
+\bibitem[\protect\citeauthoryear{Kocsis, Szepesv{\'a}ri, and
+  Willemson}{2006}]{kocsis2006improved}
+Kocsis, L.; Szepesv{\'a}ri, C.; and Willemson, J.
+\newblock 2006.
+\newblock Improved monte-carlo search.
+\newblock {\em Univ. Tartu, Estonia, Tech. Rep} 1.
+
+\bibitem[\protect\citeauthoryear{Schadd \bgroup et al\mbox.\egroup
+  }{2012}]{schadd2012single}
+Schadd, M.~P.; Winands, M.~H.; Tak, M.~J.; and Uiterwijk, J.~W.
+\newblock 2012.
+\newblock Single-player monte-carlo tree search for samegame.
+\newblock {\em Knowledge-Based Systems} 34:3--11.
+
+\bibitem[\protect\citeauthoryear{Sephton \bgroup et al\mbox.\egroup
+  }{2014}]{sephton2014ieee}
+Sephton, N.; Cowling, P.; Powley, E.; and Slaven, N.
+\newblock 2014.
+\newblock Heuristic move pruning in monte carlo tree search for the strategic
+  card game lords of war.
+\newblock In {\em Computational Intelligence and Games (CIG), 2014 IEEE
+  Conference on},  1--7.
+
+\bibitem[\protect\citeauthoryear{Winands, Bjornsson, and
+  Saito}{2010}]{winands2010monte}
+Winands, M.~H.; Bjornsson, Y.; and Saito, J.-T.
+\newblock 2010.
+\newblock Monte carlo tree search in lines of action.
+\newblock {\em Computational Intelligence and AI in Games, IEEE Transactions
+  on} 2(4):239--250.
+
+\end{thebibliography}

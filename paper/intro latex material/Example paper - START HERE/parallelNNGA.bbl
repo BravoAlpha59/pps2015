@@ -1,0 +1,43 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Bache and Lichman}{2013}]{Bache}
+Bache, K., and Lichman, M.
+\newblock 2013.
+\newblock {UCI} machine learning repository.
+
+\bibitem[\protect\citeauthoryear{Gruau}{1994}]{Gruau}
+Gruau, F.
+\newblock 1994.
+\newblock {\em Neural Network Synthesis Using Cellular Encoding and the Genetic
+  Algorithm}.
+\newblock Ph.D. Dissertation.
+
+\bibitem[\protect\citeauthoryear{Kim, Asaad, and Linsker}{2014}]{Kim}
+Kim, L.-W.; Asaad, S.; and Linsker, R.
+\newblock 2014.
+\newblock A fully pipelined fpga architecture of a factored restricted
+  boltzmann machine artificial neural network.
+\newblock {\em ACM Trans. Reconfigurable Technol. Syst.} 7(1):5:1--5:23.
+
+\bibitem[\protect\citeauthoryear{{OpenMP Architecture Review
+  Board}}{2011}]{OpenMP}
+{OpenMP Architecture Review Board}.
+\newblock 2011.
+\newblock {OpenMP} application program interface version 3.1.
+
+\bibitem[\protect\citeauthoryear{Russell and Norvig}{2009}]{AImodern}
+Russell, S., and Norvig, P.
+\newblock 2009.
+\newblock {\em Artificial Intelligence: A Modern Approach}.
+\newblock Upper Saddle River, NJ, USA: Prentice Hall Press, 3rd edition.
+
+\bibitem[\protect\citeauthoryear{Soares, Antunes, and
+  Ara\'{u}jo}{2012}]{Soares}
+Soares, S.; Antunes, C.; and Ara\'{u}jo, R.
+\newblock 2012.
+\newblock A genetic algorithm for designing neural network ensembles.
+\newblock In {\em Proceedings of the 14th Annual Conference on Genetic and
+  Evolutionary Computation}, GECCO '12,  681--688.
+\newblock New York, NY, USA: ACM.
+
+\end{thebibliography}

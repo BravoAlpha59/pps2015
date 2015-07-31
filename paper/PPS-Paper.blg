@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: PPS-Paper.aux
+The style file: aaai.bst
+Database file #1: PPS-Paper.bib
+You've used 7 entries,
+            2568 wiz_defined-function locations,
+            614 strings with 5911 characters,
+and the built_in function-call counts, 3234 in all, are:
+= -- 339
+> -- 170
+< -- 2
++ -- 61
+- -- 60
+* -- 264
+:= -- 542
+add.period$ -- 37
+call.type$ -- 7
+change.case$ -- 57
+chr.to.int$ -- 7
+cite$ -- 7
+duplicate$ -- 111
+empty$ -- 201
+format.name$ -- 71
+if$ -- 656
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 6
+newline$ -- 47
+num.names$ -- 21
+pop$ -- 49
+preamble$ -- 1
+purify$ -- 64
+quote$ -- 0
+skip$ -- 92
+stack$ -- 0
+substring$ -- 137
+swap$ -- 28
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 56
+warning$ -- 0
+while$ -- 25
+width$ -- 10
+write$ -- 103
