@@ -161,7 +161,7 @@ Recall in our core MCTS implementation that the selection process uses UCT to fi
 
 As discussed in the section {\it \nameref{relatedWork}}, there are two typical strategies for pruning: soft pruning, in which pruned nodes may be brought back, and hard pruning, in which pruned nodes are lost forever. While soft pruning may have some benefits, the decision of whether or not to bring a node back leads to extra computation and knowledge requirements, and so we opt for hard pruning in this work.
 
-First we calculate the heuristic score $h(p)$ for the parent. The value $\delta \cdot h(p)$, for some constant $\delta$, is set as the heuristic score threshold for each child. All children below this threshold are pruned, never to be considered for selection. For example, $\delta = 0.9$ would prune children with $ < 90\%$ of the score of the parent, while any $\delta > 1$ would prune all children that do not improve over the score of the parent. For the purposes of future experiments, we fix $\delta$ at {\bf fill in}.
+First we calculate the heuristic score $h(p)$ for the parent. The value $\delta \cdot h(p)$, for some constant $\delta$, is set as the heuristic score threshold for each child. All children below this threshold are pruned, never to be considered for selection. For example, $\delta = 0.9$ would prune children with $ < 90\%$ of the score of the parent, while any $\delta > 1$ would prune all children that do not improve over the score of the parent. For the purposes of future experiments, we fix $\delta$ at $1.30$.
 
 In practice, this sometimes leads to over-pruning. For example, if a drawn card does not fit well in any open space, all children may have lower heuristic scores than the parent. Thus an additional safeguard is used, that no more than 70\% of the children of any given parent may be pruned. If the  $\delta \cdot h(p)$ threshold prunes more than this amount, then only the bottom 50\% of the children are pruned.
 
@@ -204,14 +204,6 @@ Max 2000 & 0 -- 2000 & 90 \\
 \end{tabular}
 \end{table}
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=1\linewidth]{images/Cp.png}
-\end{center}
-\caption{Mean score (American system) for various $C_p$}
-\label{fig:Cp}
-\end{figure}
-
 %\begin{table}
 %\captionof{table}{Effect of $C_p$ Values With No Squashing}
 %\label{tbl:noSquashing}
@@ -238,6 +230,14 @@ This begs the question, however, of whether squashing and using $C_p = 1 / \sqrt
 It is also interesting to note that the best scores in Figure~\ref{fig:Cp} are a bit higher than the scores in Table~\ref{tbl:Squashing}. This is likely due to the issues described previously, that in games that do not use the full range of scores, squashing can be problematic. While the squashing procedure could likely be tuned precisely to achieve a higher score, it seems simpler in this case to achieve the same by adjusting the single variable $C_p$.
 
 The goal of these experiments was to fix a $C_p$ value for the experiments that follow. Figure~\ref{fig:Cp} suggests that around $C_p = 20$ is the best value for American scoring. Since other scoring systems will have different typical scores, the ideal setting will vary by system. Figure~\ref{fig:Cp} does suggest, however, that reasonably good performance can be achieved for any $C_p$ value above some minimum dependent on the scoring system. Since we are designing a player to be effective under any system, we choose a fairly high $C_p = 200 / \sqrt{2} = 141.4$ and focus on other parameters in the remainder of this paper, rather than creating a more dynamic $C_p$ at this time.\footnote{This value was originally chosen based on the idea that 200 is often considered a ``winning'' score in the American system, and thus we were comparing it to a squashed value of 1. In practice this value gave good results across scoring systems, and so its use was continued, although other values would be appropriate as well.} 
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/Cp.png}
+\end{center}
+\caption{Mean score (American system) for various $C_p$}
+\label{fig:Cp}
+\end{figure}
 
 %\begin{table}
 %\captionof{table}{Effect of $C_p$ Values With No Squashing}
