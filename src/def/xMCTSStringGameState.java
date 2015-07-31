@@ -70,7 +70,20 @@ public class xMCTSStringGameState
       this.numPlays = numPlays;
    }
    
-   
+   @Override
+   /**
+    * Override the equals method to compare two strings
+    * 
+    * @param g the object being compared to this game state
+    * @return true if the object is a StringGameState and matches this state's string, false if otherwise
+    */
+   public boolean equals(Object g)
+   {
+      if (g instanceof xMCTSStringGameState) {
+         return state.equals(((xMCTSStringGameState) g).state);
+      }
+      return false;
+   }
    
    /**
     * Returns the state as a string.

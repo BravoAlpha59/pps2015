@@ -82,20 +82,21 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
    
    
    //tracking variables for debugging
-   protected long totalTrials = 0; 
-   protected long totalPruning = 0;
-   protected long totalSingleGameTrials;
-   protected float averageTimeRemaining = 0;
-   protected long numGamesPlayed = 0;
+//   protected long totalTrials = 0; 
+//   protected long totalPruning = 0;
+//   protected long totalSingleGameTrials;
+//   protected float averageTimeRemaining = 0;
+//   protected long numGamesPlayed = 0;
+//   Card getPlayCard = Card.getCard(null);
+//   int getPlayTrials;
    
    //Created outside of getPlay for further debugging
    int remainingPlays = 0;
    long millisPerPlay = 0; 
    long startTime = 0;
    long endTime = 0;
-   Card getPlayCard = Card.getCard(null);
    long millisRemainingFromGetPlayStart = 0;
-   int getPlayTrials;
+   
 
    /**
     * Instantiates the player. Nothing happens here because all game creation and setup is done in either init or setPointSystem
@@ -115,7 +116,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
       try {
     	  curNode = curNode.findChildNode(s);
       }
-      catch (Exception e) {
+      catch (Exception e) {//When there is a problem with node creation, this is typically the first place that problem comes up
     	  System.out.println("GameCanDraw    = " + java.util.Arrays.toString(gameCanDraw));
     	  System.out.println("curNodeCanDraw = " + java.util.Arrays.toString(curNode.nodeCanDraw));
     	  System.out.println("GameDeck    = " + java.util.Arrays.toString(gameDeck));
@@ -143,8 +144,8 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
    public int[] getPlay(Card card, long millisRemaining)
    {
 	 //tracking variables
-	 getPlayTrials = 0;
-	 getPlayCard = card;
+	 //getPlayTrials = 0;
+	 //getPlayCard = card;
 	   
 	// match gameDeck to actual play event; in this way, all indices forward from the card contain a list of unplayed cards
 	  	int cardIndex = numPlays;
@@ -226,7 +227,7 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
   		 {
   			 //keep running trials until the given time is used up
   			 runTrial(curNode);
-  			 getPlayTrials++;
+  			 //getPlayTrials++;
   		 }
 
   		 //After running as many trials as possible, determine the move with the highest Q/N value. Then, update the
@@ -283,29 +284,28 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 	 //return an array holding the row and column of the move that resulted in this new state
 	 int[] temp = curNode.bestMoveLocation(card);
       
-	 //all the tracking information for debugging, only displayed on the final move of each game
-      totalSingleGameTrials += getPlayTrials;
-      if (numPlays == 25) {
-    	  System.out.println(); //blank line
-    	  float timeRemaining = (millisRemaining);
-    	  System.out.println("Time remaining this game (before print statements) = " + timeRemaining);
-    	  numGamesPlayed++;
-    	  System.out.println("Total games played = " + numGamesPlayed);
-    	  averageTimeRemaining = ((averageTimeRemaining * (numGamesPlayed - 1)) + timeRemaining)/numGamesPlayed;
-    	  System.out.println("Average time remaining = " + averageTimeRemaining);
-    	  System.out.println("Total trials this game: " + totalSingleGameTrials);
-      	  totalTrials += totalSingleGameTrials;
-      	  totalPruning += g.totalChildrenPruned;
-      	  System.out.println("Total trials overall  : " + totalTrials);
-      	  System.out.println("Total children pruned this game : " + g.totalChildrenPruned);
-      	  System.out.println("Total children pruned overall   : " + totalPruning);
-      	  //System.out.println("average pruned before division = " + g.totalPercentPruned);
-      	  //System.out.println("total times pruning was considered = " + g.timesCalled);
-      	  g.totalPercentPruned /= g.timesCalled;
-      	  System.out.println("Average percent pruned          : " + (1.0 - g.totalPercentPruned));
-      	  System.out.println("Total moves looked at throughout the game = " + g.overAllMoves);
-      	  
-      }
+	 //all the tracking information for debugging, only displayed on the final move of each game. Commented out so as to not interfere with
+	 //the tournament, but left in as an indicator of what we found useful to track per game
+//      totalSingleGameTrials += getPlayTrials;
+//      if (numPlays == 25) {
+//    	  System.out.println(); //blank line
+//    	  float timeRemaining = (millisRemaining);
+//    	  System.out.println("Time remaining this game (before print statements) = " + timeRemaining);
+//    	  numGamesPlayed++;
+//    	  System.out.println("Total games played = " + numGamesPlayed);
+//    	  averageTimeRemaining = ((averageTimeRemaining * (numGamesPlayed - 1)) + timeRemaining)/numGamesPlayed;
+//    	  System.out.println("Average time remaining = " + averageTimeRemaining);
+//    	  System.out.println("Total trials this game: " + totalSingleGameTrials);
+//      	  totalTrials += totalSingleGameTrials;
+//      	  totalPruning += g.totalChildrenPruned;
+//      	  System.out.println("Total trials overall  : " + totalTrials);
+//      	  System.out.println("Total children pruned this game : " + g.totalChildrenPruned);
+//      	  System.out.println("Total children pruned overall   : " + totalPruning);
+//      	  g.totalPercentPruned /= g.timesCalled;
+//      	  System.out.println("Average percent pruned          : " + (1.0 - g.totalPercentPruned));
+//      	  System.out.println("Total moves looked at throughout the game = " + g.overAllMoves);
+//      	  
+//      }
       
 	  return temp;		
    }
@@ -408,9 +408,10 @@ public abstract class xMCTSPPSPruningPlayer implements PokerSquaresPlayer
 				true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, 
 				true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}; 
 	    
-	    //reset printed values. Can be removed when done with testing entirely.
-	    g.resetTrackingValues();
-	    totalSingleGameTrials = 0;
+	    //reset printed values. Not removed so it can serve as an example of what we tracked.
+	    //g.resetTrackingValues();
+	    //totalSingleGameTrials = 0;
+	    
 	    //reset currentState to a blank board
 	    currentState = g.getStartingState();
 	    //reset curNode to a node representing the blank board

@@ -32,7 +32,7 @@ public class EarlyPPSTesting {
 		ArrayList<String> totals = new ArrayList<String>();
 		for (PokerSquaresPointSystem system : systems) {
 			System.out.println(system);
-			int[] scores = new PokerSquares(player, system).playSequence(12, 0L, false); // TODO - set verbose "true" to "false" to omit play-by-play details
+			int[] scores = new PokerSquares(player, system).playSequence(1, 0L, false); // TODO - set verbose "true" to "false" to omit play-by-play details
 			int total = 0;
 			for (int score : scores)
 				total += score;

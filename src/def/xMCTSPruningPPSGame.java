@@ -49,7 +49,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 
 	final int SIZE = 5; //number of rows or columns in a Poker Squares grid
 	//A-priori probabilities of...  hc	  2k	 2p	 	3k	   st	  fl	 fh	    4k	   sf	  rf
-	public final double[] aprioriProb = {.4254, .2127, .1064, .0608, .0327, .0709, .0387, .0250, .0137, .0137};
+	protected final double[] aprioriProb = {.4254, .2127, .1064, .0608, .0327, .0709, .0387, .0250, .0137, .0137};
 	protected PokerSquaresPointSystem pointSystem; // point system
 	//Card weights, for use in calculating an estimated board value
 	protected final double ONE_CARD_WEIGHT = (1.0/10.0);
@@ -73,10 +73,10 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	Card[][] grid = new Card[SIZE][SIZE]; // grid with Card objects or null (for empty positions)
 	
 	//tracking values for debugging
-	public long totalChildrenPruned = 0;
-	public double totalPercentPruned;
-	public long timesCalled;
-	public long overAllMoves;
+//	public long totalChildrenPruned = 0;
+//	public double totalPercentPruned;
+//	public long timesCalled;
+//	public long overAllMoves;
 
 	/**
 	 * Instantiate the game
@@ -111,7 +111,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		int childNumPlays = gameState.numPlays + 1; //numplays for each of these moves is one more than the given state's
 		
 		//tracking variable for debugging
-		double percentPruned;
+		//double percentPruned;
 		
 	
 		//if it's a board where there will actually be moves to evaluate
@@ -138,7 +138,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 							}
 							else {//if this play was pruned
 								prunedMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
-								totalChildrenPruned++;
+								//totalChildrenPruned++;
 							}
 						}
 						else { //numplays 0 or 24, so no pruning here
@@ -149,27 +149,28 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			}
 			if (parentNumPlays < 24 && parentNumPlays > 0) {//should only run this when considering pruning
 				double totalMoves = posMoves.size() + prunedMoves.size();
+				
 				//If posMoves' size is below a certain percent of the total number of moves, add all already-pruned moves above the average of all of the children to posMoves
 				//This allows for the pruning of moves without worrying about overpruning and leaving no moves available
 				if (posMoves.size() < PRUNE_LIMIT * (posMoves.size() + prunedMoves.size())) {
-					scoreMean /= (posMoves.size() + prunedMoves.size());
+					scoreMean /= (totalMoves);
 					double adjust_rounding = 0.0;
 					for (xMCTSStringGameState move : prunedMoves) {
 						if (scoreMean >= 0.0)
-							adjust_rounding = POSITIVE_ROUND_ADJ;
+							adjust_rounding = POSITIVE_ROUND_ADJ;//See above for why these are necessary
 						else
 							adjust_rounding = NEGATIVE_ROUND_ADJ;
 						if (move.expectedValue >= scoreMean * adjust_rounding) {
-							totalChildrenPruned--;
+							//totalChildrenPruned--;
 							posMoves.add(move);
 						}
 					}
 				}
 			//update tracking values
-			timesCalled++; 
-			overAllMoves += totalMoves;
-			percentPruned = (posMoves.size() / totalMoves);
-			totalPercentPruned += percentPruned;
+//			timesCalled++; 
+//			overAllMoves += totalMoves;
+//			percentPruned = (posMoves.size() / totalMoves);
+//			totalPercentPruned += percentPruned;
 			}
 		}
 		return posMoves;
@@ -192,7 +193,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 		int childNumPlays = gameState.numPlays + 1; //numplays for each of these moves is one more than the given state's
 		
 		//tracking value
-		double percentPruned;
+		//double percentPruned;
 
 		//if it's a board where there will actually be moves to evaluate
 		if (gameStatus(gameState) == xMCTSGame.status.ONGOING) {
@@ -215,7 +216,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 									maxChildExpectedValue = boardExpectedValue;
 								}
 								prunedMoves.add(new xMCTSStringGameState(possibleMove, boardExpectedValue, childNumPlays));
-								totalChildrenPruned++;
+								//totalChildrenPruned++;
 						}
 						else { //numplays 0 or 24, so no pruning here
 							posMoves.add(new xMCTSStringGameState(possibleMove, 0.0, childNumPlays));
@@ -226,15 +227,15 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			if (parentNumPlays < 24 && parentNumPlays > 0) {//should only run this when considering pruning
 					for (xMCTSStringGameState move : prunedMoves) {
 						if (move.expectedValue == maxChildExpectedValue) {
-							totalChildrenPruned--;
+							//totalChildrenPruned--;
 							posMoves.add(move);
 							break;
 						}
 					}
-			timesCalled++;
-			overAllMoves += prunedMoves.size();
-			percentPruned = (posMoves.size() / (double) prunedMoves.size());
-			totalPercentPruned += percentPruned;
+//			timesCalled++;
+//			overAllMoves += prunedMoves.size();
+//			percentPruned = (posMoves.size() / (double) prunedMoves.size());
+//			totalPercentPruned += percentPruned;
 			}
 		}
 		return posMoves;
@@ -259,7 +260,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 																 Card.getCard(possibleMove.substring(childRow+4, childRow+6)), 
 																 Card.getCard(possibleMove.substring(childRow+6, childRow+8)),
 																 Card.getCard(possibleMove.substring(childRow+8, childRow+10))}, 
-													 numPlays, canDraw);
+													 numPlays, canDraw);//A row broken up into five spaces
 			boardExpectedValue += handExpectedValue;
 		}
 
@@ -270,7 +271,7 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 																 Card.getCard(possibleMove.substring(childCol+20, childCol+22)), 
 																 Card.getCard(possibleMove.substring(childCol+30, childCol+32)),
 																 Card.getCard(possibleMove.substring(childCol+40, childCol+42))}, 
-													 numPlays, canDraw);
+													 numPlays, canDraw);//A column broken up into five spaces
 			boardExpectedValue += handExpectedValue;
 		}
 		return boardExpectedValue;
@@ -307,13 +308,13 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 			//for each poker hand type
 			for (int i = 0; i < handProbabilities.length; i++) { //add the expected value of each hand type to this hand's expected value. Hands that are impossible to make result in adding 0
 				double cardCountWeight;
-				if (handProbabilities[i] > 0) {
+				if (handProbabilities[i] > 0) {//if this hand isn't impossible to finish
 					if (numCards == 4)
 						cardCountWeight = FOUR_CARD_WEIGHT;
 					else //5 cards
 						cardCountWeight = FIVE_CARD_WEIGHT;
 					//add the score of this particular hand type, weighted by its calculated probability and the weight of this type of hand, to the estimated value of this hand
-					handExpectedValue += handProbabilities[i] * pointSystem.getHandScore(i) * cardCountWeight;
+					handExpectedValue += handProbabilities[i] * pointSystem.getHandScore(i) * cardCountWeight;//5 Card hands have a probability of 1 for whatever hand they are, as they cannot be changed
 				}
 
 			}
@@ -334,16 +335,16 @@ public class xMCTSPruningPPSGame implements xMCTSGame
 	
 				isHandPossible = getPossibleHands(hand, rankCounts, suitCounts, numCards);
 				for (int i = 0; i < isHandPossible.length; i++) {
-					if (isHandPossible[i] == COMPLETED) { //if a hand type is possible, add its a-priori expected value to this hand's expected value including the card weights
+					if (isHandPossible[i] == COMPLETED) { //if a hand type is completed, add the value of that type to this hand's expected value, including the card weights
 						handExpectedValue += /*aprioriProb[i] * */pointSystem.getHandScore(i) * cardCountWeight;// do we need to weight by probability if it's already complete?
 					}
-					else if (isHandPossible[i] == POSSIBLE) {//if a hand type is possible, add its a-priori expected value to this hand's expected value including the card and moves remaining weights
+					else if (isHandPossible[i] == POSSIBLE) {//if a hand type is possible, add its a-priori expected value to this hand's expected value, including the card weights
 						handExpectedValue += aprioriProb[i] * pointSystem.getHandScore(i) * cardCountWeight; 
 					}
 				}
 			}
 			else {
-				handExpectedValue += ZERO_CARD;
+				handExpectedValue += ZERO_CARD; //if the hand is empty, provide a small buffer value.
 			}
 		}
 		return handExpectedValue;
@@ -376,12 +377,15 @@ public class xMCTSPruningPPSGame implements xMCTSGame
       return new xMCTSStringGameState("____________________________________________________", 0.0, 0);
    }
    
-   //Reset certain variables without needing to recreate the game class every single time a new game starts
-   public void resetTrackingValues() {
-	   totalPercentPruned = 0;
-	   timesCalled = 0;
-	   overAllMoves = 0;
-   } 
+   /**
+    * a method to reset tracking values in the game when init is called in the player, so that a new game class is not needed every single game.
+    * Only a necessary method when values are being tracked.
+    */
+//   public void resetTrackingValues() {
+//	   totalPercentPruned = 0;
+//	   timesCalled = 0;
+//	   overAllMoves = 0;
+//   } 
    
 	/**
 	 *  getPossibleHands - gets an array of cards representing a poker hand and evaluates the possible hands
